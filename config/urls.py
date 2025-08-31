@@ -11,12 +11,63 @@ from django.contrib import admin
 from django.http import JsonResponse
 from django.urls import include, path
 from django.views.decorators.cache import never_cache
+from django.db import connection
+from django.core.cache import cache
+from datetime import datetime
+import os
 
 
 @never_cache
 def health_check(request):
-    """Basic health check endpoint."""
-    return JsonResponse({"status": "healthy", "service": "django-app", "version": "1.0.0"})
+    """Comprehensive health check endpoint for deployment validation."""
+    health_status = {
+        'status': 'healthy',
+        'timestamp': datetime.utcnow().isoformat(),
+        'service': 'django-app',
+        'version': '1.0.0',
+        'environment': os.environ.get('ENVIRONMENT', 'unknown'),
+        'checks': {}
+    }
+    
+    # Database health check
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+        health_status['checks']['database'] = 'healthy'
+    except Exception as e:
+        health_status['checks']['database'] = f'unhealthy: {str(e)}'
+        health_status['status'] = 'degraded'
+    
+    # Cache health check
+    try:
+        test_key = 'health_check_test'
+        test_value = 'ok'
+        cache.set(test_key, test_value, 10)
+        cached_value = cache.get(test_key)
+        if cached_value == test_value:
+            health_status['checks']['cache'] = 'healthy'
+        else:
+            health_status['checks']['cache'] = 'unhealthy: cache test failed'
+            health_status['status'] = 'degraded'
+    except Exception as e:
+        health_status['checks']['cache'] = f'unhealthy: {str(e)}'
+        health_status['status'] = 'degraded'
+    
+    # Basic application check
+    try:
+        # Test that Django is working properly
+        from django.contrib.auth.models import User
+        user_count = User.objects.count()
+        health_status['checks']['application'] = 'healthy'
+        health_status['user_count'] = user_count
+    except Exception as e:
+        health_status['checks']['application'] = f'unhealthy: {str(e)}'
+        health_status['status'] = 'unhealthy'
+    
+    # Set appropriate HTTP status code
+    status_code = 200 if health_status['status'] == 'healthy' else 503
+    return JsonResponse(health_status, status=status_code)
 
 
 urlpatterns = [
