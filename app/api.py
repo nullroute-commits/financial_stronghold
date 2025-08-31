@@ -12,18 +12,24 @@ from app.financial_models import Account, Budget, Fee, Transaction
 from app.schemas import (
     AccountCreate,
     AccountRead,
+    AccountSummary,
     AccountUpdate,
     BudgetCreate,
     BudgetRead,
+    BudgetStatus,
     BudgetUpdate,
+    DashboardData,
     FeeCreate,
     FeeRead,
     FeeUpdate,
+    FinancialSummary,
     TransactionCreate,
     TransactionRead,
+    TransactionSummary,
     TransactionUpdate,
 )
 from app.services import TenantService
+from app.dashboard_service import DashboardService
 
 router = APIRouter(prefix="/financial", tags=["financial"])
 
@@ -218,4 +224,65 @@ def list_budgets(
     service = TenantService(db=db, model=Budget)
     return service.get_all(
         tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"], limit=limit, offset=offset
+    )
+
+
+# Dashboard endpoints
+@router.get("/dashboard", response_model=DashboardData)
+def get_dashboard_data(
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Get complete dashboard data for the tenant."""
+    dashboard_service = DashboardService(db=db)
+    return dashboard_service.get_complete_dashboard_data(
+        tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
+    )
+
+
+@router.get("/dashboard/summary", response_model=FinancialSummary)
+def get_financial_summary(
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Get financial summary for the tenant."""
+    dashboard_service = DashboardService(db=db)
+    return dashboard_service.get_financial_summary(
+        tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
+    )
+
+
+@router.get("/dashboard/accounts", response_model=List[AccountSummary])
+def get_account_summaries(
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Get account summaries for the tenant."""
+    dashboard_service = DashboardService(db=db)
+    return dashboard_service.get_account_summaries(
+        tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
+    )
+
+
+@router.get("/dashboard/transactions", response_model=TransactionSummary)
+def get_transaction_summary(
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Get transaction summary for the tenant."""
+    dashboard_service = DashboardService(db=db)
+    return dashboard_service.get_transaction_summary(
+        tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
+    )
+
+
+@router.get("/dashboard/budgets", response_model=List[BudgetStatus])
+def get_budget_statuses(
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Get budget statuses for the tenant."""
+    dashboard_service = DashboardService(db=db)
+    return dashboard_service.get_budget_statuses(
+        tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
     )

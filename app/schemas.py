@@ -203,3 +203,77 @@ class UserOrganizationLinkCreate(BaseModel):
 
 class UserOrganizationLinkUpdate(BaseModel):
     role: str
+
+
+# Dashboard Schemas
+class AccountSummary(BaseModel):
+    """Account summary for dashboard."""
+    
+    account_id: UUID
+    name: str
+    account_type: str
+    balance: Decimal
+    currency: str
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+
+class TransactionSummary(BaseModel):
+    """Transaction summary for dashboard."""
+    
+    total_transactions: int
+    total_amount: Decimal
+    avg_amount: Decimal
+    currency: str
+    recent_transactions: List['TransactionRead']
+
+    class Config:
+        from_attributes = True
+
+
+class BudgetStatus(BaseModel):
+    """Budget status for dashboard."""
+    
+    budget_id: UUID
+    name: str
+    total_amount: Decimal
+    spent_amount: Decimal
+    remaining_amount: Decimal
+    percentage_used: Decimal
+    is_over_budget: bool
+    alert_threshold: Optional[Decimal]
+    currency: str
+
+    class Config:
+        from_attributes = True
+
+
+class FinancialSummary(BaseModel):
+    """Complete financial summary for dashboard."""
+    
+    total_balance: Decimal
+    total_accounts: int
+    active_accounts: int
+    total_transactions: int
+    this_month_transactions: int
+    this_month_amount: Decimal
+    currency: str
+    last_updated: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class DashboardData(BaseModel):
+    """Complete dashboard data response."""
+    
+    financial_summary: FinancialSummary
+    account_summaries: List[AccountSummary]
+    transaction_summary: TransactionSummary
+    budget_statuses: List[BudgetStatus]
+    tenant_info: TenantInfo
+
+    class Config:
+        from_attributes = True
