@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, Text, ForeignKey, Table
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from app.core.db.connection import Base
 
 # Association tables for many-to-many relationships
@@ -37,8 +37,14 @@ class BaseModel(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    created_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
-    updated_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
+    
+    @declared_attr
+    def created_by(cls):
+        return Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
+    
+    @declared_attr 
+    def updated_by(cls):
+        return Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
     
     def to_dict(self):
         """Convert model instance to dictionary."""
@@ -176,7 +182,7 @@ class AuditLog(BaseModel):
     response_status = Column(Integer, nullable=True)    # HTTP status code
     
     # Additional metadata
-    metadata = Column(JSONB, nullable=True)
+    extra_metadata = Column(JSONB, nullable=True)
     message = Column(Text, nullable=True)
     
     # Relationships
