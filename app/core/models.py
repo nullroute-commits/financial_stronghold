@@ -6,6 +6,7 @@ Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
 """
 import uuid
 from datetime import datetime, timezone
+from typing import List
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, Text, ForeignKey, Table
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
@@ -71,6 +72,14 @@ class User(BaseModel):
     # Relationships
     roles = relationship('Role', secondary=user_roles, back_populates='users')
     audit_logs_created = relationship('AuditLog', foreign_keys='AuditLog.user_id', back_populates='user')
+    
+    # Multi-tenancy relationships
+    organization_links = relationship('UserOrganizationLink', back_populates='user', cascade='all, delete-orphan')
+    
+    @property
+    def organizations(self) -> List['Organization']:
+        """Get all organizations this user belongs to."""
+        return [link.organization for link in self.organization_links]
     
     def __repr__(self):
         return f'<User(username={self.username}, email={self.email})>'
