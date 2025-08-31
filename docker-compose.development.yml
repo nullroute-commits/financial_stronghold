@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Development Docker Compose configuration
 # Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
 
@@ -17,7 +15,6 @@ services:
       - environments/.env.development.example
     volumes:
       - .:/app
-      - /app/node_modules
     ports:
       - "8000:8000"
     command: python manage.py runserver 0.0.0.0:8000
@@ -68,3 +65,10 @@ services:
       - "1025:1025"  # SMTP
       - "8025:8025"  # Web UI
     restart: unless-stopped
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  static_volume:
+  media_volume:
+  logs_volume:

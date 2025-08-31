@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
 
 services:
@@ -16,14 +14,6 @@ services:
       - db
       - memcached
       - rabbitmq
-    env_file:
-      - .env
-      - .env.app
-      - .env.db
-      - .env.cache
-      - .env.queue
-      - .env.security
-      - .env.logging
     volumes:
       - ./app:/app/app
       - static_volume:/app/staticfiles
@@ -42,10 +32,6 @@ services:
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-      - ./init-scripts:/docker-entrypoint-initdb.d/
-    env_file:
-      - .env
-      - .env.db
     command: >
       postgres
       -c max_connections=${PG_MAX_CONNECTIONS:-100}
@@ -68,9 +54,6 @@ services:
     image: memcached:1.6.22
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     command: memcached -m ${MEMCACHED_MEMORY:-64} -c ${MEMCACHED_CONNECTIONS:-1024} -t ${MEMCACHED_THREADS:-4}
-    env_file:
-      - .env
-      - .env.cache
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "echo stats | nc localhost 11211"]
@@ -81,9 +64,6 @@ services:
   rabbitmq:
     image: rabbitmq:3.12.8-management
     platform: ${DOCKER_PLATFORM:-linux/amd64}
-    env_file:
-      - .env
-      - .env.queue
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
