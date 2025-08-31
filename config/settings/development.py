@@ -18,22 +18,30 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "web", "*"]
 # ]
 
 # Development middleware
-MIDDLEWARE += [
-    "django.middleware.debug.MiddlewareNotUsed",
-]
+# Remove invalid middleware that was causing issues
+# MIDDLEWARE += [
+#     "django.middleware.debug.MiddlewareNotUsed",
+# ]
 
-# Development database settings - use SQLite for simplicity
+# Development database settings - use PostgreSQL for consistency
+import os
+
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("POSTGRES_DB", "django_app_dev"),
+        "USER": os.environ.get("POSTGRES_USER", "postgres"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "postgres"),
+        "HOST": os.environ.get("POSTGRES_HOST", "db"),
+        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
     }
 }
 
-# Development cache settings - use dummy cache
+# Development cache settings - use memcached for consistency
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+        "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
+        "LOCATION": os.environ.get("MEMCACHED_SERVERS", "memcached:11211"),
     }
 }
 
