@@ -13,12 +13,16 @@ TESTING = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "web", "testserver"]
 
-# Testing database settings
-DATABASES["default"].update(
-    {
-        "NAME": os.environ.get("POSTGRES_DB", "django_app_test"),
+# Testing database settings - use SQLite for faster tests
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
+        "OPTIONS": {
+            "timeout": 20,
+        },
     }
-)
+}
 
 # Use in-memory cache for testing
 CACHES = {
@@ -48,10 +52,28 @@ PASSWORD_HASHERS = [
 # Email backend for testing
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
-# Testing logging - reduce verbosity
-LOGGING["handlers"]["console"]["level"] = "WARNING"
-LOGGING["loggers"]["django"]["level"] = "WARNING"
-LOGGING["root"]["level"] = "WARNING"
+# Override logging for testing - use simpler console-only setup
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": "WARNING",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+    },
+}
 
 # Disable HTTPS redirects for testing
 SECURE_SSL_REDIRECT = False
