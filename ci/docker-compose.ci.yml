@@ -89,5 +89,13 @@ services:
       - .:/app
       - /var/run/docker.sock:/var/run/docker.sock
 
+  # Documentation build
+  docs-build:
+    extends:
+      service: ci-runner
+    command: /app/scripts/build_docs.sh
+    volumes:
+      - .:/app
+
 volumes:
   ci_cache:
