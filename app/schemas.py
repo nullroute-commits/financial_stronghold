@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 class TenantInfo(BaseModel):
     """Base schema for tenant information."""
+
     tenant_type: str
     tenant_id: str
 

@@ -27,7 +27,7 @@ def get_current_user(
 
     The token payload must contain:
         - sub: user UUID
-        - tenant_type: "user" | "organization"  
+        - tenant_type: "user" | "organization"
         - tenant_id: the string id of the tenant (user_id for personal mode, org_id for org mode)
     """
     if not credentials:
@@ -39,10 +39,10 @@ def get_current_user(
         user_id: str = payload.get("sub")
         tenant_type: str = payload.get("tenant_type", TenantType.USER.value)
         tenant_id: str = str(payload.get("tenant_id", user_id))
-        
+
         if not user_id:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-            
+
     except (JWTError, ValueError) as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
@@ -53,11 +53,7 @@ def get_current_user(
 
     # Verify that the tenant belongs to the user (if organization)
     if tenant_type == TenantType.ORGANIZATION.value:
-        link = (
-            db.query(UserOrganizationLink)
-            .filter_by(user_id=user.id, org_id=int(tenant_id))
-            .first()
-        )
+        link = db.query(UserOrganizationLink).filter_by(user_id=user.id, org_id=int(tenant_id)).first()
         if not link:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -70,12 +66,13 @@ def get_current_user(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Invalid tenant_id for user tenant",
             )
-            
+
     return user, tenant_type, tenant_id
 
 
 def require_role(required_roles: list[str]):
     """Dependency factory that checks the caller's role within the org."""
+
     def checker(auth: Tuple[User, str, str] = Depends(get_current_user)) -> UserOrganizationLink:
         user, tenant_type, tenant_id = auth
         if tenant_type != TenantType.ORGANIZATION.value:
@@ -83,16 +80,12 @@ def require_role(required_roles: list[str]):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Role checks only apply to organization tenants",
             )
-            
+
         # Get a new session for this check
         db = next(get_db_session())
         try:
             # Fetch the link row
-            link = (
-                db.query(UserOrganizationLink)
-                .filter_by(user_id=user.id, org_id=int(tenant_id))
-                .first()
-            )
+            link = db.query(UserOrganizationLink).filter_by(user_id=user.id, org_id=int(tenant_id)).first()
             if not link or link.role not in required_roles:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
@@ -101,7 +94,7 @@ def require_role(required_roles: list[str]):
             return link
         finally:
             db.close()
-            
+
     return checker
 
 

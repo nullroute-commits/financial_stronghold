@@ -45,7 +45,7 @@ class Organization(BaseModel):
     name = Column(String(120), unique=True, nullable=False)
 
     def __repr__(self):
-        return f'<Organization(id={self.id}, name={self.name})>'
+        return f"<Organization(id={self.id}, name={self.name})>"
 
 
 class UserOrganizationLink(Base):
@@ -65,4 +65,4 @@ class UserOrganizationLink(Base):
     organization = relationship("Organization")
 
     def __repr__(self):
-        return f'<UserOrganizationLink(user_id={self.user_id}, org_id={self.org_id}, role={self.role})>'
+        return f"<UserOrganizationLink(user_id={self.user_id}, org_id={self.org_id}, role={self.role})>"

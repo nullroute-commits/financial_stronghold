@@ -11,10 +11,18 @@ from app.core.db.connection import get_db_session
 from app.services import TenantService
 from app.financial_models import Account, Transaction, Fee, Budget
 from app.schemas import (
-    AccountCreate, AccountUpdate, AccountRead,
-    TransactionCreate, TransactionUpdate, TransactionRead,
-    FeeCreate, FeeUpdate, FeeRead,
-    BudgetCreate, BudgetUpdate, BudgetRead
+    AccountCreate,
+    AccountUpdate,
+    AccountRead,
+    TransactionCreate,
+    TransactionUpdate,
+    TransactionRead,
+    FeeCreate,
+    FeeUpdate,
+    FeeRead,
+    BudgetCreate,
+    BudgetUpdate,
+    BudgetRead,
 )
 
 router = APIRouter(prefix="/financial", tags=["financial"])
@@ -29,11 +37,7 @@ def create_account(
 ):
     """Create a new account."""
     service = TenantService(db=db, model=Account)
-    return service.create(
-        payload, 
-        tenant_type=tenant_context["tenant_type"], 
-        tenant_id=tenant_context["tenant_id"]
-    )
+    return service.create(payload, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"])
 
 
 @router.get("/accounts", response_model=List[AccountRead])
@@ -46,10 +50,7 @@ def list_accounts(
     """List all accounts for the tenant."""
     service = TenantService(db=db, model=Account)
     return service.get_all(
-        tenant_type=tenant_context["tenant_type"], 
-        tenant_id=tenant_context["tenant_id"],
-        limit=limit,
-        offset=offset
+        tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"], limit=limit, offset=offset
     )
 
 
@@ -62,9 +63,7 @@ def get_account(
     """Get a specific account."""
     service = TenantService(db=db, model=Account)
     account = service.get_one(
-        account_id,
-        tenant_type=tenant_context["tenant_type"], 
-        tenant_id=tenant_context["tenant_id"]
+        account_id, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
     )
     if not account:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Account not found")
@@ -81,10 +80,7 @@ def update_account(
     """Update an account."""
     service = TenantService(db=db, model=Account)
     account = service.update(
-        account_id,
-        payload,
-        tenant_type=tenant_context["tenant_type"], 
-        tenant_id=tenant_context["tenant_id"]
+        account_id, payload, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
     )
     if not account:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Account not found")
@@ -102,12 +98,10 @@ def delete_account(
     if tenant_context["is_organization"]:
         # This will raise an exception if not admin/owner
         require_role(["owner", "admin"])(tenant_context)
-        
+
     service = TenantService(db=db, model=Account)
     deleted = service.delete(
-        account_id,
-        tenant_type=tenant_context["tenant_type"], 
-        tenant_id=tenant_context["tenant_id"]
+        account_id, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
     )
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Account not found")
@@ -122,11 +116,7 @@ def create_transaction(
 ):
     """Create a new transaction."""
     service = TenantService(db=db, model=Transaction)
-    return service.create(
-        payload, 
-        tenant_type=tenant_context["tenant_type"], 
-        tenant_id=tenant_context["tenant_id"]
-    )
+    return service.create(payload, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"])
 
 
 @router.get("/transactions", response_model=List[TransactionRead])
@@ -139,10 +129,7 @@ def list_transactions(
     """List all transactions for the tenant."""
     service = TenantService(db=db, model=Transaction)
     return service.get_all(
-        tenant_type=tenant_context["tenant_type"], 
-        tenant_id=tenant_context["tenant_id"],
-        limit=limit,
-        offset=offset
+        tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"], limit=limit, offset=offset
     )
 
 
@@ -155,9 +142,7 @@ def get_transaction(
     """Get a specific transaction."""
     service = TenantService(db=db, model=Transaction)
     transaction = service.get_one(
-        transaction_id,
-        tenant_type=tenant_context["tenant_type"], 
-        tenant_id=tenant_context["tenant_id"]
+        transaction_id, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
     )
     if not transaction:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
@@ -175,12 +160,10 @@ def delete_transaction(
     if tenant_context["is_organization"]:
         # This will raise an exception if not admin/owner
         require_role(["owner", "admin"])(tenant_context)
-        
+
     service = TenantService(db=db, model=Transaction)
     deleted = service.delete(
-        transaction_id,
-        tenant_type=tenant_context["tenant_type"], 
-        tenant_id=tenant_context["tenant_id"]
+        transaction_id, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
     )
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
@@ -195,11 +178,7 @@ def create_fee(
 ):
     """Create a new fee."""
     service = TenantService(db=db, model=Fee)
-    return service.create(
-        payload, 
-        tenant_type=tenant_context["tenant_type"], 
-        tenant_id=tenant_context["tenant_id"]
-    )
+    return service.create(payload, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"])
 
 
 @router.get("/fees", response_model=List[FeeRead])
@@ -212,10 +191,7 @@ def list_fees(
     """List all fees for the tenant."""
     service = TenantService(db=db, model=Fee)
     return service.get_all(
-        tenant_type=tenant_context["tenant_type"], 
-        tenant_id=tenant_context["tenant_id"],
-        limit=limit,
-        offset=offset
+        tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"], limit=limit, offset=offset
     )
 
 
@@ -228,11 +204,7 @@ def create_budget(
 ):
     """Create a new budget."""
     service = TenantService(db=db, model=Budget)
-    return service.create(
-        payload, 
-        tenant_type=tenant_context["tenant_type"], 
-        tenant_id=tenant_context["tenant_id"]
-    )
+    return service.create(payload, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"])
 
 
 @router.get("/budgets", response_model=List[BudgetRead])
@@ -245,8 +217,5 @@ def list_budgets(
     """List all budgets for the tenant."""
     service = TenantService(db=db, model=Budget)
     return service.get_all(
-        tenant_type=tenant_context["tenant_type"], 
-        tenant_id=tenant_context["tenant_id"],
-        limit=limit,
-        offset=offset
+        tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"], limit=limit, offset=offset
     )
