@@ -1,6 +1,7 @@
 """Multi-tenancy extension for Financial Stronghold."""
 
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
+
 from app.api import router as financial_router
 from app.auth import get_tenant_context
 

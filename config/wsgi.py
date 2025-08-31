@@ -6,6 +6,7 @@ Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
 """
 
 import os
+
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.production")

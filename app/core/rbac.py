@@ -6,13 +6,16 @@ Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
 """
 
 import logging
-from typing import List, Optional, Dict, Any, Set
 from functools import wraps
+from typing import Any, Dict, List, Optional, Set
+
 from django.core.cache import cache
+
 from sqlalchemy.orm import Session
-from app.core.db.connection import get_db_session
-from app.core.models import User, Role, Permission
+
 from app.core.cache.memcached import cache_get, cache_set
+from app.core.db.connection import get_db_session
+from app.core.models import Permission, Role, User
 
 logger = logging.getLogger(__name__)
 

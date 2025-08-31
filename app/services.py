@@ -1,11 +1,12 @@
 """Multi-tenancy extension for Financial Stronghold."""
 
-from typing import Generic, TypeVar, List, Optional, Union, Dict, Any
-from sqlalchemy.orm import Session
-from sqlalchemy import and_
+from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
 
-from app.core.tenant import TenantMixin, TenantType
+from sqlalchemy import and_
+from sqlalchemy.orm import Session
+
 from app.core.db.connection import get_db_session
+from app.core.tenant import TenantMixin, TenantType
 
 ModelT = TypeVar("ModelT", bound=TenantMixin)
 

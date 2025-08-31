@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List
 from enum import Enum as PyEnum
+from typing import List
 
-from sqlalchemy import Column, DateTime, String, ForeignKey, Integer, UniqueConstraint, Enum
-from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import relationship
 
 from app.core.db.connection import Base
 from app.core.models import BaseModel

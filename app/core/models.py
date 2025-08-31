@@ -8,10 +8,12 @@ Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
 import uuid
 from datetime import datetime, timezone
 from typing import List
-from sqlalchemy import Column, String, Integer, DateTime, Boolean, Text, ForeignKey, Table
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.orm import relationship
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Table, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from sqlalchemy.orm import relationship
+
 from app.core.db.connection import Base
 
 # Association tables for many-to-many relationships

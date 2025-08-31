@@ -5,11 +5,11 @@ Main URL routing configuration.
 Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
 """
 
-from django.contrib import admin
-from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
 from django.http import JsonResponse
+from django.urls import include, path
 from django.views.decorators.cache import never_cache
 
 

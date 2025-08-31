@@ -5,15 +5,17 @@ Provides database connectivity and session management for PostgreSQL 17.
 Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
 """
 
-import os
 import logging
+import os
 from typing import Any, Dict, Optional
-from sqlalchemy import create_engine, MetaData, event
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.pool import QueuePool
-from sqlalchemy.engine import Engine
+
 from django.conf import settings
+
+from sqlalchemy import MetaData, create_engine, event
+from sqlalchemy.engine import Engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import QueuePool
 
 logger = logging.getLogger(__name__)
 

@@ -1,9 +1,10 @@
 """Multi-tenancy extension for Financial Stronghold."""
 
-from typing import Tuple, Optional
+from typing import Optional, Tuple
+
 from fastapi import Depends, HTTPException, Security, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import jwt, JWTError
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from app.core.db.connection import get_db_session

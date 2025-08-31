@@ -36,12 +36,20 @@ LOCAL_APPS = [
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
+# Use the custom User model
+AUTH_USER_MODEL = "app.User"
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "app.middleware.SecurityHeadersMiddleware",
+    "app.middleware.RateLimitMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "app.middleware.TenantMiddleware",
+    "app.middleware.AuditMiddleware",
+    "app.middleware.ModelAuditMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]

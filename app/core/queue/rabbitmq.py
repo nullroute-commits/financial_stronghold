@@ -5,15 +5,17 @@ Provides message queuing functionality for the application.
 Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
 """
 
-import os
 import json
-import time
 import logging
+import os
 import threading
-import pika
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+import time
 from functools import wraps
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
 from django.conf import settings
+
+import pika
 
 logger = logging.getLogger(__name__)
 

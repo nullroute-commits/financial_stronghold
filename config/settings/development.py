@@ -22,15 +22,20 @@ MIDDLEWARE += [
     "django.middleware.debug.MiddlewareNotUsed",
 ]
 
-# Development database settings
-DATABASES["default"].update(
-    {
-        "NAME": os.environ.get("POSTGRES_DB", "django_app_dev"),
+# Development database settings - use SQLite for simplicity
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
-)
+}
 
-# Development cache settings
-CACHES["default"]["TIMEOUT"] = 60  # Shorter cache timeout for development
+# Development cache settings - use dummy cache
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+    }
+}
 
 # Email backend for development
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

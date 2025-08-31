@@ -6,9 +6,9 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List
 
-from sqlalchemy import Column, DateTime, String, Integer, Text, Numeric, Boolean
-from sqlalchemy.orm import relationship
+from sqlalchemy import Boolean, Column, DateTime, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 from app.core.db.connection import Base
 from app.core.models import BaseModel
