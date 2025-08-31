@@ -29,6 +29,9 @@ def read_root():
             "Transaction tracking",
             "Fee management",
             "Budget tracking",
+            "Financial Dashboard & Analytics",
+            "Real-time financial summaries",
+            "Multi-environment CI/CD pipeline",
         ],
     }
 
