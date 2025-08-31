@@ -177,7 +177,8 @@ class TransactionClassifierService:
         
         # Classify by transaction type
         if transaction_type in ['transfer', 'wire']:
-            if transaction.to_account_id:
+            to_account_id = getattr(transaction, 'to_account_id', None)
+            if to_account_id:
                 return TransactionClassification.TRANSFER_INTERNAL
             else:
                 return TransactionClassification.TRANSFER_EXTERNAL
@@ -195,10 +196,11 @@ class TransactionClassifierService:
         transaction_type = transaction.transaction_type
         
         # Check existing category first
-        if transaction.category:
+        existing_category = getattr(transaction, 'category', None)
+        if existing_category:
             # Try to map existing category to our enum
             try:
-                return TransactionCategory(transaction.category.lower())
+                return TransactionCategory(existing_category.lower())
             except ValueError:
                 pass
         
@@ -217,7 +219,8 @@ class TransactionClassifierService:
         elif transaction_type == 'debit':
             return TransactionCategory.OTHER_EXPENSE
         elif transaction_type in ['transfer', 'wire']:
-            if transaction.to_account_id:
+            to_account_id = getattr(transaction, 'to_account_id', None)
+            if to_account_id:
                 return TransactionCategory.INTERNAL_TRANSFER
             else:
                 return TransactionCategory.EXTERNAL_TRANSFER
