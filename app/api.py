@@ -14,15 +14,25 @@ from app.schemas import (
     AccountRead,
     AccountSummary,
     AccountUpdate,
+    AnalyticsSummary,
+    AnalyticsViewCreate,
+    AnalyticsViewRead,
+    AnalyticsViewUpdate,
     BudgetCreate,
     BudgetRead,
     BudgetStatus,
     BudgetUpdate,
     DashboardData,
+    DataTagCreate,
+    DataTagRead,
+    DataTagUpdate,
     FeeCreate,
     FeeRead,
     FeeUpdate,
     FinancialSummary,
+    ResourceMetrics,
+    TagFilterRequest,
+    TaggedResourceResponse,
     TransactionCreate,
     TransactionRead,
     TransactionSummary,
@@ -30,6 +40,7 @@ from app.schemas import (
 )
 from app.services import TenantService
 from app.dashboard_service import DashboardService
+from app.tagging_service import TaggingService, AnalyticsService
 
 router = APIRouter(prefix="/financial", tags=["financial"])
 
@@ -285,4 +296,308 @@ def get_budget_statuses(
     dashboard_service = DashboardService(db=db)
     return dashboard_service.get_budget_statuses(
         tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
+    )
+
+
+# Tagging endpoints
+@router.post("/tags", response_model=DataTagRead, status_code=status.HTTP_201_CREATED)
+def create_tag(
+    payload: DataTagCreate,
+    tenant_context: dict = Depends(get_tenant_context),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db_session),
+):
+    """Create a new data tag."""
+    tagging_service = TaggingService(db=db)
+    
+    # Use the appropriate create method based on tag type
+    if payload.tag_type == "user" and payload.tag_key == "user_id":
+        return tagging_service.create_user_tag(
+            user_id=payload.tag_value,
+            resource_type=payload.resource_type,
+            resource_id=payload.resource_id,
+            tenant_type=tenant_context["tenant_type"],
+            tenant_id=tenant_context["tenant_id"],
+            label=payload.tag_label,
+            metadata=payload.tag_metadata,
+        )
+    elif payload.tag_type == "organization" and payload.tag_key == "org_id":
+        return tagging_service.create_organization_tag(
+            org_id=payload.tag_value,
+            resource_type=payload.resource_type,
+            resource_id=payload.resource_id,
+            tenant_type=tenant_context["tenant_type"],
+            tenant_id=tenant_context["tenant_id"],
+            label=payload.tag_label,
+            metadata=payload.tag_metadata,
+        )
+    elif payload.tag_type == "role" and payload.tag_key == "role_id":
+        return tagging_service.create_role_tag(
+            role_id=payload.tag_value,
+            resource_type=payload.resource_type,
+            resource_id=payload.resource_id,
+            tenant_type=tenant_context["tenant_type"],
+            tenant_id=tenant_context["tenant_id"],
+            label=payload.tag_label,
+            metadata=payload.tag_metadata,
+        )
+    else:
+        # Generic tag creation
+        from app.tagging_models import TagType as TagTypeEnum
+        return tagging_service._create_tag(
+            tag_type=TagTypeEnum(payload.tag_type),
+            tag_key=payload.tag_key,
+            tag_value=payload.tag_value,
+            resource_type=payload.resource_type,
+            resource_id=payload.resource_id,
+            tenant_type=tenant_context["tenant_type"],
+            tenant_id=tenant_context["tenant_id"],
+            label=payload.tag_label,
+            metadata=payload.tag_metadata,
+        )
+
+
+@router.get("/tags/resource/{resource_type}/{resource_id}", response_model=List[DataTagRead])
+def get_resource_tags(
+    resource_type: str,
+    resource_id: UUID,
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Get all tags for a specific resource."""
+    tagging_service = TaggingService(db=db)
+    return tagging_service.get_resource_tags(
+        resource_type=resource_type,
+        resource_id=resource_id,
+        tenant_type=tenant_context["tenant_type"],
+        tenant_id=tenant_context["tenant_id"],
+    )
+
+
+@router.post("/tags/auto/{resource_type}/{resource_id}", response_model=List[DataTagRead])
+def auto_tag_resource(
+    resource_type: str,
+    resource_id: UUID,
+    tenant_context: dict = Depends(get_tenant_context),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db_session),
+):
+    """Automatically create standard tags for a resource."""
+    tagging_service = TaggingService(db=db)
+    return tagging_service.auto_tag_resource(
+        resource_type=resource_type,
+        resource_id=resource_id,
+        tenant_type=tenant_context["tenant_type"],
+        tenant_id=tenant_context["tenant_id"],
+        user_id=current_user.get("user_id"),
+    )
+
+
+@router.post("/tags/query", response_model=TaggedResourceResponse)
+def query_tagged_resources(
+    tag_filters: dict,
+    resource_type: str,
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Query resources by tag filters."""
+    tagging_service = TaggingService(db=db)
+    resource_ids = tagging_service.get_tagged_resources(
+        tag_filters=tag_filters,
+        resource_type=resource_type,
+        tenant_type=tenant_context["tenant_type"],
+        tenant_id=tenant_context["tenant_id"],
+    )
+    
+    return TaggedResourceResponse(
+        resource_ids=resource_ids,
+        resource_count=len(resource_ids),
+        tag_filters=tag_filters,
+        resource_type=resource_type,
+    )
+
+
+# Analytics endpoints
+@router.post("/analytics/compute", response_model=ResourceMetrics)
+def compute_tag_metrics(
+    request: TagFilterRequest,
+    resource_type: str,
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Compute metrics for resources matching tag filters."""
+    analytics_service = AnalyticsService(db=db)
+    metrics = analytics_service.compute_tag_metrics(
+        tag_filters=request.tag_filters,
+        resource_type=resource_type,
+        tenant_type=tenant_context["tenant_type"],
+        tenant_id=tenant_context["tenant_id"],
+        period_start=request.period_start,
+        period_end=request.period_end,
+    )
+    
+    return ResourceMetrics(**metrics)
+
+
+@router.post("/analytics/summary", response_model=AnalyticsSummary)
+def get_analytics_summary(
+    request: TagFilterRequest,
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Get comprehensive analytics summary across all resource types."""
+    analytics_service = AnalyticsService(db=db)
+    summary = analytics_service.get_analytics_summary(
+        tenant_type=tenant_context["tenant_type"],
+        tenant_id=tenant_context["tenant_id"],
+        tag_filters=request.tag_filters,
+    )
+    
+    # Convert to proper schema format
+    resource_metrics = {}
+    for resource_type, metrics in summary["resource_metrics"].items():
+        resource_metrics[resource_type] = ResourceMetrics(**metrics)
+    
+    return AnalyticsSummary(
+        tenant_info=summary["tenant_info"],
+        tag_filters=summary["tag_filters"],
+        resource_metrics=resource_metrics,
+        generated_at=summary["generated_at"],
+    )
+
+
+@router.post("/analytics/views", response_model=AnalyticsViewRead, status_code=status.HTTP_201_CREATED)
+def create_analytics_view(
+    payload: AnalyticsViewCreate,
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Create a saved analytics view."""
+    analytics_service = AnalyticsService(db=db)
+    return analytics_service.create_analytics_view(
+        view_name=payload.view_name,
+        tag_filters=payload.tag_filters,
+        resource_types=payload.resource_types,
+        tenant_type=tenant_context["tenant_type"],
+        tenant_id=tenant_context["tenant_id"],
+        description=payload.view_description,
+        period_start=payload.period_start,
+        period_end=payload.period_end,
+    )
+
+
+@router.get("/analytics/views", response_model=List[AnalyticsViewRead])
+def list_analytics_views(
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+    limit: Optional[int] = Query(None, ge=1, le=100),
+    offset: Optional[int] = Query(None, ge=0),
+):
+    """List analytics views for the tenant."""
+    from app.tagging_models import AnalyticsView
+    from app.core.tenant import TenantType
+    
+    query = db.query(AnalyticsView).filter(
+        AnalyticsView.tenant_type == TenantType(tenant_context["tenant_type"]),
+        AnalyticsView.tenant_id == tenant_context["tenant_id"],
+        AnalyticsView.is_active == True,
+    ).order_by(AnalyticsView.created_at.desc())
+    
+    if limit:
+        query = query.limit(limit)
+    if offset:
+        query = query.offset(offset)
+    
+    return query.all()
+
+
+@router.get("/analytics/views/{view_id}", response_model=AnalyticsViewRead)
+def get_analytics_view(
+    view_id: UUID,
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Get a specific analytics view."""
+    from app.tagging_models import AnalyticsView
+    from app.core.tenant import TenantType
+    
+    view = db.query(AnalyticsView).filter(
+        AnalyticsView.id == view_id,
+        AnalyticsView.tenant_type == TenantType(tenant_context["tenant_type"]),
+        AnalyticsView.tenant_id == tenant_context["tenant_id"],
+    ).first()
+    
+    if not view:
+        raise HTTPException(status_code=404, detail="Analytics view not found")
+    
+    return view
+
+
+@router.post("/analytics/views/{view_id}/refresh", response_model=AnalyticsViewRead)
+def refresh_analytics_view(
+    view_id: UUID,
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Refresh an analytics view with current data."""
+    analytics_service = AnalyticsService(db=db)
+    
+    # Verify view belongs to tenant
+    from app.tagging_models import AnalyticsView
+    from app.core.tenant import TenantType
+    
+    view = db.query(AnalyticsView).filter(
+        AnalyticsView.id == view_id,
+        AnalyticsView.tenant_type == TenantType(tenant_context["tenant_type"]),
+        AnalyticsView.tenant_id == tenant_context["tenant_id"],
+    ).first()
+    
+    if not view:
+        raise HTTPException(status_code=404, detail="Analytics view not found")
+    
+    try:
+        return analytics_service.refresh_analytics_view(view_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to refresh view: {str(e)}")
+
+
+# Enhanced Dashboard with Analytics
+@router.get("/dashboard/analytics", response_model=AnalyticsSummary)
+def get_dashboard_analytics(
+    tenant_context: dict = Depends(get_tenant_context),
+    user_id: Optional[str] = Query(None, description="Filter by user_id"),
+    org_id: Optional[str] = Query(None, description="Filter by org_id"),
+    role_id: Optional[str] = Query(None, description="Filter by role_id"),
+    db: Session = Depends(get_db_session),
+):
+    """Get dashboard with tag-based analytics filtering."""
+    analytics_service = AnalyticsService(db=db)
+    
+    # Build tag filters from query parameters
+    tag_filters = {}
+    if user_id:
+        tag_filters["user_id"] = user_id
+    if org_id:
+        tag_filters["org_id"] = org_id
+    if role_id:
+        tag_filters["role_id"] = role_id
+    
+    summary = analytics_service.get_analytics_summary(
+        tenant_type=tenant_context["tenant_type"],
+        tenant_id=tenant_context["tenant_id"],
+        tag_filters=tag_filters,
+    )
+    
+    # Convert to proper schema format
+    resource_metrics = {}
+    for resource_type, metrics in summary["resource_metrics"].items():
+        resource_metrics[resource_type] = ResourceMetrics(**metrics)
+    
+    return AnalyticsSummary(
+        tenant_info=summary["tenant_info"],
+        tag_filters=summary["tag_filters"],
+        resource_metrics=resource_metrics,
+        generated_at=summary["generated_at"],
     )
