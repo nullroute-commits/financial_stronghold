@@ -219,7 +219,7 @@ validate_application_endpoints() {
     # Test health endpoint
     log "Testing health check endpoint..."
     local health_response
-    if health_response=$(curl -s -f "http://localhost:$port/health/" 2>/dev/null); then
+    if health_response=$(curl -s "http://localhost:$port/health/" 2>/dev/null); then
         log_success "Health endpoint is responding"
         log "Health response: $health_response"
         

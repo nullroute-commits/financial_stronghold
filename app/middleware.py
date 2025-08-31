@@ -98,9 +98,9 @@ class TenantMiddleware(MiddlewareMixin):
         """
         # Add tenant context headers to response
         if hasattr(request, "tenant_type"):
-            response["X-Tenant-Type"] = request.tenant_type
+            response["X-Tenant-Type"] = str(request.tenant_type)
             if hasattr(request, "tenant_id") and request.tenant_id:
-                response["X-Tenant-ID"] = request.tenant_id
+                response["X-Tenant-ID"] = str(request.tenant_id)
 
         return response
 
@@ -198,7 +198,7 @@ class RateLimitMiddleware(MiddlewareMixin):
         import time
 
         from django.core.cache import cache
-        from django.http import HttpResponseTooManyRequests
+        from django.http import HttpResponse
 
         # Get client IP
         x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
@@ -229,7 +229,7 @@ class RateLimitMiddleware(MiddlewareMixin):
 
         if current_count >= limit:
             logger.warning(f"Rate limit exceeded for IP {ip} on {request.path}")
-            return HttpResponseTooManyRequests("Rate limit exceeded. Please try again later.")
+            return HttpResponse("Rate limit exceeded. Please try again later.", status=429)
 
         # Increment count
         cache.set(cache_key, current_count + 1, 60)  # 60 seconds window
