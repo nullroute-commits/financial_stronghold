@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List
 from enum import Enum as PyEnum
+from typing import List
 
-from sqlalchemy import Column, DateTime, String, ForeignKey, Integer, UniqueConstraint, Enum
-from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import relationship
 
 from app.core.db.connection import Base
 from app.core.models import BaseModel
@@ -45,7 +45,7 @@ class Organization(BaseModel):
     name = Column(String(120), unique=True, nullable=False)
 
     def __repr__(self):
-        return f'<Organization(id={self.id}, name={self.name})>'
+        return f"<Organization(id={self.id}, name={self.name})>"
 
 
 class UserOrganizationLink(Base):
@@ -65,4 +65,4 @@ class UserOrganizationLink(Base):
     organization = relationship("Organization")
 
     def __repr__(self):
-        return f'<UserOrganizationLink(user_id={self.user_id}, org_id={self.org_id}, role={self.role})>'
+        return f"<UserOrganizationLink(user_id={self.user_id}, org_id={self.org_id}, role={self.role})>"

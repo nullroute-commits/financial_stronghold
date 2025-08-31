@@ -1,8 +1,8 @@
 """
-Comprehensive audit logging system.
-Tracks all system activities for security and compliance.
+Django-native audit logging system.
+Tracks all system activities for security and compliance using Django models.
 
-Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
+Last updated: 2025-08-31 by AI Assistant
 """
 
 import json
@@ -12,18 +12,18 @@ from functools import wraps
 from typing import Any, Dict, List, Optional
 
 from django.conf import settings
+from django.contrib.sessions.models import Session
+from django.http import HttpRequest
+from django.utils.deprecation import MiddlewareMixin
 
-from sqlalchemy.orm import Session
-
-from app.core.db.connection import get_db_session
-from app.core.models import AuditLog, User
+from .django_models import AuditLog, User
 
 logger = logging.getLogger(__name__)
 
 
-class AuditLogger:
+class DjangoAuditLogger:
     """
-    Audit logger for tracking system activities.
+    Django-native audit logger for tracking system activities.
 
     Features:
     - Automatic activity tracking
@@ -31,6 +31,7 @@ class AuditLogger:
     - Request/response logging
     - User activity monitoring
     - Configurable audit levels
+    - Django integration
     """
 
     def __init__(self):
@@ -43,7 +44,7 @@ class AuditLogger:
     def log_activity(
         self,
         action: str,
-        user_id: Optional[str] = None,
+        user: Optional[User] = None,
         session_id: Optional[str] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
@@ -64,7 +65,7 @@ class AuditLogger:
 
         Args:
             action: Action performed (CREATE, UPDATE, DELETE, LOGIN, etc.)
-            user_id: UUID of user performing the action
+            user: User performing the action
             session_id: Session ID
             ip_address: Client IP address
             user_agent: User agent string
@@ -92,31 +93,27 @@ class AuditLogger:
             sanitized_old_values = self._sanitize_data(old_values) if old_values else None
             sanitized_new_values = self._sanitize_data(new_values) if new_values else None
 
-            with get_db_session() as session:
-                audit_log = AuditLog(
-                    user_id=user_id,
-                    session_id=session_id,
-                    ip_address=ip_address,
-                    user_agent=user_agent,
-                    action=action,
-                    resource_type=resource_type,
-                    resource_id=resource_id,
-                    resource_repr=resource_repr,
-                    old_values=sanitized_old_values,
-                    new_values=sanitized_new_values,
-                    request_method=request_method,
-                    request_path=request_path,
-                    request_data=sanitized_request_data,
-                    response_status=response_status,
-                    metadata=metadata,
-                    message=message,
-                )
+            audit_log = AuditLog.objects.create(
+                user=user,
+                session_id=session_id,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                action=action,
+                resource_type=resource_type,
+                resource_id=resource_id,
+                resource_repr=resource_repr,
+                old_values=sanitized_old_values,
+                new_values=sanitized_new_values,
+                request_method=request_method,
+                request_path=request_path,
+                request_data=sanitized_request_data,
+                response_status=response_status,
+                extra_metadata=metadata,
+                message=message,
+            )
 
-                session.add(audit_log)
-                session.commit()
-
-                logger.debug(f"Logged audit activity: {action} by user {user_id}")
-                return str(audit_log.id)
+            logger.debug(f"Logged audit activity: {action} by user {user}")
+            return str(audit_log.id)
 
         except Exception as e:
             logger.error(f"Failed to log audit activity: {str(e)}")
@@ -126,9 +123,9 @@ class AuditLogger:
         self,
         action: str,
         model_instance: Any,
-        user_id: Optional[str] = None,
+        user: Optional[User] = None,
         old_values: Optional[Dict] = None,
-        session_info: Optional[Dict] = None,
+        request: Optional[HttpRequest] = None,
     ) -> Optional[str]:
         """
         Log model changes (create, update, delete).
@@ -136,9 +133,9 @@ class AuditLogger:
         Args:
             action: Action performed (CREATE, UPDATE, DELETE)
             model_instance: Model instance
-            user_id: UUID of user performing the action
+            user: User performing the action
             old_values: Previous values (for updates)
-            session_info: Session information
+            request: Django HttpRequest object
 
         Returns:
             Audit log UUID if successful, None otherwise
@@ -151,16 +148,34 @@ class AuditLogger:
             resource_id = str(getattr(model_instance, "id", None))
             resource_repr = str(model_instance)
 
-            new_values = None
-            if hasattr(model_instance, "to_dict"):
-                new_values = model_instance.to_dict()
+            # Get new values from model
+            new_values = {}
+            if hasattr(model_instance, "__dict__"):
+                for key, value in model_instance.__dict__.items():
+                    if not key.startswith("_"):
+                        try:
+                            # Convert to JSON-serializable format
+                            json.dumps(value)
+                            new_values[key] = value
+                        except (TypeError, ValueError):
+                            new_values[key] = str(value)
+
+            # Extract session info from request
+            session_id = None
+            ip_address = None
+            user_agent = None
+
+            if request:
+                session_id = request.session.session_key
+                ip_address = self._get_client_ip(request)
+                user_agent = request.META.get("HTTP_USER_AGENT")
 
             return self.log_activity(
                 action=action,
-                user_id=user_id,
-                session_id=session_info.get("session_id") if session_info else None,
-                ip_address=session_info.get("ip_address") if session_info else None,
-                user_agent=session_info.get("user_agent") if session_info else None,
+                user=user,
+                session_id=session_id,
+                ip_address=ip_address,
+                user_agent=user_agent,
                 resource_type=resource_type,
                 resource_id=resource_id,
                 resource_repr=resource_repr,
@@ -175,10 +190,10 @@ class AuditLogger:
     def log_authentication(
         self,
         action: str,
-        user_id: Optional[str] = None,
+        user: Optional[User] = None,
         username: Optional[str] = None,
         success: bool = True,
-        session_info: Optional[Dict] = None,
+        request: Optional[HttpRequest] = None,
         metadata: Optional[Dict] = None,
     ) -> Optional[str]:
         """
@@ -186,10 +201,10 @@ class AuditLogger:
 
         Args:
             action: Authentication action (LOGIN, LOGOUT, LOGIN_FAILED, etc.)
-            user_id: UUID of user
+            user: User instance
             username: Username attempted
             success: Whether authentication was successful
-            session_info: Session information
+            request: Django HttpRequest object
             metadata: Additional metadata
 
         Returns:
@@ -207,42 +222,37 @@ class AuditLogger:
         if not success:
             message += " (failed)"
 
+        # Extract session info from request
+        session_id = None
+        ip_address = None
+        user_agent = None
+
+        if request:
+            session_id = request.session.session_key
+            ip_address = self._get_client_ip(request)
+            user_agent = request.META.get("HTTP_USER_AGENT")
+
         return self.log_activity(
             action=action,
-            user_id=user_id,
-            session_id=session_info.get("session_id") if session_info else None,
-            ip_address=session_info.get("ip_address") if session_info else None,
-            user_agent=session_info.get("user_agent") if session_info else None,
+            user=user,
+            session_id=session_id,
+            ip_address=ip_address,
+            user_agent=user_agent,
             resource_type="Authentication",
             metadata=auth_metadata,
             message=message,
         )
 
     def log_request(
-        self,
-        request_method: str,
-        request_path: str,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-        request_data: Optional[Dict] = None,
-        response_status: Optional[int] = None,
-        metadata: Optional[Dict] = None,
+        self, request: HttpRequest, response_status: Optional[int] = None, user: Optional[User] = None
     ) -> Optional[str]:
         """
         Log HTTP requests.
 
         Args:
-            request_method: HTTP method
-            request_path: Request URL path
-            user_id: UUID of authenticated user
-            session_id: Session ID
-            ip_address: Client IP address
-            user_agent: User agent string
-            request_data: Request data
+            request: Django HttpRequest object
             response_status: HTTP response status
-            metadata: Additional metadata
+            user: Authenticated user
 
         Returns:
             Audit log UUID if successful, None otherwise
@@ -250,52 +260,54 @@ class AuditLogger:
         if not self.enabled or not self.log_requests:
             return None
 
+        # Extract request data
+        request_data = {}
+        if hasattr(request, "POST") and request.POST:
+            request_data.update(dict(request.POST))
+        if hasattr(request, "GET") and request.GET:
+            request_data.update(dict(request.GET))
+
         return self.log_activity(
             action="HTTP_REQUEST",
-            user_id=user_id,
-            session_id=session_id,
-            ip_address=ip_address,
-            user_agent=user_agent,
-            request_method=request_method,
-            request_path=request_path,
+            user=user,
+            session_id=request.session.session_key,
+            ip_address=self._get_client_ip(request),
+            user_agent=request.META.get("HTTP_USER_AGENT"),
+            request_method=request.method,
+            request_path=request.path,
             request_data=request_data,
             response_status=response_status,
-            metadata=metadata,
         )
 
     def get_user_activity(
-        self, user_id: str, limit: int = 100, offset: int = 0, action_filter: Optional[str] = None
-    ) -> List[Dict]:
+        self, user: User, limit: int = 100, offset: int = 0, action_filter: Optional[str] = None
+    ) -> List[AuditLog]:
         """
         Get audit logs for a specific user.
 
         Args:
-            user_id: User UUID
+            user: User instance
             limit: Maximum number of records
             offset: Number of records to skip
             action_filter: Filter by action type
 
         Returns:
-            List of audit log dictionaries
+            QuerySet of audit logs
         """
         try:
-            with get_db_session() as session:
-                query = session.query(AuditLog).filter(AuditLog.user_id == user_id)
+            queryset = AuditLog.objects.filter(user=user)
 
-                if action_filter:
-                    query = query.filter(AuditLog.action == action_filter)
+            if action_filter:
+                queryset = queryset.filter(action=action_filter)
 
-                query = query.order_by(AuditLog.created_at.desc())
-                query = query.offset(offset).limit(limit)
-
-                logs = query.all()
-                return [log.to_dict() for log in logs]
+            queryset = queryset.order_by("-created_at")
+            return queryset[offset : offset + limit]
 
         except Exception as e:
             logger.error(f"Failed to get user activity: {str(e)}")
-            return []
+            return AuditLog.objects.none()
 
-    def get_resource_history(self, resource_type: str, resource_id: str, limit: int = 100) -> List[Dict]:
+    def get_resource_history(self, resource_type: str, resource_id: str, limit: int = 100) -> List[AuditLog]:
         """
         Get audit history for a specific resource.
 
@@ -305,23 +317,27 @@ class AuditLogger:
             limit: Maximum number of records
 
         Returns:
-            List of audit log dictionaries
+            QuerySet of audit logs
         """
         try:
-            with get_db_session() as session:
-                query = session.query(AuditLog).filter(
-                    AuditLog.resource_type == resource_type, AuditLog.resource_id == resource_id
-                )
+            queryset = AuditLog.objects.filter(resource_type=resource_type, resource_id=resource_id).order_by(
+                "-created_at"
+            )[:limit]
 
-                query = query.order_by(AuditLog.created_at.desc())
-                query = query.limit(limit)
-
-                logs = query.all()
-                return [log.to_dict() for log in logs]
+            return queryset
 
         except Exception as e:
             logger.error(f"Failed to get resource history: {str(e)}")
-            return []
+            return AuditLog.objects.none()
+
+    def _get_client_ip(self, request: HttpRequest) -> Optional[str]:
+        """Get client IP address from request."""
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(",")[0]
+        else:
+            ip = request.META.get("REMOTE_ADDR")
+        return ip
 
     def _sanitize_data(self, data: Dict) -> Dict:
         """
@@ -346,6 +362,9 @@ class AuditLogger:
             "cookie",
             "session",
             "csrf_token",
+            "csrfmiddlewaretoken",
+            "api_key",
+            "access_token",
         }
 
         sanitized = {}
@@ -364,7 +383,37 @@ class AuditLogger:
 
 
 # Global audit logger instance
-audit_logger = AuditLogger()
+audit_logger = DjangoAuditLogger()
+
+
+class AuditMiddleware(MiddlewareMixin):
+    """
+    Django middleware for automatic request/response auditing.
+    """
+
+    def process_request(self, request):
+        """Process incoming request."""
+        # Store request start time for performance tracking
+        request._audit_start_time = datetime.now(timezone.utc)
+        return None
+
+    def process_response(self, request, response):
+        """Process outgoing response."""
+        try:
+            user = request.user if hasattr(request, "user") and request.user.is_authenticated else None
+
+            # Skip auditing for certain paths
+            skip_paths = ["/admin/jsi18n/", "/static/", "/media/", "/favicon.ico"]
+            if any(request.path.startswith(path) for path in skip_paths):
+                return response
+
+            # Log the request
+            audit_logger.log_request(request=request, response_status=response.status_code, user=user)
+
+        except Exception as e:
+            logger.error(f"Failed to audit request in middleware: {str(e)}")
+
+        return response
 
 
 # Decorator functions for automatic auditing
@@ -383,9 +432,20 @@ def audit_activity(action: str, resource_type: Optional[str] = None):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            # Extract user and session info from kwargs if available
-            user_id = kwargs.get("user_id")
-            session_info = kwargs.get("session_info", {})
+            # Try to extract user and request from args/kwargs
+            user = None
+            request = None
+
+            # Look for Django request object
+            for arg in args:
+                if isinstance(arg, HttpRequest):
+                    request = arg
+                    user = arg.user if hasattr(arg, "user") and arg.user.is_authenticated else None
+                    break
+
+            # Look for user in kwargs
+            if not user:
+                user = kwargs.get("user")
 
             try:
                 result = func(*args, **kwargs)
@@ -393,10 +453,10 @@ def audit_activity(action: str, resource_type: Optional[str] = None):
                 # Log successful activity
                 audit_logger.log_activity(
                     action=action,
-                    user_id=user_id,
-                    session_id=session_info.get("session_id"),
-                    ip_address=session_info.get("ip_address"),
-                    user_agent=session_info.get("user_agent"),
+                    user=user,
+                    session_id=request.session.session_key if request else None,
+                    ip_address=audit_logger._get_client_ip(request) if request else None,
+                    user_agent=request.META.get("HTTP_USER_AGENT") if request else None,
                     resource_type=resource_type,
                     metadata={
                         "function": f"{func.__module__}.{func.__name__}",
@@ -411,10 +471,10 @@ def audit_activity(action: str, resource_type: Optional[str] = None):
                 # Log failed activity
                 audit_logger.log_activity(
                     action=f"{action}_FAILED",
-                    user_id=user_id,
-                    session_id=session_info.get("session_id"),
-                    ip_address=session_info.get("ip_address"),
-                    user_agent=session_info.get("user_agent"),
+                    user=user,
+                    session_id=request.session.session_key if request else None,
+                    ip_address=audit_logger._get_client_ip(request) if request else None,
+                    user_agent=request.META.get("HTTP_USER_AGENT") if request else None,
                     resource_type=resource_type,
                     metadata={
                         "function": f"{func.__module__}.{func.__name__}",
@@ -431,49 +491,47 @@ def audit_activity(action: str, resource_type: Optional[str] = None):
     return decorator
 
 
-def audit_model_changes(model_class):
-    """
-    Class decorator to automatically audit model changes.
-
-    Args:
-        model_class: Model class to audit
-
-    Returns:
-        Decorated model class
-    """
-    original_init = model_class.__init__
-
-    def __init__(self, *args, **kwargs):
-        original_init(self, *args, **kwargs)
-        self._audit_original_values = None
-        if hasattr(self, "to_dict"):
-            self._audit_original_values = self.to_dict()
-
-    model_class.__init__ = __init__
-    return model_class
-
-
 # Helper functions
-def get_audit_logger() -> AuditLogger:
+def get_audit_logger() -> DjangoAuditLogger:
     """
     Get the global audit logger instance.
 
     Returns:
-        AuditLogger instance
+        DjangoAuditLogger instance
     """
     return audit_logger
 
 
-def log_user_activity(action: str, user_id: str, **kwargs) -> Optional[str]:
+def log_user_activity(action: str, user: User, **kwargs) -> Optional[str]:
     """
     Convenience function to log user activity.
 
     Args:
         action: Action performed
-        user_id: User UUID
+        user: User instance
         **kwargs: Additional audit parameters
 
     Returns:
         Audit log UUID if successful, None otherwise
     """
-    return audit_logger.log_activity(action=action, user_id=user_id, **kwargs)
+    return audit_logger.log_activity(action=action, user=user, **kwargs)
+
+
+def log_model_change(
+    action: str,
+    instance,
+    user: Optional[User] = None,
+    old_values: Optional[Dict] = None,
+    request: Optional[HttpRequest] = None,
+):
+    """
+    Log model changes for audit trail.
+
+    Args:
+        action: Action performed (CREATE, UPDATE, DELETE)
+        instance: Model instance
+        user: User performing the action
+        old_values: Previous values (for updates)
+        request: Django HttpRequest object
+    """
+    return audit_logger.log_model_change(action, instance, user, old_values, request)

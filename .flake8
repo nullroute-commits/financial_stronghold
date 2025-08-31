@@ -42,8 +42,7 @@ method-rgx = [a-z_][a-z0-9_]{2,30}$
 const-rgx = (([A-Z_][A-Z0-9_]*)|(__.*__))$
 good-names = i,j,k,ex,Run,_,id,pk
 
-# McCabe complexity
-max-complexity = 10
+# McCabe complexity (already set above)
 
 # Import order
 import-order-style = google
