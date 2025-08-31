@@ -43,8 +43,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies for CI
-COPY requirements/development.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+COPY requirements/ /tmp/requirements/
+COPY requirements-dev.txt /tmp/requirements-dev.txt
+RUN pip install --no-cache-dir -r /tmp/requirements/development.txt && \
+    pip install --no-cache-dir -r /tmp/requirements-dev.txt
 
 # Install additional CI tools
 RUN pip install --no-cache-dir \

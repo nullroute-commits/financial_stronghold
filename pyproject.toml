@@ -41,6 +41,9 @@ dev = [
     "django-debug-toolbar==4.2.0",
     "pytest==7.4.3",
     "pytest-django==4.7.0",
+    "mkdocs==1.5.3",
+    "mkdocs-material==9.4.8",
+    "pymdown-extensions==10.7",
 ]
 test = [
     "pytest==7.4.3",

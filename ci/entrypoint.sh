@@ -32,6 +32,7 @@ show_help() {
     echo "  test integration - Run integration tests only"
     echo "  build       - Build Docker images"
     echo "  deploy      - Deploy to staging/production"
+    echo "  docs        - Build documentation"
     echo "  security    - Run security scans"
     echo "  --help      - Show this help message"
     echo ""
@@ -39,6 +40,7 @@ show_help() {
     echo "  docker-compose -f ci/docker-compose.ci.yml run ci-runner lint"
     echo "  docker-compose -f ci/docker-compose.ci.yml run ci-runner test"
     echo "  docker-compose -f ci/docker-compose.ci.yml run ci-runner build"
+    echo "  docker-compose -f ci/docker-compose.ci.yml run ci-runner docs"
 }
 
 # Parse command line arguments
@@ -66,6 +68,10 @@ case "${1:-help}" in
     "deploy")
         echo -e "${GREEN}Deploying application...${NC}"
         exec /app/ci/deploy.sh "$2"
+        ;;
+    "docs")
+        echo -e "${GREEN}Building documentation...${NC}"
+        exec /app/scripts/build_docs.sh
         ;;
     "security")
         echo -e "${GREEN}Running security scans...${NC}"

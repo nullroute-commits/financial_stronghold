@@ -300,6 +300,10 @@ Scale web workers:
 docker-compose -f docker-compose.production.yml up -d --scale web=3
 ```
 
+## Documentation
+
+📚 Live documentation: https://nullroute-commits.github.io/financial_stronghold/
+
 ## Troubleshooting
 
 ### Common Issues

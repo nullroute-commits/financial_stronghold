@@ -1,0 +1,47 @@
+site_name: Financial Stronghold Documentation
+site_url: https://nullroute-commits.github.io/financial_stronghold/
+repo_url: https://github.com/nullroute-commits/financial_stronghold
+repo_name: nullroute-commits/financial_stronghold
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: amber
+  features:
+    - navigation.tabs
+    - navigation.top
+    - toc.integrate
+    - content.code.annotate
+    - content.code.copy
+    - content.action.edit
+    - content.action.view
+    - navigation.expand
+    - navigation.sections
+    - navigation.instant
+    - navigation.tracking
+    - search.highlight
+    - search.share
+plugins:
+  - search
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - meta
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+nav:
+  - Home: index.md
+  - API Reference:
+      - Overview: api/overview.md
+      - Modules: api/modules.md
