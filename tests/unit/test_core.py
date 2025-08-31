@@ -26,8 +26,32 @@ class TestRBACManager:
         mock_user = Mock()
         mock_user.is_superuser = True
         
-        # Mock session
-        mock_session.return_value.__enter__.return_value.query.return_value.filter.return_value.first.return_value = mock_user
+        # Mock permission
+        mock_permission = Mock()
+        mock_permission.name = 'test_permission'
+        mock_permission.is_active = True
+        
+        # Mock session context manager
+        mock_session_ctx = Mock()
+        mock_session.return_value.__enter__.return_value = mock_session_ctx
+        
+        # Mock the query chain for user lookup
+        mock_user_query = Mock()
+        mock_user_query.filter.return_value.first.return_value = mock_user
+        
+        # Mock the query chain for permissions lookup
+        mock_permission_query = Mock()
+        mock_permission_query.filter.return_value.all.return_value = [mock_permission]
+        
+        # Set up the query method to return different mocks based on the model
+        def query_side_effect(model):
+            if model.__name__ == 'User':
+                return mock_user_query
+            elif model.__name__ == 'Permission':
+                return mock_permission_query
+            return Mock()
+        
+        mock_session_ctx.query.side_effect = query_side_effect
         
         # Test
         result = self.rbac_manager.has_permission('user-123', 'test_permission', use_cache=False)
@@ -60,19 +84,28 @@ class TestRBACManager:
 class TestAuditLogger:
     """Test cases for Audit Logger."""
     
-    def setup_method(self):
-        """Set up test fixtures."""
-        self.audit_logger = AuditLogger()
-    
+    @patch('app.core.audit.settings')
+    @patch('app.core.audit.AuditLog')
     @patch('app.core.audit.get_db_session')
-    def test_log_activity(self, mock_session):
+    def test_log_activity(self, mock_session, mock_audit_log, mock_settings):
         """Test activity logging."""
+        # Mock settings
+        mock_settings.AUDIT_ENABLED = True
+        
+        # Mock audit log instance
+        mock_audit_instance = Mock()
+        mock_audit_instance.id = 'test-audit-id'
+        mock_audit_log.return_value = mock_audit_instance
+        
         # Mock session
         mock_session.return_value.__enter__.return_value.add = Mock()
         mock_session.return_value.__enter__.return_value.commit = Mock()
         
+        # Create audit logger with mocked settings
+        audit_logger = AuditLogger()
+        
         # Test
-        result = self.audit_logger.log_activity(
+        result = audit_logger.log_activity(
             action='TEST_ACTION',
             user_id='user-123',
             message='Test activity'
@@ -80,11 +113,19 @@ class TestAuditLogger:
         
         # Verify
         assert result is not None
+        assert result == 'test-audit-id'
         mock_session.return_value.__enter__.return_value.add.assert_called_once()
         mock_session.return_value.__enter__.return_value.commit.assert_called_once()
     
-    def test_sanitize_data(self):
+    @patch('app.core.audit.settings')
+    def test_sanitize_data(self, mock_settings):
         """Test data sanitization."""
+        # Mock settings
+        mock_settings.AUDIT_ENABLED = True
+        
+        # Create audit logger with mocked settings
+        audit_logger = AuditLogger()
+        
         sensitive_data = {
             'username': 'testuser',
             'password': 'secret123',
@@ -95,7 +136,7 @@ class TestAuditLogger:
             }
         }
         
-        sanitized = self.audit_logger._sanitize_data(sensitive_data)
+        sanitized = audit_logger._sanitize_data(sensitive_data)
         
         assert sanitized['username'] == 'testuser'
         assert sanitized['password'] == '[REDACTED]'
