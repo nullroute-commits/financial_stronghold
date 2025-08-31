@@ -44,7 +44,7 @@ def get_current_user(
         if not user_id:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
-    except (JWTError, ValueError) as e:
+    except (JWTError, ValueError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
     # Load the user from DB

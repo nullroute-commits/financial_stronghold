@@ -68,7 +68,7 @@ class RBACManager:
 
             # Superuser has all permissions
             if user.is_superuser:
-                all_permissions = session.query(Permission).filter(Permission.is_active == True).all()
+                all_permissions = session.query(Permission).filter(Permission.is_active.is_(True)).all()
                 permissions = {perm.name for perm in all_permissions}
             else:
                 # Get permissions from active roles
@@ -160,7 +160,7 @@ class RBACManager:
         try:
             with get_db_session() as session:
                 user = session.query(User).filter(User.id == user_id).first()
-                role = session.query(Role).filter(Role.name == role_name, Role.is_active == True).first()
+                role = session.query(Role).filter(Role.name == role_name, Role.is_active.is_(True)).first()
 
                 if not user or not role:
                     logger.warning(f"User {user_id} or role {role_name} not found")
@@ -261,7 +261,7 @@ class RBACManager:
                 if permissions:
                     permission_objects = (
                         session.query(Permission)
-                        .filter(Permission.name.in_(permissions), Permission.is_active == True)
+                        .filter(Permission.name.in_(permissions), Permission.is_active.is_(True))
                         .all()
                     )
                     role.permissions.extend(permission_objects)
