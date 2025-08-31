@@ -51,9 +51,10 @@ RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted
 # Copy application code
 COPY . /app/
 
-# Create necessary directories
+# Create necessary directories and set permissions
 RUN mkdir -p /app/logs /app/staticfiles /app/media && \
-    chown -R app:app /app
+    chown -R app:app /app && \
+    chmod 755 /app/logs
 
 # Set permissions for entrypoint script
 COPY docker-entrypoint-dev.sh /entrypoint.sh
@@ -76,9 +77,10 @@ RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted
 # Copy application code
 COPY . /app/
 
-# Create necessary directories
+# Create necessary directories and set permissions
 RUN mkdir -p /app/logs /app/staticfiles /app/media && \
-    chown -R app:app /app
+    chown -R app:app /app && \
+    chmod 755 /app/logs
 
 # Set permissions for entrypoint script
 COPY docker-entrypoint-test.sh /entrypoint.sh
@@ -103,7 +105,8 @@ COPY . /app/
 
 # Create necessary directories and set permissions
 RUN mkdir -p /app/logs /app/staticfiles /app/media && \
-    chown -R app:app /app
+    chown -R app:app /app && \
+    chmod 755 /app/logs
 
 # Collect static files
 RUN python manage.py collectstatic --noinput || true
