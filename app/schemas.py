@@ -445,3 +445,170 @@ class TaggedResourceResponse(BaseModel):
     resource_count: int
     tag_filters: Dict[str, str]
     resource_type: str
+
+
+# Transaction Classification and Categorization Schemas
+class TransactionClassificationRequest(BaseModel):
+    """Schema for transaction classification requests."""
+    
+    transaction_ids: Optional[List[UUID]] = Field(None, description="Specific transaction IDs to classify")
+    auto_tag: bool = Field(default=True, description="Whether to create tags automatically")
+    force_reclassify: bool = Field(default=False, description="Force reclassification of already classified transactions")
+
+
+class TransactionClassificationResult(BaseModel):
+    """Schema for transaction classification results."""
+    
+    transaction_id: UUID
+    classification: str
+    category: str
+    confidence: Optional[float] = Field(None, description="Classification confidence score")
+    auto_generated: bool = Field(default=True, description="Whether this was auto-generated")
+    previous_classification: Optional[str] = Field(None, description="Previous classification if reclassified")
+    previous_category: Optional[str] = Field(None, description="Previous category if reclassified")
+
+
+class ClassificationAnalyticsRequest(BaseModel):
+    """Schema for classification analytics requests."""
+    
+    analysis_type: str = Field(default="all", description="Type of analysis: 'classification', 'category', or 'all'")
+    period_start: Optional[datetime] = Field(None, description="Start of analysis period")
+    period_end: Optional[datetime] = Field(None, description="End of analysis period")
+    include_trends: bool = Field(default=True, description="Include trend analysis")
+    include_patterns: bool = Field(default=False, description="Include pattern analysis")
+
+
+class ClassificationDistribution(BaseModel):
+    """Schema for classification distribution data."""
+    
+    classifications: Dict[str, int]
+    categories: Dict[str, int]
+    total_classified: int
+    total_categorized: int
+
+
+class ClassificationAmountAnalysis(BaseModel):
+    """Schema for classification amount analysis."""
+    
+    count: int
+    total_amount: float
+    average_amount: float
+    min_amount: float
+    max_amount: float
+    trend: Optional[Dict[str, Any]] = None
+
+
+class CategorySpendingInsight(BaseModel):
+    """Schema for category spending insights."""
+    
+    category: str
+    amount: float
+    percentage: float
+    transaction_count: int
+
+
+class SpendingInsights(BaseModel):
+    """Schema for spending insights."""
+    
+    top_spending_categories: List[CategorySpendingInsight]
+    total_spending: float
+    categories_with_spending: int
+    average_transaction_amount: float
+
+
+class ClassificationAnalyticsResponse(BaseModel):
+    """Schema for classification analytics response."""
+    
+    distribution: ClassificationDistribution
+    amount_analysis: Dict[str, ClassificationAmountAnalysis]
+    spending_insights: Optional[SpendingInsights] = None
+    period_start: Optional[str] = None
+    period_end: Optional[str] = None
+    analysis_type: str
+
+
+class TransactionAnomaly(BaseModel):
+    """Schema for transaction anomaly detection."""
+    
+    type: str = Field(..., description="Type of anomaly")
+    category: str = Field(..., description="Transaction category")
+    transaction_id: str = Field(..., description="Transaction ID")
+    amount: float = Field(..., description="Transaction amount")
+    average_amount: float = Field(..., description="Average amount for category")
+    multiplier: float = Field(..., description="How many times above average")
+    description: Optional[str] = Field(None, description="Transaction description")
+    date: str = Field(..., description="Transaction date")
+
+
+class AnomalyDetectionRequest(BaseModel):
+    """Schema for anomaly detection requests."""
+    
+    sensitivity: str = Field(default="medium", description="Detection sensitivity: 'low', 'medium', or 'high'")
+    analysis_period_days: int = Field(default=30, description="Number of days to analyze")
+
+
+class AnomalyDetectionResponse(BaseModel):
+    """Schema for anomaly detection response."""
+    
+    anomalies: List[TransactionAnomaly]
+    sensitivity: str
+    analysis_period: Dict[str, str]
+    total_anomalies: int
+
+
+class MonthlyBreakdownData(BaseModel):
+    """Schema for monthly breakdown data."""
+    
+    classifications: Dict[str, ClassificationAmountAnalysis]
+    categories: Dict[str, ClassificationAmountAnalysis]
+    period: Dict[str, str]
+
+
+class MonthlyBreakdownResponse(BaseModel):
+    """Schema for monthly breakdown response."""
+    
+    monthly_breakdown: Dict[str, MonthlyBreakdownData]
+    analysis_period: Dict[str, Any]
+
+
+class TransactionPatternAnalysis(BaseModel):
+    """Schema for transaction pattern analysis."""
+    
+    total_count: int
+    common_hours: Optional[List[Tuple[int, int]]] = None
+    common_days: Optional[List[Tuple[int, int]]] = None
+    frequency_per_month: Optional[float] = None
+    avg_amount: float
+    total_amount: Optional[float] = None
+
+
+class TransactionPatternsResponse(BaseModel):
+    """Schema for transaction patterns response."""
+    
+    classification_patterns: Optional[Dict[str, TransactionPatternAnalysis]] = None
+    category_patterns: Optional[Dict[str, TransactionPatternAnalysis]] = None
+    cross_analysis: Optional[Dict[str, Dict[str, int]]] = None
+
+
+class ClassificationConfigRequest(BaseModel):
+    """Schema for updating classification configuration."""
+    
+    classification_patterns: Optional[Dict[str, List[str]]] = Field(
+        None, description="Classification patterns to add"
+    )
+    category_patterns: Optional[Dict[str, List[str]]] = Field(
+        None, description="Category patterns to add"
+    )
+
+
+class ClassificationConfigResponse(BaseModel):
+    """Schema for classification configuration response."""
+    
+    classification_patterns: Dict[str, List[str]]
+    category_patterns: Dict[str, List[str]]
+    updated_at: str
+    
+    resource_ids: List[str]
+    resource_count: int
+    tag_filters: Dict[str, str]
+    resource_type: str
