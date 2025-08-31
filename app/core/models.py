@@ -6,10 +6,11 @@ Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
 """
 import uuid
 from datetime import datetime, timezone
+from typing import List
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, Text, ForeignKey, Table
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from app.core.db.connection import Base
 
 # Association tables for many-to-many relationships
@@ -37,8 +38,14 @@ class BaseModel(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    created_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
-    updated_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
+    
+    @declared_attr
+    def created_by(cls):
+        return Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
+    
+    @declared_attr 
+    def updated_by(cls):
+        return Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
     
     def to_dict(self):
         """Convert model instance to dictionary."""
@@ -65,6 +72,14 @@ class User(BaseModel):
     # Relationships
     roles = relationship('Role', secondary=user_roles, back_populates='users')
     audit_logs_created = relationship('AuditLog', foreign_keys='AuditLog.user_id', back_populates='user')
+    
+    # Multi-tenancy relationships
+    organization_links = relationship('UserOrganizationLink', back_populates='user', cascade='all, delete-orphan')
+    
+    @property
+    def organizations(self) -> List['Organization']:
+        """Get all organizations this user belongs to."""
+        return [link.organization for link in self.organization_links]
     
     def __repr__(self):
         return f'<User(username={self.username}, email={self.email})>'
@@ -176,7 +191,7 @@ class AuditLog(BaseModel):
     response_status = Column(Integer, nullable=True)    # HTTP status code
     
     # Additional metadata
-    metadata = Column(JSONB, nullable=True)
+    extra_metadata = Column(JSONB, nullable=True)
     message = Column(Text, nullable=True)
     
     # Relationships
