@@ -31,10 +31,16 @@ Financial Stronghold is designed for enterprise-grade production deployment with
 ### Prerequisites
 
 - **Server Requirements**:
-  - CPU: 4+ cores
-  - RAM: 8GB+ (16GB recommended)
-  - Storage: 100GB+ SSD
-  - Network: Public IP with DNS
+  - **Minimum (Development/Testing):**
+    - CPU: 2 cores
+    - RAM: 2GB
+    - Storage: 20GB SSD
+    - Network: Local/private IP (no DNS required)
+  - **Recommended (Production):**
+    - CPU: 4+ cores
+    - RAM: 8GB+ (16GB recommended)
+    - Storage: 100GB+ SSD
+    - Network: Public IP with DNS
 
 - **Software Requirements**:
   - Docker Engine 24.0.7+
