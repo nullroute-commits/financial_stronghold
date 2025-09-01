@@ -1,0 +1,115 @@
+# Staging Docker Compose configuration
+# Last updated: 2025-09-01 18:30:00 UTC by copilot
+
+services:
+  web:
+    extends:
+      file: docker-compose.base.yml
+      service: web
+    build:
+      target: production
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - DEBUG=False
+      - ENVIRONMENT=staging
+    env_file:
+      - environments/.env.staging.example
+    ports:
+      - "8003:8000"  # Expose for staging validation
+    deploy:
+      replicas: 2  # Load balancing for staging
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    command: >
+      sh -c "
+        python manage.py migrate --noinput &&
+        python manage.py collectstatic --noinput &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+
+  db:
+    extends:
+      file: docker-compose.base.yml
+      service: db
+    environment:
+      - POSTGRES_DB=django_app_staging
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-staging-password}
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    command: >
+      postgres
+      -c max_connections=150
+      -c shared_buffers=384MB
+      -c work_mem=6MB
+      -c maintenance_work_mem=96MB
+      -c effective_cache_size=1.5GB
+      -c wal_buffers=24MB
+      -c checkpoint_completion_target=0.9
+
+  memcached:
+    extends:
+      file: docker-compose.base.yml
+      service: memcached
+    command: memcached -m 128 -c 1024 -t 4
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  rabbitmq:
+    extends:
+      file: docker-compose.base.yml
+      service: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USERNAME:-staging}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD:-staging}
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  nginx:
+    extends:
+      file: docker-compose.base.yml
+      service: nginx
+    ports:
+      - "8080:80"  # Use different port for staging
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  static_volume:
+  media_volume:
+  logs_volume:

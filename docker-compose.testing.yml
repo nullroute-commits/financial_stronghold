@@ -63,6 +63,7 @@ services:
     extends:
       service: web
     ports: []  # Override port mapping from web service
+    profiles: ["testing"]  # Only run when explicitly requested
     command: >
       sh -c "
         python manage.py migrate --noinput &&
@@ -79,6 +80,7 @@ services:
     extends:
       service: web
     ports: []  # Override port mapping from web service
+    profiles: ["testing"]  # Only run when explicitly requested
     command: >
       sh -c "
         flake8 app/ config/ --max-line-length=120 &&

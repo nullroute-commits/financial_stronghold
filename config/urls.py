@@ -57,7 +57,8 @@ def health_check(request):
     # Basic application check
     try:
         # Test that Django is working properly
-        from django.contrib.auth.models import User
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
         user_count = User.objects.count()
         health_status['checks']['application'] = 'healthy'
         health_status['user_count'] = user_count
