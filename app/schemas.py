@@ -15,6 +15,65 @@ class TenantInfo(BaseModel):
     tenant_id: str
 
 
+# User Schemas  
+class UserBase(BaseModel):
+    username: str = Field(..., min_length=1, max_length=120)
+    email: str = Field(..., min_length=1, max_length=254)
+    first_name: Optional[str] = Field(None, max_length=30)
+    last_name: Optional[str] = Field(None, max_length=30)
+    is_active: bool = True
+
+
+class UserCreateSchema(UserBase):
+    password: str = Field(..., min_length=8, max_length=128)
+
+
+class UserUpdateSchema(BaseModel):
+    username: Optional[str] = Field(None, min_length=1, max_length=120)
+    email: Optional[str] = Field(None, min_length=1, max_length=254)
+    first_name: Optional[str] = Field(None, max_length=30)
+    last_name: Optional[str] = Field(None, max_length=30)
+    is_active: Optional[bool] = None
+    password: Optional[str] = Field(None, min_length=8, max_length=128)
+
+
+class UserResponseSchema(UserBase):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Tenant Schemas
+class TenantBase(BaseModel):
+    name: str = Field(..., min_length=1, max_length=120)
+    tenant_type: str = Field(..., min_length=1, max_length=50)
+    is_active: bool = True
+    description: Optional[str] = None
+
+
+class TenantCreateSchema(TenantBase):
+    pass
+
+
+class TenantUpdateSchema(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=120)
+    tenant_type: Optional[str] = Field(None, min_length=1, max_length=50)
+    is_active: Optional[bool] = None
+    description: Optional[str] = None
+
+
+class TenantResponseSchema(TenantBase):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 # Organization Schemas
 class OrganizationBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=120)
@@ -601,14 +660,26 @@ class ClassificationConfigRequest(BaseModel):
     )
 
 
-class ClassificationConfigResponse(BaseModel):
-    """Schema for classification configuration response."""
-    
-    classification_patterns: Dict[str, List[str]]
-    category_patterns: Dict[str, List[str]]
-    updated_at: str
-    
-    resource_ids: List[str]
-    resource_count: int
-    tag_filters: Dict[str, str]
-    resource_type: str
+# Account Schema Aliases for compatibility
+AccountCreateSchema = AccountCreate
+AccountUpdateSchema = AccountUpdate  
+AccountResponseSchema = AccountRead
+
+# Transaction Schema Aliases for compatibility
+TransactionCreateSchema = TransactionCreate
+TransactionUpdateSchema = TransactionUpdate
+TransactionResponseSchema = TransactionRead
+
+# Budget Schema Aliases for compatibility  
+BudgetCreateSchema = BudgetCreate
+BudgetUpdateSchema = BudgetUpdate
+BudgetResponseSchema = BudgetRead
+
+# Tag Schema Aliases for compatibility
+TagCreateSchema = DataTagCreate
+TagUpdateSchema = DataTagUpdate
+TagResponseSchema = DataTagRead
+
+# Classification and Analytics Schema Aliases
+ClassificationRuleSchema = TransactionClassificationRequest
+AnalyticsResponseSchema = AnalyticsSummary

@@ -331,6 +331,22 @@ except Exception as e:
     else
         log_error "Cache connectivity test failed"
         log "Error: $cache_test_result"
+        
+        # Try to get more diagnostic information
+        log "Getting cache service logs for debugging..."
+        if docker compose -f "$compose_file" logs memcached --tail=10 2>/dev/null; then
+            docker compose -f "$compose_file" logs memcached --tail=10 | tee -a "$VALIDATION_LOG"
+        else
+            log_warning "Could not retrieve cache service logs"
+        fi
+        
+        # Check if memcached service is running
+        if docker compose -f "$compose_file" ps memcached | grep -q "running"; then
+            log_warning "Memcached service is running but connection test failed"
+        else
+            log_error "Memcached service is not running"
+        fi
+        
         return 1
     fi
     
@@ -343,7 +359,37 @@ run_environment_tests() {
     
     log_section "Running Environment-Specific Tests for $env"
     
-    # Run Django tests
+    # First, try to check test collection without running
+    log "Checking test collection..."
+    
+    local test_check_result
+    if test_check_result=$(docker compose -f "$compose_file" exec -T web python manage.py test --dry-run 2>&1); then
+        log_success "Test collection successful"
+        local test_count
+        test_count=$(echo "$test_check_result" | grep -o "Found [0-9]* test" | head -1 || echo "Found unknown tests")
+        log "Test discovery: $test_count"
+    else
+        log_error "Test collection failed"
+        log "Collection errors: $test_check_result"
+        
+        # Check for specific import errors
+        if echo "$test_check_result" | grep -q "ModuleNotFoundError.*yaml"; then
+            log_error "Missing PyYAML dependency - check requirements files"
+        fi
+        
+        if echo "$test_check_result" | grep -q "ImportError.*UserCreateSchema"; then
+            log_error "Missing schema definitions - check app/schemas.py"
+        fi
+        
+        if echo "$test_check_result" | grep -q "ModuleNotFoundError.*markdown"; then
+            log_error "Missing markdown dependency - check requirements files"
+        fi
+        
+        log_warning "Skipping test execution due to collection errors"
+        return 1
+    fi
+    
+    # Run Django tests if collection succeeded
     log "Running Django tests..."
     
     local test_result
@@ -354,7 +400,16 @@ run_environment_tests() {
         log "Test summary: $test_count"
     else
         log_error "Django tests failed"
-        log "Test output: $test_result"
+        log "Test output (last 20 lines):"
+        echo "$test_result" | tail -20 | tee -a "$VALIDATION_LOG"
+        
+        # Try to identify specific test failures
+        if echo "$test_result" | grep -q "FAILED (errors="; then
+            local error_count
+            error_count=$(echo "$test_result" | grep -o "FAILED (errors=[0-9]*" | grep -o "[0-9]*")
+            log_error "$error_count test errors detected"
+        fi
+        
         return 1
     fi
     

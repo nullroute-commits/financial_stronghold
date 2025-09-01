@@ -1,0 +1,128 @@
+=====================================
+Enhanced Debug Validation Report
+Generated: Mon Sep  1 21:51:49 UTC 2025
+=====================================
+
+SYSTEM INFORMATION:
+-------------------
+Linux pkrvmccyg1gnepe 6.11.0-1018-azure #18~24.04.1-Ubuntu SMP Sat Jun 28 04:46:03 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
+
+DOCKER INFORMATION:
+------------------
+Docker version 28.0.4, build b8034c0
+Docker Compose version v2.38.2
+
+VALIDATION LOG:
+---------------
+Enhanced Debug Validation Started: Mon Sep  1 21:51:47 UTC 2025
+
+[0;34m=== Enhanced Debug Validation for CI/CD Deployment Stages ===[0m
+Target environment: all
+
+[0;34m=== System Information Collection ===[0m
+[0;35m🔍 DEBUG: Operating System: Linux pkrvmccyg1gnepe 6.11.0-1018-azure #18~24.04.1-Ubuntu SMP Sat Jun 28 04:46:03 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux[0m
+[0;35m🔍 DEBUG: Docker Version: Docker version 28.0.4, build b8034c0[0m
+[0;35m🔍 DEBUG: Docker Compose Version: Docker Compose version v2.38.2[0m
+[0;35m🔍 DEBUG: Available Memory: Mem:            15Gi       1.4Gi         9Gi        45Mi       4.7Gi        14Gi[0m
+[0;35m🔍 DEBUG: Available Disk Space: /dev/root        72G   48G   24G  67% /[0m
+[0;35m🔍 DEBUG: CPU Count: 4[0m
+[0;32m✅ Docker daemon is running[0m
+[0;35m🔍 DEBUG: Docker Info: 28.0.4[0m
+
+[0;34m=== Dependency Validation ===[0m
+[0;32m✅ Requirements file exists: requirements/development.txt[0m
+[0;32m✅ Requirements file exists: requirements/test.txt[0m
+[0;32m✅ Requirements file exists: requirements/production.txt[0m
+
+[0;34m=== Schema Validation ===[0m
+[0;32m✅ Schemas file exists[0m
+[0;32m✅ All required schema classes found[0m
+
+[0;34m=== Docker Configuration Validation ===[0m
+[0;35m🔍 DEBUG: Validating development environment...[0m
+[0;32m✅ docker-compose.development.yml exists[0m
+[0;32m✅ docker-compose.development.yml syntax is valid[0m
+[0;32m✅ development has required service: web[0m
+[0;32m✅ development has required service: db[0m
+[0;32m✅ environments/.env.development.example exists[0m
+[0;35m🔍 DEBUG: Validating testing environment...[0m
+[0;32m✅ docker-compose.testing.yml exists[0m
+[0;32m✅ docker-compose.testing.yml syntax is valid[0m
+[0;32m✅ testing has required service: web[0m
+[0;32m✅ testing has required service: db[0m
+[0;32m✅ environments/.env.testing.example exists[0m
+[0;35m🔍 DEBUG: Validating staging environment...[0m
+[0;32m✅ docker-compose.staging.yml exists[0m
+[0;32m✅ docker-compose.staging.yml syntax is valid[0m
+[0;32m✅ staging has required service: web[0m
+[0;32m✅ staging has required service: db[0m
+[0;32m✅ environments/.env.staging.example exists[0m
+[0;35m🔍 DEBUG: Validating production environment...[0m
+[0;32m✅ docker-compose.production.yml exists[0m
+[0;32m✅ docker-compose.production.yml syntax is valid[0m
+[0;32m✅ production has required service: web[0m
+[0;32m✅ production has required service: db[0m
+[0;32m✅ environments/.env.production.example exists[0m
+
+[0;34m=== Health Check Validation ===[0m
+[0;32m✅ Health check endpoint is implemented[0m
+[0;32m✅ Database health check is implemented[0m
+[0;32m✅ Cache health check is implemented[0m
+
+[0;34m=== Container Diagnostics ===[0m
+[0;35m🔍 DEBUG: Running containers:[0m
+NAMES     STATUS    PORTS
+[1;33m⚠️  Found stopped containers:[0m
+NAMES     STATUS
+[0;35m🔍 DEBUG: Docker system info:[0m
+TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
+Images          6         0         2.248GB   2.248GB (100%)
+Containers      0         0         0B        0B
+Local Volumes   0         0         0B        0B
+Build Cache     18        0         3.335MB   3.335MB
+
+[0;34m=== Test Diagnostics ===[0m
+[0;35m🔍 DEBUG: Attempting to collect Django tests...[0m
+[0;35m🔍 DEBUG: Test collection result:[0m
+Traceback (most recent call last):
+  File "/home/runner/work/financial_stronghold/financial_stronghold/manage.py", line 11, in main
+    from django.core.management import execute_from_command_line
+ModuleNotFoundError: No module named 'django'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/runner/work/financial_stronghold/financial_stronghold/manage.py", line 22, in <module>
+    main()
+  File "/home/runner/work/financial_stronghold/financial_stronghold/manage.py", line 13, in main
+    raise ImportError(
+ImportError: Couldn't import Django. Are you sure it's installed and available on your PYTHONPATH environment variable? Did you forget to activate a virtual environment?
+Test collection failed
+[0;31m❌ Import errors detected in tests[0m
+[0;31m❌ Missing modules detected[0m
+
+[0;34m=== Network Diagnostics ===[0m
+[0;35m🔍 DEBUG: Port 8000 is available[0m
+[0;35m🔍 DEBUG: Port 8001 is available[0m
+[0;35m🔍 DEBUG: Port 8002 is available[0m
+[0;35m🔍 DEBUG: Port 8003 is available[0m
+[0;35m🔍 DEBUG: Port 5432 is available[0m
+[0;35m🔍 DEBUG: Port 11211 is available[0m
+[0;35m🔍 DEBUG: Port 5672 is available[0m
+[0;35m🔍 DEBUG: Port 15672 is available[0m
+[0;35m🔍 DEBUG: Docker networks:[0m
+NETWORK ID     NAME      DRIVER    SCOPE
+db696929e3f9   bridge    bridge    local
+a55836c874f0   host      host      local
+57491055262a   none      null      local
+
+[0;34m=== Debug Report Generation ===[0m
+
+ERROR LOG:
+----------
+Error Log Started: Mon Sep  1 21:51:47 UTC 2025
+Mon Sep  1 21:51:49 UTC 2025: Import errors detected in tests
+    raise ImportError(
+ImportError: Couldn't import Django. Are you sure it's installed and available on your PYTHONPATH environment variable? Did you forget to activate a virtual environment?
+Mon Sep  1 21:51:49 UTC 2025: Missing modules detected
+ModuleNotFoundError: No module named 'django'
