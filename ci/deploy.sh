@@ -23,9 +23,17 @@ VERSION="${BUILD_VERSION:-$(git rev-parse --short HEAD)}"
 
 # Validate target
 case "$TARGET" in
-    "staging"|"test")
+    "development"|"dev")
+        COMPOSE_FILE="docker-compose.development.yml"
+        ENV_FILE="environments/.env.development.example"
+        ;;
+    "testing"|"test")
         COMPOSE_FILE="docker-compose.testing.yml"
         ENV_FILE="environments/.env.testing.example"
+        ;;
+    "staging")
+        COMPOSE_FILE="docker-compose.staging.yml"
+        ENV_FILE="environments/.env.staging.example"
         ;;
     "production"|"prod")
         COMPOSE_FILE="docker-compose.production.yml"
@@ -33,30 +41,96 @@ case "$TARGET" in
         ;;
     *)
         echo -e "${RED}❌ Invalid deployment target: $TARGET${NC}"
-        echo -e "${YELLOW}Valid targets: staging, test, production, prod${NC}"
+        echo -e "${YELLOW}Valid targets: development, dev, testing, test, staging, production, prod${NC}"
         exit 1
         ;;
 esac
 
 # Deployment functions
-deploy_to_staging() {
-    echo -e "${YELLOW}Deploying to staging environment...${NC}"
+deploy_to_development() {
+    echo -e "${YELLOW}Deploying to development environment...${NC}"
     
-    # Pull latest images
-    docker-compose -f $COMPOSE_FILE pull
-    
-    # Stop existing services
-    docker-compose -f $COMPOSE_FILE down
+    # Build images
+    docker compose -f $COMPOSE_FILE build
     
     # Start services
-    docker-compose -f $COMPOSE_FILE up -d
+    docker compose -f $COMPOSE_FILE up -d
     
     # Wait for services to be healthy
     echo -e "${YELLOW}Waiting for services to be healthy...${NC}"
     sleep 30
     
     # Run health checks
-    if docker-compose -f $COMPOSE_FILE exec -T web curl -f http://localhost:8000/health/; then
+    if docker compose -f $COMPOSE_FILE exec -T web curl -f http://localhost:8000/health/ 2>/dev/null; then
+        echo -e "${GREEN}✅ Development deployment successful${NC}"
+    else
+        echo -e "${RED}❌ Development health check failed${NC}"
+        exit 1
+    fi
+}
+
+deploy_to_testing() {
+    echo -e "${YELLOW}Deploying to testing environment...${NC}"
+    
+    # Build images
+    docker compose -f $COMPOSE_FILE build
+    
+    # Start supporting services first
+    docker compose -f $COMPOSE_FILE up -d db memcached rabbitmq
+    
+    # Wait for services to be ready
+    echo -e "${YELLOW}Waiting for supporting services to be ready...${NC}"
+    sleep 15
+    
+    # Run migrations
+    echo -e "${YELLOW}Running database migrations...${NC}"
+    docker compose -f $COMPOSE_FILE run --rm --no-deps web python manage.py migrate --noinput
+    
+    # Start web service
+    docker compose -f $COMPOSE_FILE up -d web
+    
+    # Wait for services to be healthy
+    echo -e "${YELLOW}Waiting for services to be healthy...${NC}"
+    sleep 30
+    
+    # Run health checks
+    if docker compose -f $COMPOSE_FILE exec -T web curl -f http://localhost:8000/health/ 2>/dev/null; then
+        echo -e "${GREEN}✅ Testing deployment successful${NC}"
+    else
+        echo -e "${RED}❌ Testing health check failed${NC}"
+        exit 1
+    fi
+}
+
+deploy_to_staging() {
+    echo -e "${YELLOW}Deploying to staging environment...${NC}"
+    
+    # Build images
+    docker compose -f $COMPOSE_FILE build
+    
+    # Stop existing services
+    docker compose -f $COMPOSE_FILE down
+    
+    # Start supporting services first
+    docker compose -f $COMPOSE_FILE up -d db memcached rabbitmq nginx
+    
+    # Wait for services to be ready
+    echo -e "${YELLOW}Waiting for supporting services to be ready...${NC}"
+    sleep 15
+    
+    # Run migrations
+    echo -e "${YELLOW}Running database migrations...${NC}"
+    docker compose -f $COMPOSE_FILE run --rm --no-deps web python manage.py migrate --noinput
+    
+    # Start web services
+    docker compose -f $COMPOSE_FILE up -d web
+    
+    # Wait for services to be healthy
+    echo -e "${YELLOW}Waiting for services to be healthy...${NC}"
+    sleep 30
+    
+    # Run health checks
+    if docker compose -f $COMPOSE_FILE exec -T web curl -f http://localhost:8000/health/ 2>/dev/null; then
         echo -e "${GREEN}✅ Staging deployment successful${NC}"
     else
         echo -e "${RED}❌ Staging health check failed${NC}"
@@ -78,44 +152,38 @@ deploy_to_production() {
         fi
     fi
     
-    # Backup current deployment
+    # Backup current deployment (skip if database doesn't exist yet)
     echo -e "${YELLOW}Creating backup...${NC}"
-    docker-compose -f $COMPOSE_FILE exec -T db pg_dump -U postgres django_app_prod > backup_$(date +%Y%m%d_%H%M%S).sql
+    docker compose -f $COMPOSE_FILE exec -T db pg_dump -U postgres django_app_prod > backup_$(date +%Y%m%d_%H%M%S).sql 2>/dev/null || echo "No existing database to backup"
     
     # Rolling deployment
     echo -e "${YELLOW}Starting rolling deployment...${NC}"
     
-    # Pull latest images
-    docker-compose -f $COMPOSE_FILE pull
+    # Build images
+    docker compose -f $COMPOSE_FILE build
     
     # Update services one by one
-    docker-compose -f $COMPOSE_FILE up -d --no-deps web
+    docker compose -f $COMPOSE_FILE up -d --no-deps web
     
     # Wait for new instance to be healthy
     sleep 60
     
     # Health check
-    if docker-compose -f $COMPOSE_FILE exec -T web curl -f http://localhost:8000/health/; then
+    if docker compose -f $COMPOSE_FILE exec -T web curl -f http://localhost:8000/health/ 2>/dev/null; then
         echo -e "${GREEN}✅ Production deployment successful${NC}"
     else
         echo -e "${RED}❌ Production health check failed${NC}"
         echo -e "${YELLOW}Rolling back...${NC}"
-        docker-compose -f $COMPOSE_FILE rollback
+        docker compose -f $COMPOSE_FILE down
         exit 1
     fi
     
     # Update other services
-    docker-compose -f $COMPOSE_FILE up -d
+    docker compose -f $COMPOSE_FILE up -d
 }
 
 # Pre-deployment checks
 echo -e "${YELLOW}Running pre-deployment checks...${NC}"
-
-# Check if images exist
-if ! docker pull $REGISTRY/$IMAGE_NAME:$VERSION; then
-    echo -e "${RED}❌ Image not found: $REGISTRY/$IMAGE_NAME:$VERSION${NC}"
-    exit 1
-fi
 
 # Check if environment file exists
 if [ ! -f "$ENV_FILE" ]; then
@@ -129,11 +197,20 @@ if [ ! -f "$COMPOSE_FILE" ]; then
     exit 1
 fi
 
-# Database migration check
-echo -e "${YELLOW}Checking database migrations...${NC}"
-if ! docker run --rm --env-file $ENV_FILE $REGISTRY/$IMAGE_NAME:$VERSION python manage.py migrate --check; then
-    echo -e "${YELLOW}⚠️ Pending migrations detected${NC}"
-    if [ "$TARGET" = "production" ] || [ "$TARGET" = "prod" ]; then
+# Skip image pull checks for local development
+if [ "$TARGET" != "development" ] && [ "$TARGET" != "dev" ]; then
+    # Check if images exist
+    if ! docker pull $REGISTRY/$IMAGE_NAME:$VERSION 2>/dev/null; then
+        echo -e "${YELLOW}⚠️ Image not found in registry: $REGISTRY/$IMAGE_NAME:$VERSION${NC}"
+        echo -e "${YELLOW}Will build locally instead${NC}"
+    fi
+fi
+
+# Database migration check (skip for local environments)
+if [ "$TARGET" = "production" ] || [ "$TARGET" = "prod" ]; then
+    echo -e "${YELLOW}Checking database migrations...${NC}"
+    if ! docker run --rm --env-file $ENV_FILE $REGISTRY/$IMAGE_NAME:$VERSION python manage.py migrate --check 2>/dev/null; then
+        echo -e "${YELLOW}⚠️ Pending migrations detected${NC}"
         echo -e "${RED}❌ Cannot deploy to production with pending migrations${NC}"
         exit 1
     fi
@@ -141,7 +218,13 @@ fi
 
 # Run deployment
 case "$TARGET" in
-    "staging"|"test")
+    "development"|"dev")
+        deploy_to_development
+        ;;
+    "testing"|"test")
+        deploy_to_testing
+        ;;
+    "staging")
         deploy_to_staging
         ;;
     "production"|"prod")
@@ -152,15 +235,38 @@ esac
 # Post-deployment verification
 echo -e "${YELLOW}Running post-deployment verification...${NC}"
 
+# Determine health check port based on target
+case "$TARGET" in
+    "development"|"dev")
+        HEALTH_PORT="8000"
+        ;;
+    "testing"|"test")
+        HEALTH_PORT="8001"
+        ;;
+    "staging")
+        HEALTH_PORT="8003"
+        ;;
+    "production"|"prod")
+        HEALTH_PORT="8002"
+        ;;
+esac
+
 # Health checks
-HEALTH_URL="http://localhost:8000/health/"
+HEALTH_URL="http://localhost:${HEALTH_PORT}/health/"
+echo -e "${YELLOW}Checking health endpoint: $HEALTH_URL${NC}"
+
 for i in {1..10}; do
-    if curl -f $HEALTH_URL; then
+    if curl -f $HEALTH_URL 2>/dev/null; then
         echo -e "${GREEN}✅ Health check passed${NC}"
         break
     else
         echo -e "${YELLOW}Health check attempt $i/10 failed, retrying...${NC}"
         sleep 10
+    fi
+    
+    if [ $i -eq 10 ]; then
+        echo -e "${RED}❌ Health check failed after 10 attempts${NC}"
+        exit 1
     fi
 done
 
