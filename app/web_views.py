@@ -190,11 +190,9 @@ def transactions_list(request):
             service = TenantService(db=db, model=Transaction)
             transactions = service.get_all(
                 tenant_type=tenant_context['tenant_type'],
-                tenant_id=tenant_context['tenant_id']
+                tenant_id=tenant_context['tenant_id'],
+                order_by=[('created_at', 'desc')]
             )
-            
-            # Sort by date (newest first)
-            transactions.sort(key=lambda x: x.created_at, reverse=True)
             
             # Paginate
             paginator = Paginator(transactions, 25)
