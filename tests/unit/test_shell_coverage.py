@@ -280,7 +280,13 @@ class TestShellScripts:
             # Not all scripts need dependency checks
             if "docker" in content:
                 # Scripts using docker should check for it
-                has_docker_check = "docker" in content and ("command" in content or "which" in content)
+                has_docker_check = ("docker" in content and (
+                    "command -v docker" in content or
+                    "which docker" in content or
+                    "type docker" in content or
+                    "hash docker" in content
+                ))
+                assert has_docker_check, f"Script {script} uses docker but does not check for its presence"
 
     @patch('subprocess.run')
     def test_script_return_codes(self, mock_subprocess, ci_directory):
