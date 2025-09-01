@@ -291,3 +291,34 @@ def health_check() -> bool:
         True if database is healthy, False otherwise
     """
     return get_db_connection().health_check()
+
+
+# Create engine and SessionLocal instances for backwards compatibility
+def get_engine():
+    """Get the database engine."""
+    return get_db_connection().engine
+
+
+def get_session_factory():
+    """Get the session factory."""
+    return get_db_connection().SessionLocal
+
+
+# Export commonly used instances
+engine = None
+SessionLocal = None
+
+def _initialize_globals():
+    """Initialize global engine and SessionLocal."""
+    global engine, SessionLocal
+    if engine is None:
+        connection = get_db_connection()
+        engine = connection.engine
+        SessionLocal = connection.SessionLocal
+
+# Initialize on import
+try:
+    _initialize_globals()
+except Exception:
+    # Handle cases where Django settings aren't available yet
+    pass

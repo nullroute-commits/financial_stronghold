@@ -93,13 +93,14 @@ class TestTokenManager100:
         
         token_manager = TokenManager()
         
-        # Test create_token
+        # Test create_access_token
         user_data = {"user_id": 123, "username": "testuser"}
-        token = token_manager.create_token(user_data)
+        token = token_manager.create_access_token(user_data)
         assert token is not None
         
-        # Test create_token with custom expiration
-        token_custom = token_manager.create_token(user_data, expires_minutes=60)
+        # Test create_access_token with custom expiration
+        from datetime import timedelta
+        token_custom = token_manager.create_access_token(user_data, expires_delta=timedelta(minutes=60))
         assert token_custom is not None
         
         # Test verify_token with valid token
@@ -108,22 +109,22 @@ class TestTokenManager100:
         assert payload["user_id"] == 123
         
         # Test verify_token with expired token (mock)
+        from jose import JWTError
+        from fastapi import HTTPException
         with patch('jose.jwt.decode') as mock_decode:
-            mock_decode.side_effect = Exception("Token expired")
-            payload_exp = token_manager.verify_token("expired_token")
-            assert payload_exp is None
+            mock_decode.side_effect = JWTError("Token expired")
+            try:
+                token_manager.verify_token("expired_token")
+                pytest.fail("Should have raised HTTPException")
+            except HTTPException as e:
+                # Should raise HTTPException
+                assert e.status_code == 401
+                assert e.detail == "Invalid token"
         
-        # Test refresh_token
-        refreshed = token_manager.refresh_token(token)
-        assert refreshed is not None
-        
-        # Test revoke_token
-        result = token_manager.revoke_token(token)
-        assert result is True
-        
-        # Test is_token_revoked
-        revoked = token_manager.is_token_revoked(token)
-        assert revoked is True
+        # Test methods that don't exist in actual TokenManager
+        # We'll test the actual methods available
+        assert hasattr(token_manager, 'create_access_token')
+        assert hasattr(token_manager, 'verify_token')
 
 
 class TestServicesLayer100:
@@ -313,9 +314,11 @@ class TestMiddleware100:
         # Test with authenticated user and headers
         request.user = Mock()
         request.user.id = 123
+        import uuid
+        valid_uuid = str(uuid.uuid4())
         request.META = {
             'HTTP_X_TENANT_TYPE': TenantType.ORGANIZATION,
-            'HTTP_X_TENANT_ID': '456'
+            'HTTP_X_TENANT_ID': valid_uuid
         }
         
         response = middleware.process_request(request)
@@ -329,7 +332,7 @@ class TestMiddleware100:
         
         # Test tenant validation with organization
         request.META['HTTP_X_TENANT_TYPE'] = TenantType.ORGANIZATION
-        request.META['HTTP_X_TENANT_ID'] = '789'
+        request.META['HTTP_X_TENANT_ID'] = valid_uuid
         
         with patch('app.middleware.UserOrganizationLink') as mock_link:
             mock_link.objects.filter().exists.return_value = True
