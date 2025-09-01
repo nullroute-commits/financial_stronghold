@@ -110,7 +110,7 @@ services:
 
   # Log aggregation
   fluentd:
-    image: fluent/fluentd:v1.16-1
+    image: fluent/fluentd:v1.16.2-1.0
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     volumes:
       - logs_volume:/app/logs
