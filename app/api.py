@@ -56,6 +56,7 @@ from app.schemas import (
     TransactionUpdate,
 )
 from app.services import TenantService
+from app.services.copilot_service import CopilotInstructionsService
 from app.dashboard_service import DashboardService
 from app.tagging_service import TaggingService, AnalyticsService
 
