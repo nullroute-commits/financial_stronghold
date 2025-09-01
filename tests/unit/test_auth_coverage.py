@@ -23,7 +23,7 @@ class TestAuthentication:
     @pytest.fixture
     def auth_service(self, db_session):
         """Create Authentication service instance."""
-        return Authentication(db=db_session)
+        return Authentication()
 
     @pytest.fixture
     def mock_user(self):
@@ -40,9 +40,9 @@ class TestAuthentication:
 
     def test_authentication_init(self, db_session):
         """Test Authentication initialization."""
-        auth = Authentication(db=db_session)
-        assert auth.db == db_session
-        assert isinstance(auth.token_manager, TokenManager)
+        auth = Authentication()
+        assert auth.secret_key == "your-secret-key-here"
+        assert auth.algorithm == "HS256"
 
     def test_hash_password(self, auth_service):
         """Test password hashing."""
