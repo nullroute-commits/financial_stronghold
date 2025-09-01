@@ -430,72 +430,138 @@ class TestPermissionChecker:
     """Tests for PermissionChecker."""
     
     @pytest.fixture
-    def permission_checker(self):
+    def permission_checker(self, db_session):
         """Create PermissionChecker instance."""
-        return PermissionChecker()
+        return PermissionChecker(db_session)
     
-    def test_has_permission_success(self, permission_checker):
+    def test_has_permission_success(self, permission_checker, db_session):
         """Test successful permission check."""
-        user_permissions = ["read:accounts", "write:accounts"]
-        required_permission = "read:accounts"
+        # Create a mock user
+        from app.core.models import User
+        user = User(
+            id=1,
+            username="testuser",
+            email="test@example.com",
+            password_hash="hashed_password",
+            is_active=True
+        )
         
-        has_perm = permission_checker.has_permission(user_permissions, required_permission)
-        assert has_perm is True
+        has_perm = permission_checker.has_permission(
+            user, "read:accounts", "user", "123"
+        )
+        assert has_perm is True  # User tenant has all permissions on their own data
     
-    def test_has_permission_denied(self, permission_checker):
-        """Test permission denied."""
-        user_permissions = ["read:accounts"]
-        required_permission = "write:accounts"
+    def test_has_permission_denied(self, permission_checker, db_session):
+        """Test permission denied for organization tenant without proper role."""
+        from app.core.models import User
+        user = User(
+            id=1,
+            username="testuser",
+            email="test@example.com",
+            password_hash="hashed_password",
+            is_active=True
+        )
         
-        has_perm = permission_checker.has_permission(user_permissions, required_permission)
+        # Test organization permission without proper link (should return False)
+        has_perm = permission_checker.has_permission(
+            user, "write:accounts", "organization", "456"
+        )
         assert has_perm is False
     
-    def test_has_any_permission_success(self, permission_checker):
+    def test_has_any_permission_success(self, permission_checker, db_session):
         """Test has any permission success."""
-        user_permissions = ["read:accounts", "write:transactions"]
+        from app.core.models import User
+        user = User(
+            id=1,
+            username="testuser",
+            email="test@example.com", 
+            password_hash="hashed_password",
+            is_active=True
+        )
         required_permissions = ["write:accounts", "read:accounts"]
         
-        has_any = permission_checker.has_any_permission(user_permissions, required_permissions)
+        has_any = permission_checker.has_any_permission(user, required_permissions, "user", "1")
         assert has_any is True
     
-    def test_has_any_permission_denied(self, permission_checker):
-        """Test has any permission denied."""
-        user_permissions = ["read:budgets"]
+    def test_has_any_permission_denied(self, permission_checker, db_session):
+        """Test has any permission denied.""" 
+        from app.core.models import User
+        user = User(
+            id=1,
+            username="testuser",
+            email="test@example.com",
+            password_hash="hashed_password", 
+            is_active=True
+        )
         required_permissions = ["write:accounts", "read:accounts"]
         
-        has_any = permission_checker.has_any_permission(user_permissions, required_permissions)
+        # Test for organization without proper access
+        has_any = permission_checker.has_any_permission(user, required_permissions, "organization", "456")
         assert has_any is False
     
-    def test_has_all_permissions_success(self, permission_checker):
+    def test_has_all_permissions_success(self, permission_checker, db_session):
         """Test has all permissions success."""
-        user_permissions = ["read:accounts", "write:accounts", "delete:accounts"]
+        from app.core.models import User
+        user = User(
+            id=1,
+            username="testuser",
+            email="test@example.com",
+            password_hash="hashed_password",
+            is_active=True
+        )
         required_permissions = ["read:accounts", "write:accounts"]
         
-        has_all = permission_checker.has_all_permissions(user_permissions, required_permissions)
+        has_all = permission_checker.has_all_permissions(user, required_permissions, "user", "1")
         assert has_all is True
     
-    def test_has_all_permissions_denied(self, permission_checker):
+    def test_has_all_permissions_denied(self, permission_checker, db_session):
         """Test has all permissions denied."""
-        user_permissions = ["read:accounts"]
+        from app.core.models import User
+        user = User(
+            id=1,
+            username="testuser", 
+            email="test@example.com",
+            password_hash="hashed_password",
+            is_active=True
+        )
         required_permissions = ["read:accounts", "write:accounts"]
         
-        has_all = permission_checker.has_all_permissions(user_permissions, required_permissions)
+        # Test for organization without proper access
+        has_all = permission_checker.has_all_permissions(user, required_permissions, "organization", "456") 
         assert has_all is False
     
-    def test_check_tenant_access(self, permission_checker):
-        """Test tenant access checking."""
-        user_tenant_id = "user_123"
-        resource_tenant_id = "user_123"
+    def test_check_tenant_access(self, permission_checker, db_session):
+        """Test tenant access check."""
+        from app.core.models import User
+        user = User(
+            id=1,
+            username="testuser",
+            email="test@example.com",
+            password_hash="hashed_password",
+            is_active=True
+        )
         
-        has_access = permission_checker.check_tenant_access(user_tenant_id, resource_tenant_id)
+        # Test user tenant access
+        has_access = permission_checker.check_tenant_access(user, "user", "1")
         assert has_access is True
-    
-    def test_check_tenant_access_denied(self, permission_checker):
-        """Test tenant access denied."""
-        user_tenant_id = "user_123"
-        resource_tenant_id = "user_456"
         
-        has_access = permission_checker.check_tenant_access(user_tenant_id, resource_tenant_id)
+        # Test user tenant access denied for different user
+        has_access = permission_checker.check_tenant_access(user, "user", "2")
+        assert has_access is False
+    
+    def test_check_tenant_access_denied(self, permission_checker, db_session):
+        """Test tenant access denied."""
+        from app.core.models import User
+        user = User(
+            id=1,
+            username="testuser",
+            email="test@example.com", 
+            password_hash="hashed_password",
+            is_active=True
+        )
+        
+        # Test organization access without proper link
+        has_access = permission_checker.check_tenant_access(user, "organization", "456")
         assert has_access is False
 
 
