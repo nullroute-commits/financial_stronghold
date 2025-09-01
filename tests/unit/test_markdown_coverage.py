@@ -182,7 +182,7 @@ class TestMarkdownDocumentation:
             
             for alt_text, image_src in images:
                 # Test that images have alt text
-                assert alt_text.strip() or True, f"Missing alt text for image {image_src} in {md_file}"
+                assert alt_text.strip(), f"Missing alt text for image {image_src} in {md_file}"
                 
                 # Test that image source is specified
                 assert image_src.strip(), f"Empty image source in {md_file}"
