@@ -13,7 +13,8 @@ class TestDockerConfiguration:
     @pytest.fixture
     def project_root(self):
         """Get project root directory."""
-        return "/home/runner/work/financial_stronghold/financial_stronghold"
+        # Dynamically determine the project root based on the test file location
+        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     def test_dockerfile_exists(self, project_root):
         """Test that Dockerfile exists."""
