@@ -363,11 +363,28 @@ run_environment_tests() {
     log "Checking test collection..."
     
     local test_check_result
-    if test_check_result=$(docker compose -f "$compose_file" exec -T web python manage.py test --dry-run 2>&1); then
+    if test_check_result=$(docker compose -f "$compose_file" exec -T web python -c "
+import django
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.$env')
+django.setup()
+from django.test.utils import get_runner
+from django.conf import settings
+import sys
+
+try:
+    TestRunner = get_runner(settings)
+    test_runner = TestRunner(verbosity=0, interactive=False)
+    loader = test_runner.test_loader
+    suite = loader.discover('tests', pattern='test*.py')
+    test_count = suite.countTestCases()
+    print(f'Found {test_count} tests')
+except Exception as e:
+    print(f'Test collection failed: {str(e)}')
+    sys.exit(1)
+" 2>&1); then
         log_success "Test collection successful"
-        local test_count
-        test_count=$(echo "$test_check_result" | grep -o "Found [0-9]* test" | head -1 || echo "Found unknown tests")
-        log "Test discovery: $test_count"
+        log "Test discovery: $test_check_result"
     else
         log_error "Test collection failed"
         log "Collection errors: $test_check_result"
