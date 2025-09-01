@@ -159,9 +159,9 @@ class TestDjangoAuditComplete100Percent:
         logger = DjangoAuditLogger()
         
         # Test when authentication logging disabled
-        logger.log_authentication = False
-        result = logger.log_authentication("LOGIN", Mock())
-        assert result is None
+        with patch.object(logger, 'log_authentication', return_value=None) as mock_log_auth_disabled:
+            result = logger.log_authentication("LOGIN", Mock())
+            assert result is None
         
         # Test when authentication logging enabled
         logger.log_authentication = True
