@@ -47,7 +47,7 @@ services:
 
   # Development tools
   adminer:
-    image: adminer:4.8.1
+    image: adminer:4-standalone
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     ports:
       - "8080:8080"
@@ -57,7 +57,7 @@ services:
       - db
     restart: unless-stopped
 
-  # Mailhog for email testing
+  # Mailhog for email testing (Note: No official Alpine variant available)
   mailhog:
     image: mailhog/mailhog:v1.0.1
     platform: ${DOCKER_PLATFORM:-linux/amd64}

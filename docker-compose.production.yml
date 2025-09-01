@@ -1,5 +1,5 @@
 # Production Docker Compose configuration
-# Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
+# Last updated: 2025-09-01 by migration automation
 
 services:
   web:
@@ -108,7 +108,7 @@ services:
           cpus: '0.25'
           memory: 128M
 
-  # Log aggregation
+  # Log aggregation (Note: Using official image, Alpine variant not available)
   fluentd:
     image: fluent/fluentd:v1.16.2-1.0
     platform: ${DOCKER_PLATFORM:-linux/amd64}
@@ -119,9 +119,9 @@ services:
       - "24224:24224"
     restart: unless-stopped
 
-  # Monitoring
+  # Monitoring (Alpine-based)
   prometheus:
-    image: prom/prometheus:v2.45.0
+    image: prom/prometheus:latest
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     ports:
       - "9090:9090"

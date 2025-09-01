@@ -52,7 +52,9 @@ Financial Stronghold is designed for enterprise-grade production deployment with
 
 1. **Server Preparation**
    ```bash
-   # Update system
+   # Note: These commands are for host system administration (not containers)
+   # For Alpine hosts, use: apk update && apk upgrade
+   # For Debian/Ubuntu hosts:
    sudo apt update && sudo apt upgrade -y
    
    # Install Docker
@@ -414,7 +416,9 @@ openssl x509 -in nginx/ssl/cert.pem -text -noout | grep "Not After"
 #### Intrusion Detection
 
 ```bash
-# Install fail2ban
+# Install fail2ban (host system command)
+# For Alpine hosts: apk add fail2ban
+# For Debian/Ubuntu hosts:
 sudo apt install fail2ban
 
 # Configure for Docker logs
@@ -516,7 +520,9 @@ TEMPLATES[0]['OPTIONS']['loaders'] = [
 #!/bin/bash
 # weekly_maintenance.sh
 
-# Update system packages
+# Update system packages (host system command)
+# For Alpine hosts: apk update && apk upgrade
+# For Debian/Ubuntu hosts:
 sudo apt update && sudo apt upgrade -y
 
 # Clean Docker system
