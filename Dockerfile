@@ -1,18 +1,18 @@
 # Multi-stage Dockerfile for Django 5 application
 # Supports multi-architecture builds with Python 3.12.5
-# Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
+# Alpine-based for improved security and smaller image size
+# Last updated: 2025-09-01 by migration automation
 
 ARG PYTHON_VERSION=3.12.5
 ARG BUILDPLATFORM=linux/amd64
 ARG TARGETPLATFORM=linux/amd64
 
 # Base stage with Python and system dependencies
-FROM python:${PYTHON_VERSION}-slim as base
+FROM python:${PYTHON_VERSION}-alpine as base
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
@@ -20,26 +20,25 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpq-dev \
-    libbz2-dev \
+RUN apk update && apk add --no-cache \
+    build-base \
+    postgresql-dev \
+    bzip2-dev \
     libffi-dev \
-    libssl-dev \
+    openssl-dev \
     libxml2-dev \
     libxslt-dev \
-    zlib1g-dev \
-    libjpeg-dev \
+    zlib-dev \
+    jpeg-dev \
     libpng-dev \
     curl \
     wget \
     git \
     netcat-openbsd \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/cache/apk/*
 
 # Create app user
-RUN groupadd -r app && useradd -r -g app app
+RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
 
 # Development stage
 FROM base as development
