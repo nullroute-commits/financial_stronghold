@@ -62,6 +62,7 @@ services:
   test-runner:
     extends:
       service: web
+    ports: []  # Override port mapping from web service
     command: >
       sh -c "
         python manage.py migrate --noinput &&
@@ -77,6 +78,7 @@ services:
   linter:
     extends:
       service: web
+    ports: []  # Override port mapping from web service
     command: >
       sh -c "
         flake8 app/ config/ --max-line-length=120 &&
