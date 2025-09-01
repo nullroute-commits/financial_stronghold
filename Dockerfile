@@ -35,6 +35,7 @@ RUN apk update && apk add --no-cache \
     wget \
     git \
     netcat-openbsd \
+    bash \
     && rm -rf /var/cache/apk/*
 
 # Create app user

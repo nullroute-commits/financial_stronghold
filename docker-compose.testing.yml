@@ -19,7 +19,7 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
 
   db:
-    image: postgres:17.2
+    image: postgres:17.2-alpine
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     environment:
       - POSTGRES_DB=django_app_test
