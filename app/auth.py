@@ -36,7 +36,9 @@ class Authentication:
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """Verify a password against its hash."""
         # In a real implementation, this would use bcrypt or similar
-        return plain_password == hashed_password  # Simplified for testing
+        # For our simplified implementation, check if hashed password matches expected format
+        expected_hash = f"hashed_{plain_password}"
+        return hashed_password == expected_hash
     
     def hash_password(self, password: str) -> str:
         """Hash a password."""
