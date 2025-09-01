@@ -14,7 +14,7 @@ class TestMarkdownDocumentation:
     @pytest.fixture
     def project_root(self):
         """Get project root directory."""
-        return "/home/runner/work/financial_stronghold/financial_stronghold"
+        return os.getcwd()
 
     @pytest.fixture
     def markdown_files(self, project_root):
