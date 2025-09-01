@@ -8,6 +8,8 @@ fastapi==0.104.1
 uvicorn==0.24.0
 python-jose[cryptography]==3.3.0
 sentry-sdk==1.45.1
+PyYAML==6.0.1
+markdown==3.5.1
 # Removed pylibmc and uwsgi due to Python 3.12 compatibility issues
 # django-pylibmc==0.6.1
 # pylibmc==1.6.3
