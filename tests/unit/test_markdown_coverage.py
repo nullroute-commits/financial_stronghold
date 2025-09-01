@@ -358,9 +358,6 @@ class TestMarkdownDocumentation:
             has_toc = any(pattern in content_lower for pattern in toc_patterns)
             
             # Large files should have table of contents
-            if len(content) > 5000:
-                # This is informational, not all files need TOC
-                pass
 
     def test_documentation_metadata(self, markdown_files):
         """Test documentation metadata and frontmatter."""
