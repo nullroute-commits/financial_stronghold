@@ -130,7 +130,7 @@ deploy_to_staging() {
     sleep 30
     
     # Run health checks
-    if docker compose -f $COMPOSE_FILE exec -T web curl -f http://localhost:8000/health/ 2>/dev/null; then
+    if docker compose -f $COMPOSE_FILE exec -T web curl -f http://localhost:8003/health/ 2>/dev/null; then
         echo -e "${GREEN}✅ Staging deployment successful${NC}"
     else
         echo -e "${RED}❌ Staging health check failed${NC}"
