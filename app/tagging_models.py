@@ -8,7 +8,7 @@ from enum import Enum as PyEnum
 from typing import Optional
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Text, UniqueConstraint
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from app.core.db.uuid_type import UUID, JSONB
 from sqlalchemy.orm import relationship
 
 from app.core.models import BaseModel

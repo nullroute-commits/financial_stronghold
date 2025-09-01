@@ -7,7 +7,8 @@ from decimal import Decimal
 from typing import List
 
 from sqlalchemy import Boolean, Column, DateTime, Integer, Numeric, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import ARRAY
+from app.core.db.uuid_type import UUID
 from sqlalchemy.orm import relationship
 
 from app.core.db.connection import Base

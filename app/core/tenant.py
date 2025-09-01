@@ -7,7 +7,7 @@ from enum import Enum as PyEnum
 from typing import List
 
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID
+from app.core.db.uuid_type import UUID
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
 
