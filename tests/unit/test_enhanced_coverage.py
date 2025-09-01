@@ -22,7 +22,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 # Import modules that need enhanced coverage
 from app.core.db.connection import DatabaseConnection, get_db_session
-from app.core.db.uuid_type import GUID, UUIDType
+from app.core.db.uuid_type import UUID
 
 
 class TestDatabaseConnectionComplete:
