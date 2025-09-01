@@ -95,6 +95,25 @@ class PermissionChecker:
             return self._role_has_permission(link.role, permission)
         return True  # User tenant has all permissions on their own data
     
+    def has_any_permission(self, user: User, permissions: list, tenant_type: str, tenant_id: str) -> bool:
+        """Check if a user has any of the specified permissions."""
+        return any(self.has_permission(user, perm, tenant_type, tenant_id) for perm in permissions)
+    
+    def has_all_permissions(self, user: User, permissions: list, tenant_type: str, tenant_id: str) -> bool:
+        """Check if a user has all of the specified permissions."""
+        return all(self.has_permission(user, perm, tenant_type, tenant_id) for perm in permissions)
+    
+    def check_tenant_access(self, user: User, tenant_type: str, tenant_id: str) -> bool:
+        """Check if a user has access to a specific tenant."""
+        if tenant_type == TenantType.USER.value:
+            return str(user.id) == tenant_id
+        elif tenant_type == TenantType.ORGANIZATION.value:
+            link = self.db.query(UserOrganizationLink).filter_by(
+                user_id=user.id, org_id=int(tenant_id)
+            ).first()
+            return link is not None
+        return False
+    
     def _role_has_permission(self, role: str, permission: str) -> bool:
         """Check if a role has a specific permission."""
         role_permissions = {

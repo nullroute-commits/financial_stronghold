@@ -71,13 +71,11 @@ class TestMiddlewareComponents:
         # Test that it has the required Django middleware methods
         assert hasattr(middleware, '__call__') or hasattr(middleware, 'process_request')
     
-    @patch('app.middleware.time')
+    @patch('time.time', return_value=1000.0)
     def test_rate_limit_functionality(self, mock_time):
         """Test rate limiting functionality with mocked time."""
         if RateLimitMiddleware is None:
             pytest.skip("RateLimitMiddleware not available")
-        
-        mock_time.time.return_value = 1000.0
         
         # Create mock request and response
         mock_request = Mock()
