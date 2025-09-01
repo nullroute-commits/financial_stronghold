@@ -105,10 +105,11 @@ You should see the Financial Stronghold home page.
 ### 2. Admin Interface
 Go to: **http://localhost:8000/admin**
 
-Login with:
-- **Username**: `admin`
-- **Password**: `admin123`
 
+> ⚠️ **Security Warning:**  
+> These are default credentials for the development environment.  
+> **You must change the admin username and password before deploying to production.**  
+> Leaving default credentials in a production environment is a serious security risk and may result in unauthorized access to your system.
 ### 3. Health Check
 Test the health endpoint: **http://localhost:8000/health/**
 
