@@ -390,11 +390,11 @@ financial_stronghold/
 
 | Metric | Development | Testing | Production |
 |--------|-------------|---------|------------|
-| **Response Time** | <500ms | <200ms | <100ms |
-| **Throughput** | 50 req/sec | 200 req/sec | 1000 req/sec |
-| **Concurrent Users** | 10 | 50 | 500 |
-| **Database Connections** | 10 | 20 | 100 |
-| **Memory Usage** | 512MB | 1GB | 4GB |
+| **Response Time** | <500ms | <400ms | <300ms |
+| **Throughput** | 50 req/sec | 150 req/sec | 500 req/sec |
+| **Concurrent Users** | 10 | 30 | 200 |
+| **Database Connections** | 10 | 20 | 50 |
+| **Memory Usage** | 512MB | 1GB | 2GB |
 | **CPU Usage** | 50% | 70% | 80% |
 
 ### Scaling Thresholds
