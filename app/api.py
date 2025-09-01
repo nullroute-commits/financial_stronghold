@@ -210,6 +210,23 @@ def get_transaction(
     return transaction
 
 
+@router.put("/transactions/{transaction_id}", response_model=TransactionRead)
+def update_transaction(
+    transaction_id: UUID,
+    payload: TransactionUpdate,
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Update a transaction."""
+    service = TenantService(db=db, model=Transaction)
+    transaction = service.update(
+        transaction_id, payload, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
+    )
+    if not transaction:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
+    return transaction
+
+
 @router.delete("/transactions/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_transaction(
     transaction_id: UUID,
@@ -256,6 +273,59 @@ def list_fees(
     )
 
 
+@router.get("/fees/{fee_id}", response_model=FeeRead)
+def get_fee(
+    fee_id: UUID,
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Get a specific fee."""
+    service = TenantService(db=db, model=Fee)
+    fee = service.get_one(
+        fee_id, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
+    )
+    if not fee:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Fee not found")
+    return fee
+
+
+@router.put("/fees/{fee_id}", response_model=FeeRead)
+def update_fee(
+    fee_id: UUID,
+    payload: FeeUpdate,
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Update a fee."""
+    service = TenantService(db=db, model=Fee)
+    fee = service.update(
+        fee_id, payload, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
+    )
+    if not fee:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Fee not found")
+    return fee
+
+
+@router.delete("/fees/{fee_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_fee(
+    fee_id: UUID,
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Delete a fee (requires admin role for organizations)."""
+    # Check admin role for organizations
+    if tenant_context["is_organization"]:
+        # This will raise an exception if not admin/owner
+        require_role(["owner", "admin"])(tenant_context)
+
+    service = TenantService(db=db, model=Fee)
+    deleted = service.delete(
+        fee_id, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
+    )
+    if not deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Fee not found")
+
+
 # Budget endpoints
 @router.post("/budgets", response_model=BudgetRead, status_code=status.HTTP_201_CREATED)
 def create_budget(
@@ -280,6 +350,59 @@ def list_budgets(
     return service.get_all(
         tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"], limit=limit, offset=offset
     )
+
+
+@router.get("/budgets/{budget_id}", response_model=BudgetRead)
+def get_budget(
+    budget_id: UUID,
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Get a specific budget."""
+    service = TenantService(db=db, model=Budget)
+    budget = service.get_one(
+        budget_id, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
+    )
+    if not budget:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Budget not found")
+    return budget
+
+
+@router.put("/budgets/{budget_id}", response_model=BudgetRead)
+def update_budget(
+    budget_id: UUID,
+    payload: BudgetUpdate,
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Update a budget."""
+    service = TenantService(db=db, model=Budget)
+    budget = service.update(
+        budget_id, payload, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
+    )
+    if not budget:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Budget not found")
+    return budget
+
+
+@router.delete("/budgets/{budget_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_budget(
+    budget_id: UUID,
+    tenant_context: dict = Depends(get_tenant_context),
+    db: Session = Depends(get_db_session),
+):
+    """Delete a budget (requires admin role for organizations)."""
+    # Check admin role for organizations
+    if tenant_context["is_organization"]:
+        # This will raise an exception if not admin/owner
+        require_role(["owner", "admin"])(tenant_context)
+
+    service = TenantService(db=db, model=Budget)
+    deleted = service.delete(
+        budget_id, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
+    )
+    if not deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Budget not found")
 
 
 # Dashboard endpoints
