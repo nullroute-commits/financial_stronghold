@@ -42,6 +42,20 @@ markdown_extensions:
   - pymdownx.tilde
 nav:
   - Home: index.md
+  - Architecture: ARCHITECTURE.md
+  - Database Design: DATABASE_DESIGN.md
+  - Security Model: SECURITY_MODEL.md
+  - Multi-Tenancy: MULTI_TENANCY.md
+  - Configuration: CONFIGURATION_SYSTEM.md
+  - Testing:
+    - Overview: TESTING_ARCHITECTURE.md
+    - Comprehensive Guide: COMPREHENSIVE_TESTING_GUIDE.md
+    - Final Implementation: COMPREHENSIVE_TESTING_GUIDE_FINAL.md
+    - 100% Coverage Guide: 100_PERCENT_COVERAGE_IMPLEMENTATION_GUIDE.md
+  - Deployment:
+    - CI/CD Pipeline: CI_CD_PIPELINE.md
+    - Feature Deployment: FEATURE_DEPLOYMENT_GUIDE.md
+    - Validation: DEPLOYMENT_VALIDATION.md
   - API Reference:
       - Overview: api/overview.md
       - Modules: api/modules.md
