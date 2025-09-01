@@ -261,8 +261,6 @@ def mock_db_session():
     session.query = Mock()
     session.close = Mock()
     return session
-        except ImportError:
-            pytest.skip("API app not available")
     
     @patch('app.api.get_database')
     def test_api_database_dependency(self, mock_get_db):
