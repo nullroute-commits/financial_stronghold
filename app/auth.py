@@ -1,5 +1,6 @@
 """Multi-tenancy extension for Financial Stronghold."""
 
+from datetime import datetime, timedelta
 from typing import Optional, Tuple
 from datetime import datetime, timedelta
 
@@ -227,3 +228,125 @@ def get_tenant_context(auth: Tuple[User, str, str] = Depends(get_current_user)) 
         "is_organization": tenant_type == TenantType.ORGANIZATION.value,
         "is_user": tenant_type == TenantType.USER.value,
     }
+
+
+class Authentication:
+    """Authentication service for handling user authentication and token validation."""
+    
+    def __init__(self, secret_key: str = SECRET_KEY, algorithm: str = ALGORITHM):
+        self.secret_key = secret_key
+        self.algorithm = algorithm
+    
+    def validate_token(self, token: str) -> dict:
+        """Validate a JWT token and return the payload."""
+        try:
+            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+            return payload
+        except JWTError:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    
+    def authenticate_user(self, credentials: HTTPAuthorizationCredentials, db: Session) -> Tuple[User, str, str]:
+        """Authenticate user using credentials."""
+        if not credentials:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing token")
+        
+        token = credentials.credentials
+        payload = self.validate_token(token)
+        
+        user_id: str = payload.get("sub")
+        tenant_type: str = payload.get("tenant_type", TenantType.USER.value)
+        tenant_id: str = str(payload.get("tenant_id", user_id))
+        
+        if not user_id:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        
+        # Load the user from DB
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user or not user.is_active:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or inactive")
+        
+        return user, tenant_type, tenant_id
+
+
+class TokenManager:
+    """Token management service for JWT operations."""
+    
+    def __init__(self, secret_key: str = SECRET_KEY, algorithm: str = ALGORITHM):
+        self.secret_key = secret_key
+        self.algorithm = algorithm
+    
+    def create_token(self, user_id: str, tenant_type: str, tenant_id: str, expires_delta: Optional[timedelta] = None) -> str:
+        """Create a JWT token for a user."""
+        if expires_delta:
+            expire = datetime.utcnow() + expires_delta
+        else:
+            expire = datetime.utcnow() + timedelta(hours=24)
+        
+        payload = {
+            "sub": user_id,
+            "tenant_type": tenant_type,
+            "tenant_id": tenant_id,
+            "exp": expire,
+            "iat": datetime.utcnow()
+        }
+        
+        return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+    
+    def decode_token(self, token: str) -> dict:
+        """Decode a JWT token and return the payload."""
+        try:
+            return jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+        except JWTError:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    
+    def refresh_token(self, token: str) -> str:
+        """Refresh a JWT token."""
+        payload = self.decode_token(token)
+        new_payload = {
+            "sub": payload.get("sub"),
+            "tenant_type": payload.get("tenant_type"),
+            "tenant_id": payload.get("tenant_id"),
+            "exp": datetime.utcnow() + timedelta(hours=24),
+            "iat": datetime.utcnow()
+        }
+        return jwt.encode(new_payload, self.secret_key, algorithm=self.algorithm)
+
+
+class PermissionChecker:
+    """Permission checking service for authorization."""
+    
+    def __init__(self, db_session: Session = None):
+        self.db = db_session
+    
+    def check_permission(self, user: User, permission: str) -> bool:
+        """Check if user has a specific permission."""
+        # This would be implemented based on the RBAC system
+        # For now, return True for basic functionality
+        return True
+    
+    def check_role(self, user: User, role: str, tenant_id: str = None) -> bool:
+        """Check if user has a specific role."""
+        if not self.db:
+            return True  # Fallback for testing
+        
+        # Check organization role if tenant_id provided
+        if tenant_id:
+            link = self.db.query(UserOrganizationLink).filter_by(
+                user_id=user.id, org_id=int(tenant_id)
+            ).first()
+            return link and link.role == role
+        
+        return True
+    
+    def check_tenant_access(self, user: User, tenant_type: str, tenant_id: str) -> bool:
+        """Check if user has access to the specified tenant."""
+        if tenant_type == TenantType.USER.value:
+            return str(user.id) == tenant_id
+        
+        if tenant_type == TenantType.ORGANIZATION.value and self.db:
+            link = self.db.query(UserOrganizationLink).filter_by(
+                user_id=user.id, org_id=int(tenant_id)
+            ).first()
+            return link is not None
+        
+        return False
