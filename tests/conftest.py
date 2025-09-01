@@ -41,8 +41,9 @@ def db_session():
     
     # Monkey patch UUID column type for SQLite compatibility
     import sqlalchemy.dialects.postgresql.base as pg_base
-    original_uuid = pg_base.UUID
-    pg_base.UUID = UUIDTEXT
+    original_uuid = getattr(pg_base, 'UUID', None)
+    if original_uuid:
+        pg_base.UUID = UUIDTEXT
     
     try:
         Base.metadata.create_all(engine)
@@ -56,7 +57,8 @@ def db_session():
             session.close()
     finally:
         # Restore original UUID type
-        pg_base.UUID = original_uuid
+        if original_uuid:
+            pg_base.UUID = original_uuid
         engine.dispose()
 
 
@@ -67,13 +69,15 @@ def test_engine():
     
     # Monkey patch UUID column type for SQLite compatibility
     import sqlalchemy.dialects.postgresql.base as pg_base
-    original_uuid = pg_base.UUID
-    pg_base.UUID = UUIDTEXT
+    original_uuid = getattr(pg_base, 'UUID', None)
+    if original_uuid:
+        pg_base.UUID = UUIDTEXT
     
     try:
         Base.metadata.create_all(engine)
         yield engine
     finally:
         # Restore original UUID type
-        pg_base.UUID = original_uuid
+        if original_uuid:
+            pg_base.UUID = original_uuid
         engine.dispose()
