@@ -169,7 +169,7 @@ deploy_to_production() {
     sleep 60
     
     # Health check
-    if docker compose -f $COMPOSE_FILE exec -T web curl -f http://localhost:8000/health/ 2>/dev/null; then
+    if docker compose -f $COMPOSE_FILE exec -T web curl -f http://localhost:8002/health/ 2>/dev/null; then
         echo -e "${GREEN}✅ Production deployment successful${NC}"
     else
         echo -e "${RED}❌ Production health check failed${NC}"
