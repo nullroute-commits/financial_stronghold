@@ -64,7 +64,7 @@ RUN chmod +x /app/ci/*.sh
 COPY . /app/
 
 # Create CI user
-RUN addgroup -g 1000 ci && adduser -u 1000 -G ci -s /bin/sh -D ci
+RUN addgroup -g 1000 ci && adduser -u 1000 -g ci -G ci -s /bin/sh -D ci
 
 # Create necessary directories
 RUN mkdir -p /app/logs /app/staticfiles /app/media /app/.cache && \
