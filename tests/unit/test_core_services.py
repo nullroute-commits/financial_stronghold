@@ -13,7 +13,8 @@ import uuid
 from app.services import TenantService
 from app.financial_models import Account, Transaction, Budget
 from app.core.tenant import TenantMixin, TenantType
-from app.core.models import User, Organization
+from app.core.models import User
+from app.core.tenant import Organization
 from app.auth import Authentication, TokenManager, PermissionChecker
 
 

@@ -10,11 +10,11 @@ from datetime import datetime, timezone
 from typing import List
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Table, Text
-from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import relationship
 
 from app.core.db.connection import Base
+from app.core.db.uuid_type import UUID, JSONB
 
 # Association tables for many-to-many relationships
 user_roles = Table(

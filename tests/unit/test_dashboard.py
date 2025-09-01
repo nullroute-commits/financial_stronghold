@@ -8,6 +8,7 @@ from uuid import uuid4
 from app.dashboard_service import DashboardService
 from app.financial_models import Account, Budget, Transaction
 from app.services import TenantService
+from app.core.tenant import TenantType
 
 
 class TestDashboardService:
@@ -21,7 +22,7 @@ class TestDashboardService:
     @pytest.fixture
     def sample_tenant(self):
         """Sample tenant for testing."""
-        return {"tenant_type": "user", "tenant_id": "test_user_123"}
+        return {"tenant_type": TenantType.USER, "tenant_id": "test_user_123"}
 
     @pytest.fixture
     def sample_accounts(self, db_session, sample_tenant):
@@ -257,8 +258,8 @@ class TestDashboardService:
 
     def test_tenant_isolation(self, dashboard_service, db_session):
         """Test that data is properly isolated by tenant."""
-        tenant1 = {"tenant_type": "user", "tenant_id": "user1"}
-        tenant2 = {"tenant_type": "user", "tenant_id": "user2"}
+        tenant1 = {"tenant_type": TenantType.USER, "tenant_id": "user1"}
+        tenant2 = {"tenant_type": TenantType.USER, "tenant_id": "user2"}
         
         # Create account for tenant1
         account_service = TenantService(db=db_session, model=Account)
