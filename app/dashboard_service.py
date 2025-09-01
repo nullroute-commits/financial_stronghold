@@ -31,7 +31,7 @@ class DashboardService:
         """Get account summaries for the tenant."""
         account_service = TenantService(db=self.db, model=Account)
         accounts = account_service.get_all(tenant_type=tenant_type, tenant_id=tenant_id)
-        
+
         return [
             AccountSummary(
                 account_id=account.id,
@@ -49,30 +49,27 @@ class DashboardService:
         # Get all accounts
         account_service = TenantService(db=self.db, model=Account)
         accounts = account_service.get_all(tenant_type=tenant_type, tenant_id=tenant_id)
-        
+
         # Calculate totals
         total_balance = sum(account.balance for account in accounts)
         total_accounts = len(accounts)
         active_accounts = len([account for account in accounts if account.is_active])
-        
+
         # Get transaction stats
         transaction_service = TenantService(db=self.db, model=Transaction)
         all_transactions = transaction_service.get_all(tenant_type=tenant_type, tenant_id=tenant_id)
         total_transactions = len(all_transactions)
-        
+
         # This month transactions
         now = datetime.now()
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        this_month_transactions = [
-            t for t in all_transactions 
-            if t.created_at >= month_start
-        ]
+        this_month_transactions = [t for t in all_transactions if t.created_at >= month_start]
         this_month_count = len(this_month_transactions)
         this_month_amount = sum(t.amount for t in this_month_transactions)
-        
+
         # Get currency from first account or default to USD
         currency = accounts[0].currency if accounts else "USD"
-        
+
         return FinancialSummary(
             total_balance=total_balance,
             total_accounts=total_accounts,
@@ -88,7 +85,7 @@ class DashboardService:
         """Get transaction summary for the tenant."""
         transaction_service = TenantService(db=self.db, model=Transaction)
         all_transactions = transaction_service.get_all(tenant_type=tenant_type, tenant_id=tenant_id)
-        
+
         if not all_transactions:
             return TransactionSummary(
                 total_transactions=0,
@@ -97,12 +94,12 @@ class DashboardService:
                 currency="USD",
                 recent_transactions=[],
             )
-        
+
         total_transactions = len(all_transactions)
         total_amount = sum(t.amount for t in all_transactions)
         avg_amount = total_amount / total_transactions if total_transactions > 0 else Decimal("0.00")
         currency = all_transactions[0].currency if all_transactions else "USD"
-        
+
         # Get recent transactions (last 5)
         recent_transactions = sorted(all_transactions, key=lambda t: t.created_at, reverse=True)[:5]
         recent_transaction_reads = [
@@ -125,7 +122,7 @@ class DashboardService:
             )
             for t in recent_transactions
         ]
-        
+
         return TransactionSummary(
             total_transactions=total_transactions,
             total_amount=total_amount,
@@ -138,13 +135,15 @@ class DashboardService:
         """Get budget statuses for the tenant."""
         budget_service = TenantService(db=self.db, model=Budget)
         budgets = budget_service.get_all(tenant_type=tenant_type, tenant_id=tenant_id)
-        
+
         budget_statuses = []
         for budget in budgets:
             remaining_amount = budget.total_amount - budget.spent_amount
-            percentage_used = (budget.spent_amount / budget.total_amount * 100) if budget.total_amount > 0 else Decimal("0.00")
+            percentage_used = (
+                (budget.spent_amount / budget.total_amount * 100) if budget.total_amount > 0 else Decimal("0.00")
+            )
             is_over_budget = budget.spent_amount > budget.total_amount
-            
+
             budget_statuses.append(
                 BudgetStatus(
                     budget_id=budget.id,
@@ -158,7 +157,7 @@ class DashboardService:
                     currency=budget.currency,
                 )
             )
-        
+
         return budget_statuses
 
     def get_complete_dashboard_data(self, tenant_type: str, tenant_id: Union[str, int]) -> DashboardData:
@@ -167,9 +166,9 @@ class DashboardService:
         account_summaries = self.get_account_summaries(tenant_type, tenant_id)
         transaction_summary = self.get_transaction_summary(tenant_type, tenant_id)
         budget_statuses = self.get_budget_statuses(tenant_type, tenant_id)
-        
+
         tenant_info = TenantInfo(tenant_type=tenant_type, tenant_id=str(tenant_id))
-        
+
         return DashboardData(
             financial_summary=financial_summary,
             account_summaries=account_summaries,

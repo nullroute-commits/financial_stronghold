@@ -15,7 +15,7 @@ class TenantInfo(BaseModel):
     tenant_id: str
 
 
-# User Schemas  
+# User Schemas
 class UserBase(BaseModel):
     username: str = Field(..., min_length=1, max_length=120)
     email: str = Field(..., min_length=1, max_length=254)
@@ -267,7 +267,7 @@ class UserOrganizationLinkUpdate(BaseModel):
 # Dashboard Schemas
 class AccountSummary(BaseModel):
     """Account summary for dashboard."""
-    
+
     account_id: UUID
     name: str
     account_type: str
@@ -281,12 +281,12 @@ class AccountSummary(BaseModel):
 
 class TransactionSummary(BaseModel):
     """Transaction summary for dashboard."""
-    
+
     total_transactions: int
     total_amount: Decimal
     avg_amount: Decimal
     currency: str
-    recent_transactions: List['TransactionRead']
+    recent_transactions: List["TransactionRead"]
 
     class Config:
         from_attributes = True
@@ -294,7 +294,7 @@ class TransactionSummary(BaseModel):
 
 class BudgetStatus(BaseModel):
     """Budget status for dashboard."""
-    
+
     budget_id: UUID
     name: str
     total_amount: Decimal
@@ -311,7 +311,7 @@ class BudgetStatus(BaseModel):
 
 class FinancialSummary(BaseModel):
     """Complete financial summary for dashboard."""
-    
+
     total_balance: Decimal
     total_accounts: int
     active_accounts: int
@@ -327,7 +327,7 @@ class FinancialSummary(BaseModel):
 
 class DashboardData(BaseModel):
     """Complete dashboard data response."""
-    
+
     financial_summary: FinancialSummary
     account_summaries: List[AccountSummary]
     transaction_summary: TransactionSummary
@@ -341,7 +341,7 @@ class DashboardData(BaseModel):
 # Tagging and Analytics Schemas
 class DataTagBase(BaseModel):
     """Base schema for data tags."""
-    
+
     tag_type: str = Field(..., description="Type of tag (user, organization, role, category, custom)")
     tag_key: str = Field(..., min_length=1, max_length=100, description="Tag key (e.g., user_id, org_id, role_id)")
     tag_value: str = Field(..., min_length=1, max_length=255, description="Tag value (the actual ID or value)")
@@ -357,12 +357,13 @@ class DataTagBase(BaseModel):
 
 class DataTagCreate(DataTagBase):
     """Schema for creating a data tag."""
+
     pass
 
 
 class DataTagUpdate(BaseModel):
     """Schema for updating a data tag."""
-    
+
     tag_label: Optional[str] = Field(None, max_length=255)
     tag_description: Optional[str] = None
     tag_color: Optional[str] = Field(None, pattern="^#[0-9A-Fa-f]{6}$")
@@ -373,7 +374,7 @@ class DataTagUpdate(BaseModel):
 
 class DataTagRead(DataTagBase, TenantInfo):
     """Schema for reading a data tag."""
-    
+
     id: UUID
     created_at: datetime
     updated_at: datetime
@@ -384,16 +385,18 @@ class DataTagRead(DataTagBase, TenantInfo):
 
 class TagFilterRequest(BaseModel):
     """Schema for tag filter requests."""
-    
+
     tag_filters: Dict[str, str] = Field(..., description="Tag filters as key-value pairs")
-    resource_types: List[str] = Field(default=["transaction", "account", "budget"], description="Resource types to analyze")
+    resource_types: List[str] = Field(
+        default=["transaction", "account", "budget"], description="Resource types to analyze"
+    )
     period_start: Optional[datetime] = Field(None, description="Start of analysis period")
     period_end: Optional[datetime] = Field(None, description="End of analysis period")
 
 
 class ResourceMetrics(BaseModel):
     """Schema for resource metrics."""
-    
+
     resource_type: str
     total_count: int
     total_amount: Optional[float] = None
@@ -418,7 +421,7 @@ class ResourceMetrics(BaseModel):
 
 class AnalyticsSummary(BaseModel):
     """Schema for analytics summary response."""
-    
+
     tenant_info: TenantInfo
     tag_filters: Dict[str, str]
     resource_metrics: Dict[str, ResourceMetrics]
@@ -427,7 +430,7 @@ class AnalyticsSummary(BaseModel):
 
 class AnalyticsViewBase(BaseModel):
     """Base schema for analytics views."""
-    
+
     view_name: str = Field(..., min_length=1, max_length=100)
     view_description: Optional[str] = None
     tag_filters: Dict[str, str] = Field(..., description="Tag filters for the view")
@@ -440,12 +443,13 @@ class AnalyticsViewBase(BaseModel):
 
 class AnalyticsViewCreate(AnalyticsViewBase):
     """Schema for creating an analytics view."""
+
     pass
 
 
 class AnalyticsViewUpdate(BaseModel):
     """Schema for updating an analytics view."""
-    
+
     view_name: Optional[str] = Field(None, min_length=1, max_length=100)
     view_description: Optional[str] = None
     tag_filters: Optional[Dict[str, str]] = None
@@ -458,7 +462,7 @@ class AnalyticsViewUpdate(BaseModel):
 
 class AnalyticsViewRead(AnalyticsViewBase, TenantInfo):
     """Schema for reading an analytics view."""
-    
+
     id: UUID
     created_at: datetime
     updated_at: datetime
@@ -473,7 +477,7 @@ class AnalyticsViewRead(AnalyticsViewBase, TenantInfo):
 
 class TagHierarchyBase(BaseModel):
     """Base schema for tag hierarchies."""
-    
+
     parent_tag_id: UUID
     child_tag_id: UUID
     relationship_type: str = Field(default="parent_child", max_length=50)
@@ -483,12 +487,13 @@ class TagHierarchyBase(BaseModel):
 
 class TagHierarchyCreate(TagHierarchyBase):
     """Schema for creating a tag hierarchy."""
+
     pass
 
 
 class TagHierarchyRead(TagHierarchyBase):
     """Schema for reading a tag hierarchy."""
-    
+
     id: UUID
     created_at: datetime
     updated_at: datetime
@@ -499,7 +504,7 @@ class TagHierarchyRead(TagHierarchyBase):
 
 class TaggedResourceResponse(BaseModel):
     """Schema for tagged resource responses."""
-    
+
     resource_ids: List[str]
     resource_count: int
     tag_filters: Dict[str, str]
@@ -509,15 +514,17 @@ class TaggedResourceResponse(BaseModel):
 # Transaction Classification and Categorization Schemas
 class TransactionClassificationRequest(BaseModel):
     """Schema for transaction classification requests."""
-    
+
     transaction_ids: Optional[List[UUID]] = Field(None, description="Specific transaction IDs to classify")
     auto_tag: bool = Field(default=True, description="Whether to create tags automatically")
-    force_reclassify: bool = Field(default=False, description="Force reclassification of already classified transactions")
+    force_reclassify: bool = Field(
+        default=False, description="Force reclassification of already classified transactions"
+    )
 
 
 class TransactionClassificationResult(BaseModel):
     """Schema for transaction classification results."""
-    
+
     transaction_id: UUID
     classification: str
     category: str
@@ -529,7 +536,7 @@ class TransactionClassificationResult(BaseModel):
 
 class ClassificationAnalyticsRequest(BaseModel):
     """Schema for classification analytics requests."""
-    
+
     analysis_type: str = Field(default="all", description="Type of analysis: 'classification', 'category', or 'all'")
     period_start: Optional[datetime] = Field(None, description="Start of analysis period")
     period_end: Optional[datetime] = Field(None, description="End of analysis period")
@@ -539,7 +546,7 @@ class ClassificationAnalyticsRequest(BaseModel):
 
 class ClassificationDistribution(BaseModel):
     """Schema for classification distribution data."""
-    
+
     classifications: Dict[str, int]
     categories: Dict[str, int]
     total_classified: int
@@ -548,7 +555,7 @@ class ClassificationDistribution(BaseModel):
 
 class ClassificationAmountAnalysis(BaseModel):
     """Schema for classification amount analysis."""
-    
+
     count: int
     total_amount: float
     average_amount: float
@@ -559,7 +566,7 @@ class ClassificationAmountAnalysis(BaseModel):
 
 class CategorySpendingInsight(BaseModel):
     """Schema for category spending insights."""
-    
+
     category: str
     amount: float
     percentage: float
@@ -568,7 +575,7 @@ class CategorySpendingInsight(BaseModel):
 
 class SpendingInsights(BaseModel):
     """Schema for spending insights."""
-    
+
     top_spending_categories: List[CategorySpendingInsight]
     total_spending: float
     categories_with_spending: int
@@ -577,7 +584,7 @@ class SpendingInsights(BaseModel):
 
 class ClassificationAnalyticsResponse(BaseModel):
     """Schema for classification analytics response."""
-    
+
     distribution: ClassificationDistribution
     amount_analysis: Dict[str, ClassificationAmountAnalysis]
     spending_insights: Optional[SpendingInsights] = None
@@ -588,7 +595,7 @@ class ClassificationAnalyticsResponse(BaseModel):
 
 class TransactionAnomaly(BaseModel):
     """Schema for transaction anomaly detection."""
-    
+
     type: str = Field(..., description="Type of anomaly")
     category: str = Field(..., description="Transaction category")
     transaction_id: str = Field(..., description="Transaction ID")
@@ -601,14 +608,14 @@ class TransactionAnomaly(BaseModel):
 
 class AnomalyDetectionRequest(BaseModel):
     """Schema for anomaly detection requests."""
-    
+
     sensitivity: str = Field(default="medium", description="Detection sensitivity: 'low', 'medium', or 'high'")
     analysis_period_days: int = Field(default=30, description="Number of days to analyze")
 
 
 class AnomalyDetectionResponse(BaseModel):
     """Schema for anomaly detection response."""
-    
+
     anomalies: List[TransactionAnomaly]
     sensitivity: str
     analysis_period: Dict[str, str]
@@ -617,7 +624,7 @@ class AnomalyDetectionResponse(BaseModel):
 
 class MonthlyBreakdownData(BaseModel):
     """Schema for monthly breakdown data."""
-    
+
     classifications: Dict[str, ClassificationAmountAnalysis]
     categories: Dict[str, ClassificationAmountAnalysis]
     period: Dict[str, str]
@@ -625,14 +632,14 @@ class MonthlyBreakdownData(BaseModel):
 
 class MonthlyBreakdownResponse(BaseModel):
     """Schema for monthly breakdown response."""
-    
+
     monthly_breakdown: Dict[str, MonthlyBreakdownData]
     analysis_period: Dict[str, Any]
 
 
 class TransactionPatternAnalysis(BaseModel):
     """Schema for transaction pattern analysis."""
-    
+
     total_count: int
     common_hours: Optional[List[Tuple[int, int]]] = None
     common_days: Optional[List[Tuple[int, int]]] = None
@@ -643,7 +650,7 @@ class TransactionPatternAnalysis(BaseModel):
 
 class TransactionPatternsResponse(BaseModel):
     """Schema for transaction patterns response."""
-    
+
     classification_patterns: Optional[Dict[str, TransactionPatternAnalysis]] = None
     category_patterns: Optional[Dict[str, TransactionPatternAnalysis]] = None
     cross_analysis: Optional[Dict[str, Dict[str, int]]] = None
@@ -651,18 +658,14 @@ class TransactionPatternsResponse(BaseModel):
 
 class ClassificationConfigRequest(BaseModel):
     """Schema for updating classification configuration."""
-    
-    classification_patterns: Optional[Dict[str, List[str]]] = Field(
-        None, description="Classification patterns to add"
-    )
-    category_patterns: Optional[Dict[str, List[str]]] = Field(
-        None, description="Category patterns to add"
-    )
+
+    classification_patterns: Optional[Dict[str, List[str]]] = Field(None, description="Classification patterns to add")
+    category_patterns: Optional[Dict[str, List[str]]] = Field(None, description="Category patterns to add")
 
 
 # Account Schema Aliases for compatibility
 AccountCreateSchema = AccountCreate
-AccountUpdateSchema = AccountUpdate  
+AccountUpdateSchema = AccountUpdate
 AccountResponseSchema = AccountRead
 
 # Transaction Schema Aliases for compatibility
@@ -670,7 +673,7 @@ TransactionCreateSchema = TransactionCreate
 TransactionUpdateSchema = TransactionUpdate
 TransactionResponseSchema = TransactionRead
 
-# Budget Schema Aliases for compatibility  
+# Budget Schema Aliases for compatibility
 BudgetCreateSchema = BudgetCreate
 BudgetUpdateSchema = BudgetUpdate
 BudgetResponseSchema = BudgetRead

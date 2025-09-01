@@ -6,7 +6,7 @@ A comprehensive Django 5 application with SQLAlchemy, PostgreSQL 17, RBAC (Role-
 
 This project demonstrates a production-ready Django 5 application with the following features:
 
-- **Django 5.0.2** with Python 3.12.5
+- **Django 5.1.3** with Python 3.12.5
 - **PostgreSQL 17.2** database with optimized configuration
 - **SQLAlchemy 1.4.49** for advanced ORM capabilities
 - **Memcached 1.6.22** for high-performance caching
@@ -86,7 +86,7 @@ docker-compose -f ci/docker-compose.ci.yml run lint-check
 │                           Presentation Layer                               │
 │                                                                           │
 │    ┌─────────────┐     ┌────────────────┐      ┌────────────────┐        │
-│    │ Nginx 1.24  │────▶│ Django 5.0.2   │      │ Admin Interface│        │
+│    │ Nginx 1.24  │────▶│ Django 5.1.3   │      │ Admin Interface│        │
 │    │ Load Balancer│     │ Web Application│      │ Management     │        │
 │    └─────────────┘     └────────────────┘      └────────────────┘        │
 └───────────────────────────────────────────────────────────────────────────┘

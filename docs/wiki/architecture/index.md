@@ -16,7 +16,7 @@ This section provides comprehensive documentation of the Financial Stronghold sy
 │                          Presentation Layer                                  │
 │                                                                             │
 │    ┌─────────────┐     ┌────────────────┐      ┌────────────────┐          │
-│    │ Nginx 1.24  │────▶│ Django 5.0.2   │      │ Admin Interface│          │
+│    │ Nginx 1.24  │────▶│ Django 5.1.3   │      │ Admin Interface│          │
 │    │ Load Balancer│     │ Web Application│      │ Management     │          │
 │    │ SSL/TLS      │     │ REST API       │      │ Monitoring     │          │
 │    └─────────────┘     └────────────────┘      └────────────────┘          │

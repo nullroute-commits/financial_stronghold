@@ -19,7 +19,6 @@ def api_home_view(request):
 urlpatterns = [
     # Web interface URLs
     path("", include("app.web_urls")),
-    
     # API URLs (keep existing API home for backward compatibility)
     path("api/", api_home_view, name="api_home"),
 ]

@@ -308,6 +308,7 @@ def get_session_factory():
 engine = None
 SessionLocal = None
 
+
 def _initialize_globals():
     """Initialize global engine and SessionLocal."""
     global engine, SessionLocal
@@ -315,6 +316,7 @@ def _initialize_globals():
         connection = get_db_connection()
         engine = connection.engine
         SessionLocal = connection.SessionLocal
+
 
 # Initialize on import
 try:
