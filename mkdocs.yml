@@ -50,14 +50,34 @@ markdown_extensions:
       alternate_style: true
 nav:
   - Home: index.md
-  - GitHub Copilot Instructions: copilot-instructions.md
-  - Architecture & Guides:
-      - Feature Deployment Guide: FEATURE_DEPLOYMENT_GUIDE.md
-      - Architecture Overview: ARCHITECTURE.md
+  - 🚀 Getting Started: wiki/getting-started.md
+  - 📚 User Guides:
+      - Overview: wiki/user-guides/index.md
+      - Developer Guide: wiki/user-guides/developer-guide.md
+      - DevOps Guide: wiki/user-guides/devops-guide.md
+      - System Admin Guide: wiki/user-guides/sysadmin-guide.md
+      - End User Guide: wiki/user-guides/end-user-guide.md
+      - Operations Guide: wiki/user-guides/operations-guide.md
+  - 🎓 Tutorials:
+      - Overview: wiki/tutorials/index.md
+      - Quick Start: wiki/tutorials/quick-start.md
+  - 🏗️ Architecture:
+      - Overview: wiki/architecture/index.md
+      - System Architecture: ARCHITECTURE.md
+  - 🔧 Operations:
       - CI/CD Pipeline: CI_CD_PIPELINE.md
-      - Testing Guide: COMPREHENSIVE_TESTING_GUIDE_FINAL.md
+      - Deployment Pipeline: DEPLOYMENT_PIPELINE.md
       - Configuration System: CONFIGURATION_SYSTEM.md
+      - Deployment Validation: DEPLOYMENT_VALIDATION.md
+  - 🛠️ Troubleshooting:
+      - Troubleshooting Guide: wiki/troubleshooting/index.md
+      - FAQ: wiki/faq.md
+  - 📖 Technical Guides:
+      - Feature Deployment: FEATURE_DEPLOYMENT_GUIDE.md
+      - Testing Guide: COMPREHENSIVE_TESTING_GUIDE_FINAL.md
       - Security Model: SECURITY_MODEL.md
-  - API Reference:
+  - 📋 API Reference:
       - Overview: api/overview.md
       - Modules: api/modules.md
+  - ⚙️ Development:
+      - GitHub Copilot Instructions: copilot-instructions.md
