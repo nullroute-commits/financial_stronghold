@@ -1,0 +1,339 @@
+version: '3.8'
+
+services:
+  web:
+    image: ${REGISTRY:-localhost:5000}/financial-stronghold:${TAG:-latest}
+    ports:
+      - target: 8000
+        published: 80
+        protocol: tcp
+        mode: ingress
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - DATABASE_URL=${DATABASE_URL}
+      - CACHE_URL=${CACHE_URL}
+      - QUEUE_URL=${QUEUE_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - SENTRY_DSN=${SENTRY_DSN}
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        monitor: 60s
+        max_failure_ratio: 0.3
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+        failure_action: pause
+        monitor: 60s
+        max_failure_ratio: 0.3
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      placement:
+        constraints:
+          - node.role == worker
+        preferences:
+          - spread: node.labels.zone
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - financial-stronghold-network
+    secrets:
+      - db_password
+      - secret_key
+    configs:
+      - source: nginx_config
+        target: /etc/nginx/conf.d/default.conf
+
+  nginx:
+    image: nginx:1.24-alpine
+    ports:
+      - target: 80
+        published: 8080
+        protocol: tcp
+        mode: ingress
+      - target: 443
+        published: 8443
+        protocol: tcp
+        mode: ingress
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role == worker
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    configs:
+      - source: nginx_config
+        target: /etc/nginx/conf.d/default.conf
+      - source: nginx_ssl_config
+        target: /etc/nginx/ssl.conf
+    secrets:
+      - source: ssl_cert
+        target: /etc/nginx/ssl/cert.pem
+        mode: 0444
+      - source: ssl_key
+        target: /etc/nginx/ssl/key.pem
+        mode: 0400
+    networks:
+      - financial-stronghold-network
+    depends_on:
+      - web
+
+  database:
+    image: postgres:17.2-alpine
+    environment:
+      - POSTGRES_DB=${DB_NAME:-financial_stronghold}
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+          - node.labels.database == true
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    secrets:
+      - db_password
+    networks:
+      - financial-stronghold-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  cache:
+    image: memcached:1.6.22-alpine
+    deploy:
+      replicas: 2
+      placement:
+        constraints:
+          - node.role == worker
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+    command: ["memcached", "-m", "256", "-I", "10m"]
+    networks:
+      - financial-stronghold-network
+
+  queue:
+    image: rabbitmq:3.12.8-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=${QUEUE_USER:-rabbitmq}
+      - RABBITMQ_DEFAULT_PASS_FILE=/run/secrets/queue_password
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.queue == true
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.2'
+          memory: 256M
+    volumes:
+      - queue_data:/var/lib/rabbitmq
+    secrets:
+      - queue_password
+    networks:
+      - financial-stronghold-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  monitoring:
+    image: prom/prometheus:latest
+    ports:
+      - target: 9090
+        published: 9090
+        protocol: tcp
+        mode: ingress
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.2'
+          memory: 256M
+    configs:
+      - source: prometheus_config
+        target: /etc/prometheus/prometheus.yml
+    volumes:
+      - prometheus_data:/prometheus
+    networks:
+      - financial-stronghold-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - target: 3000
+        published: 3000
+        protocol: tcp
+        mode: ingress
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD_FILE=/run/secrets/grafana_password
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    secrets:
+      - grafana_password
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - financial-stronghold-network
+    depends_on:
+      - monitoring
+
+networks:
+  financial-stronghold-network:
+    driver: overlay
+    driver_opts:
+      encrypted: "true"
+    attachable: true
+
+volumes:
+  database_data:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=${NFS_SERVER:-nfs.example.com},rw
+      device: ":${NFS_PATH:-/exports/financial-stronghold/database}"
+  
+  queue_data:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=${NFS_SERVER:-nfs.example.com},rw
+      device: ":${NFS_PATH:-/exports/financial-stronghold/queue}"
+  
+  prometheus_data:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=${NFS_SERVER:-nfs.example.com},rw
+      device: ":${NFS_PATH:-/exports/financial-stronghold/prometheus}"
+  
+  grafana_data:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=${NFS_SERVER:-nfs.example.com},rw
+      device: ":${NFS_PATH:-/exports/financial-stronghold/grafana}"
+
+secrets:
+  db_password:
+    external: true
+    name: financial_stronghold_db_password
+  
+  secret_key:
+    external: true
+    name: financial_stronghold_secret_key
+  
+  queue_password:
+    external: true
+    name: financial_stronghold_queue_password
+  
+  grafana_password:
+    external: true
+    name: financial_stronghold_grafana_password
+  
+  ssl_cert:
+    external: true
+    name: financial_stronghold_ssl_cert
+  
+  ssl_key:
+    external: true
+    name: financial_stronghold_ssl_key
+
+configs:
+  nginx_config:
+    external: true
+    name: financial_stronghold_nginx_config
+  
+  nginx_ssl_config:
+    external: true
+    name: financial_stronghold_nginx_ssl_config
+  
+  prometheus_config:
+    external: true
+    name: financial_stronghold_prometheus_config
