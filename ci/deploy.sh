@@ -94,7 +94,7 @@ deploy_to_testing() {
     sleep 30
     
     # Run health checks
-    if docker compose -f $COMPOSE_FILE exec -T web curl -f http://localhost:8000/health/ 2>/dev/null; then
+    if docker compose -f $COMPOSE_FILE exec -T web curl -f http://localhost:8001/health/ 2>/dev/null; then
         echo -e "${GREEN}✅ Testing deployment successful${NC}"
     else
         echo -e "${RED}❌ Testing health check failed${NC}"
