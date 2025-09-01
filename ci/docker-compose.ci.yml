@@ -1,7 +1,5 @@
-version: '3.8'
-
 # CI/CD Docker Compose configuration
-# Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
+# Last updated: 2025-09-01 by migration automation
 
 services:
   ci-runner:
@@ -23,7 +21,7 @@ services:
     command: /app/ci/entrypoint.sh
 
   test-db:
-    image: postgres:17.2
+    image: postgres:17.2-alpine
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     environment:
       - POSTGRES_DB=django_app_ci
@@ -33,12 +31,12 @@ services:
       - /var/lib/postgresql/data  # Use tmpfs for faster CI tests
 
   test-memcached:
-    image: memcached:1.6.22
+    image: memcached:1.6-alpine
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     command: memcached -m 64
 
   test-rabbitmq:
-    image: rabbitmq:3.12.8
+    image: rabbitmq:3.12-alpine
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     environment:
       - RABBITMQ_DEFAULT_USER=ci

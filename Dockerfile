@@ -8,7 +8,7 @@ ARG BUILDPLATFORM=linux/amd64
 ARG TARGETPLATFORM=linux/amd64
 
 # Base stage with Python and system dependencies
-FROM python:${PYTHON_VERSION}-alpine as base
+FROM python:${PYTHON_VERSION}-alpine AS base
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -42,7 +42,7 @@ RUN apk update && apk add --no-cache \
 RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
 
 # Development stage
-FROM base as development
+FROM base AS development
 
 # Install development dependencies
 COPY requirements/development.txt /tmp/requirements.txt
@@ -68,7 +68,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 
 # Testing stage
-FROM base as testing
+FROM base AS testing
 
 # Install test dependencies
 COPY requirements/test.txt /tmp/requirements.txt
@@ -94,7 +94,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 CMD ["python", "manage.py", "test"]
 
 # Production stage
-FROM base as production
+FROM base AS production
 
 # Install production dependencies
 COPY requirements/production.txt /tmp/requirements.txt

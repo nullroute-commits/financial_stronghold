@@ -440,10 +440,10 @@ X_FRAME_OPTIONS = 'DENY'
 
 ```dockerfile
 # Use multi-stage builds to reduce image size
-FROM python:3.12.5-slim as base
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+FROM python:3.12.5-alpine as base
+RUN apk update && apk add --no-cache \
+    build-base \
+    && rm -rf /var/cache/apk/*
 
 FROM base as production
 COPY requirements/production.txt .

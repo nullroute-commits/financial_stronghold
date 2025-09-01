@@ -2,7 +2,7 @@
 
 This document describes the comprehensive security model implemented in the Django 5 Multi-Architecture CI/CD Pipeline application.
 
-**Last updated:** 2025-08-30 22:40:55 UTC by nullroute-commits
+**Last updated:** 2025-09-01 by migration automation
 
 ## Table of Contents
 
@@ -245,17 +245,15 @@ CREATE POLICY audit_read_only ON audit_logs
 FROM python:3.12.5-slim as base
 
 # Create non-root user
-RUN groupadd -r app && useradd -r -g app app
+RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
 
-# Update packages and remove package manager
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends \
-        build-essential \
-        libpq-dev && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/cache/apt/*
+# Update packages and remove package manager cache  
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache \
+        build-base \
+        postgresql-dev && \
+    rm -rf /var/cache/apk/*
 
 # Set secure permissions
 COPY --chown=app:app . /app
