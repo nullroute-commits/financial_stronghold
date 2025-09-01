@@ -236,14 +236,29 @@ secrets:
 
 ```python
 # In Django settings
+import os
+import stat
+import logging
+
 def load_secret(secret_name: str, default: str = '') -> str:
     """Load secret from file or environment variable."""
     secret_file = f'/run/secrets/{secret_name}'
     
     # Try Docker secret file first
     if os.path.exists(secret_file):
-        with open(secret_file, 'r') as f:
-            return f.read().strip()
+        try:
+            st = os.stat(secret_file)
+            # Check that file is only readable by owner (mode 0o600)
+            if (st.st_mode & 0o077):
+                logging.warning(f"Secret file {secret_file} has overly permissive permissions: {oct(st.st_mode)}")
+                # Optionally, refuse to read the secret if permissions are too open
+                # return default
+            with open(secret_file, 'r') as f:
+                return f.read().strip()
+        except Exception as e:
+            logging.error(f"Error reading secret file {secret_file}: {e}")
+            # Fall back to environment variable
+            return os.environ.get(secret_name, default)
     
     # Fall back to environment variable
     return os.environ.get(secret_name, default)
