@@ -131,7 +131,11 @@ validate_cache_service() {
     
     # Test cache functionality
     log "Testing cache functionality..."
-    if echo -e "set test_key 0 10 5\r\nhello\r\nget test_key\r\nquit\r\n" | nc localhost 11211 | grep -q "hello"; then
+    local test_key="test_key"
+    local test_value="hello"
+    local test_value_length=${#test_value}
+    local memcached_cmd="set $test_key 0 10 $test_value_length\r\n$test_value\r\nget $test_key\r\nquit\r\n"
+    if echo -e "$memcached_cmd" | nc localhost 11211 | grep -q "$test_value"; then
         log_success "Cache functionality test passed"
     else
         log_error "Cache functionality test failed"
