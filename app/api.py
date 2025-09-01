@@ -153,17 +153,16 @@ def create_transaction(
 ):
     """Create a new transaction with automatic classification and tagging."""
     service = TenantService(db=db, model=Transaction)
-    transaction = service.create(payload, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"])
-    
+    transaction = service.create(
+        payload, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
+    )
+
     if auto_classify:
         from app.transaction_classifier import TransactionClassifierService
-        
+
         classifier = TransactionClassifierService(db=db)
-        classifier.auto_classify_and_categorize(
-            transaction=transaction,
-            create_tags=auto_tag
-        )
-    
+        classifier.auto_classify_and_categorize(transaction=transaction, create_tags=auto_tag)
+
     if auto_tag:
         # Create standard tenant/user/role tags
         tagging_service = TaggingService(db=db)
@@ -174,7 +173,7 @@ def create_transaction(
             tenant_id=tenant_context["tenant_id"],
             user_id=current_user.get("user_id"),
         )
-    
+
     # Refresh to get any new tags/classifications
     db.refresh(transaction)
     return transaction
@@ -281,9 +280,7 @@ def get_fee(
 ):
     """Get a specific fee."""
     service = TenantService(db=db, model=Fee)
-    fee = service.get_one(
-        fee_id, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
-    )
+    fee = service.get_one(fee_id, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"])
     if not fee:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Fee not found")
     return fee
@@ -319,9 +316,7 @@ def delete_fee(
         require_role(["owner", "admin"])(tenant_context)
 
     service = TenantService(db=db, model=Fee)
-    deleted = service.delete(
-        fee_id, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
-    )
+    deleted = service.delete(fee_id, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"])
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Fee not found")
 
@@ -476,7 +471,7 @@ def create_tag(
 ):
     """Create a new data tag."""
     tagging_service = TaggingService(db=db)
-    
+
     # Use the appropriate create method based on tag type
     if payload.tag_type == "user" and payload.tag_key == "user_id":
         return tagging_service.create_user_tag(
@@ -511,6 +506,7 @@ def create_tag(
     else:
         # Generic tag creation
         from app.tagging_models import TagType as TagTypeEnum
+
         return tagging_service._create_tag(
             tag_type=TagTypeEnum(payload.tag_type),
             tag_key=payload.tag_key,
@@ -575,7 +571,7 @@ def query_tagged_resources(
         tenant_type=tenant_context["tenant_type"],
         tenant_id=tenant_context["tenant_id"],
     )
-    
+
     return TaggedResourceResponse(
         resource_ids=resource_ids,
         resource_count=len(resource_ids),
@@ -602,7 +598,7 @@ def compute_tag_metrics(
         period_start=request.period_start,
         period_end=request.period_end,
     )
-    
+
     return ResourceMetrics(**metrics)
 
 
@@ -619,12 +615,12 @@ def get_analytics_summary(
         tenant_id=tenant_context["tenant_id"],
         tag_filters=request.tag_filters,
     )
-    
+
     # Convert to proper schema format
     resource_metrics = {}
     for resource_type, metrics in summary["resource_metrics"].items():
         resource_metrics[resource_type] = ResourceMetrics(**metrics)
-    
+
     return AnalyticsSummary(
         tenant_info=summary["tenant_info"],
         tag_filters=summary["tag_filters"],
@@ -663,18 +659,22 @@ def list_analytics_views(
     """List analytics views for the tenant."""
     from app.tagging_models import AnalyticsView
     from app.core.tenant import TenantType
-    
-    query = db.query(AnalyticsView).filter(
-        AnalyticsView.tenant_type == TenantType(tenant_context["tenant_type"]),
-        AnalyticsView.tenant_id == tenant_context["tenant_id"],
-        AnalyticsView.is_active == True,
-    ).order_by(AnalyticsView.created_at.desc())
-    
+
+    query = (
+        db.query(AnalyticsView)
+        .filter(
+            AnalyticsView.tenant_type == TenantType(tenant_context["tenant_type"]),
+            AnalyticsView.tenant_id == tenant_context["tenant_id"],
+            AnalyticsView.is_active == True,
+        )
+        .order_by(AnalyticsView.created_at.desc())
+    )
+
     if limit:
         query = query.limit(limit)
     if offset:
         query = query.offset(offset)
-    
+
     return query.all()
 
 
@@ -687,16 +687,20 @@ def get_analytics_view(
     """Get a specific analytics view."""
     from app.tagging_models import AnalyticsView
     from app.core.tenant import TenantType
-    
-    view = db.query(AnalyticsView).filter(
-        AnalyticsView.id == view_id,
-        AnalyticsView.tenant_type == TenantType(tenant_context["tenant_type"]),
-        AnalyticsView.tenant_id == tenant_context["tenant_id"],
-    ).first()
-    
+
+    view = (
+        db.query(AnalyticsView)
+        .filter(
+            AnalyticsView.id == view_id,
+            AnalyticsView.tenant_type == TenantType(tenant_context["tenant_type"]),
+            AnalyticsView.tenant_id == tenant_context["tenant_id"],
+        )
+        .first()
+    )
+
     if not view:
         raise HTTPException(status_code=404, detail="Analytics view not found")
-    
+
     return view
 
 
@@ -708,20 +712,24 @@ def refresh_analytics_view(
 ):
     """Refresh an analytics view with current data."""
     analytics_service = AnalyticsService(db=db)
-    
+
     # Verify view belongs to tenant
     from app.tagging_models import AnalyticsView
     from app.core.tenant import TenantType
-    
-    view = db.query(AnalyticsView).filter(
-        AnalyticsView.id == view_id,
-        AnalyticsView.tenant_type == TenantType(tenant_context["tenant_type"]),
-        AnalyticsView.tenant_id == tenant_context["tenant_id"],
-    ).first()
-    
+
+    view = (
+        db.query(AnalyticsView)
+        .filter(
+            AnalyticsView.id == view_id,
+            AnalyticsView.tenant_type == TenantType(tenant_context["tenant_type"]),
+            AnalyticsView.tenant_id == tenant_context["tenant_id"],
+        )
+        .first()
+    )
+
     if not view:
         raise HTTPException(status_code=404, detail="Analytics view not found")
-    
+
     try:
         return analytics_service.refresh_analytics_view(view_id)
     except ValueError as e:
@@ -741,7 +749,7 @@ def get_dashboard_analytics(
 ):
     """Get dashboard with tag-based analytics filtering."""
     analytics_service = AnalyticsService(db=db)
-    
+
     # Build tag filters from query parameters
     tag_filters = {}
     if user_id:
@@ -750,18 +758,18 @@ def get_dashboard_analytics(
         tag_filters["org_id"] = org_id
     if role_id:
         tag_filters["role_id"] = role_id
-    
+
     summary = analytics_service.get_analytics_summary(
         tenant_type=tenant_context["tenant_type"],
         tenant_id=tenant_context["tenant_id"],
         tag_filters=tag_filters,
     )
-    
+
     # Convert to proper schema format
     resource_metrics = {}
     for resource_type, metrics in summary["resource_metrics"].items():
         resource_metrics[resource_type] = ResourceMetrics(**metrics)
-    
+
     return AnalyticsSummary(
         tenant_info=summary["tenant_info"],
         tag_filters=summary["tag_filters"],
@@ -779,73 +787,84 @@ def classify_transactions(
 ):
     """Classify transactions automatically."""
     from app.transaction_classifier import TransactionClassifierService
-    
+
     classifier = TransactionClassifierService(db=db)
     results = []
-    
+
     # Get transactions to classify
     if request.transaction_ids:
-        transactions = db.query(Transaction).filter(
-            and_(
-                Transaction.id.in_(request.transaction_ids),
-                Transaction.tenant_type == TenantType(tenant_context["tenant_type"]),
-                Transaction.tenant_id == tenant_context["tenant_id"]
+        transactions = (
+            db.query(Transaction)
+            .filter(
+                and_(
+                    Transaction.id.in_(request.transaction_ids),
+                    Transaction.tenant_type == TenantType(tenant_context["tenant_type"]),
+                    Transaction.tenant_id == tenant_context["tenant_id"],
+                )
             )
-        ).all()
+            .all()
+        )
     else:
         # Classify all transactions for the tenant
-        transactions = db.query(Transaction).filter(
-            and_(
-                Transaction.tenant_type == TenantType(tenant_context["tenant_type"]),
-                Transaction.tenant_id == tenant_context["tenant_id"]
+        transactions = (
+            db.query(Transaction)
+            .filter(
+                and_(
+                    Transaction.tenant_type == TenantType(tenant_context["tenant_type"]),
+                    Transaction.tenant_id == tenant_context["tenant_id"],
+                )
             )
-        ).all()
-    
+            .all()
+        )
+
     for transaction in transactions:
         # Check if already classified (unless forcing reclassification)
         existing_tags = classifier.tagging_service.get_resource_tags(
             resource_type="transaction",
             resource_id=transaction.id,
             tenant_type=tenant_context["tenant_type"],
-            tenant_id=tenant_context["tenant_id"]
+            tenant_id=tenant_context["tenant_id"],
         )
-        
+
         existing_classification = None
         existing_category = None
-        
+
         for tag in existing_tags:
             if tag.tag_key == "classification":
                 existing_classification = tag.tag_value
             elif tag.tag_key == "category":
                 existing_category = tag.tag_value
-        
+
         # Skip if already classified and not forcing reclassification
         if existing_classification and existing_category and not request.force_reclassify:
-            results.append(TransactionClassificationResult(
-                transaction_id=transaction.id,
-                classification=existing_classification,
-                category=existing_category,
-                auto_generated=False,
-                confidence=0.95
-            ))
+            results.append(
+                TransactionClassificationResult(
+                    transaction_id=transaction.id,
+                    classification=existing_classification,
+                    category=existing_category,
+                    auto_generated=False,
+                    confidence=0.95,
+                )
+            )
             continue
-        
+
         # Classify the transaction
         classification_result = classifier.auto_classify_and_categorize(
-            transaction=transaction,
-            create_tags=request.auto_tag
+            transaction=transaction, create_tags=request.auto_tag
         )
-        
-        results.append(TransactionClassificationResult(
-            transaction_id=transaction.id,
-            classification=classification_result["classification"],
-            category=classification_result["category"],
-            auto_generated=True,
-            confidence=0.85,
-            previous_classification=existing_classification,
-            previous_category=existing_category
-        ))
-    
+
+        results.append(
+            TransactionClassificationResult(
+                transaction_id=transaction.id,
+                classification=classification_result["classification"],
+                category=classification_result["category"],
+                auto_generated=True,
+                confidence=0.85,
+                previous_classification=existing_classification,
+                previous_category=existing_category,
+            )
+        )
+
     return results
 
 
@@ -857,73 +876,72 @@ def get_classification_analytics(
 ):
     """Get comprehensive classification and categorization analytics."""
     from app.transaction_analytics import TransactionAnalyticsService
-    
+
     analytics_service = TransactionAnalyticsService(db=db)
-    
+
     if request.analysis_type in ["classification", "all"]:
         classification_analytics = analytics_service.get_classification_analytics(
             tenant_type=tenant_context["tenant_type"],
             tenant_id=tenant_context["tenant_id"],
             period_start=request.period_start,
-            period_end=request.period_end
+            period_end=request.period_end,
         )
-        
+
         # Convert to schema format
         distribution = ClassificationDistribution(**classification_analytics["distribution"])
-        
+
         amount_analysis = {}
         for classification, data in classification_analytics["amount_analysis"].items():
             amount_analysis[classification] = ClassificationAmountAnalysis(**data)
-        
+
         return ClassificationAnalyticsResponse(
             distribution=distribution,
             amount_analysis=amount_analysis,
             period_start=classification_analytics["period_start"],
             period_end=classification_analytics["period_end"],
-            analysis_type="classification"
+            analysis_type="classification",
         )
-    
+
     elif request.analysis_type == "category":
         category_analytics = analytics_service.get_category_analytics(
             tenant_type=tenant_context["tenant_type"],
             tenant_id=tenant_context["tenant_id"],
             period_start=request.period_start,
-            period_end=request.period_end
+            period_end=request.period_end,
         )
-        
+
         # Convert to schema format
         distribution = ClassificationDistribution(
             classifications={},
             categories={cat: data["count"] for cat, data in category_analytics["category_analysis"].items()},
             total_classified=0,
-            total_categorized=sum(data["count"] for data in category_analytics["category_analysis"].values())
+            total_categorized=sum(data["count"] for data in category_analytics["category_analysis"].values()),
         )
-        
+
         amount_analysis = {}
         for category, data in category_analytics["category_analysis"].items():
             amount_analysis[category] = ClassificationAmountAnalysis(**data)
-        
+
         # Convert spending insights
         spending_insights = None
         if "spending_insights" in category_analytics:
             insights_data = category_analytics["spending_insights"]
             spending_insights = SpendingInsights(
                 top_spending_categories=[
-                    CategorySpendingInsight(**cat_data) 
-                    for cat_data in insights_data["top_spending_categories"]
+                    CategorySpendingInsight(**cat_data) for cat_data in insights_data["top_spending_categories"]
                 ],
                 total_spending=insights_data["total_spending"],
                 categories_with_spending=insights_data["categories_with_spending"],
-                average_transaction_amount=insights_data["average_transaction_amount"]
+                average_transaction_amount=insights_data["average_transaction_amount"],
             )
-        
+
         return ClassificationAnalyticsResponse(
             distribution=distribution,
             amount_analysis=amount_analysis,
             spending_insights=spending_insights,
             period_start=category_analytics["period_start"],
             period_end=category_analytics["period_end"],
-            analysis_type="category"
+            analysis_type="category",
         )
 
 
@@ -935,23 +953,23 @@ def detect_transaction_anomalies(
 ):
     """Detect anomalies in transaction patterns."""
     from app.transaction_analytics import TransactionAnalyticsService
-    
+
     analytics_service = TransactionAnalyticsService(db=db)
-    
+
     anomaly_data = analytics_service.get_anomaly_detection(
         tenant_type=tenant_context["tenant_type"],
         tenant_id=tenant_context["tenant_id"],
-        sensitivity=request.sensitivity
+        sensitivity=request.sensitivity,
     )
-    
+
     # Convert to schema format
     anomalies = [TransactionAnomaly(**anomaly) for anomaly in anomaly_data["anomalies"]]
-    
+
     return AnomalyDetectionResponse(
         anomalies=anomalies,
         sensitivity=anomaly_data["sensitivity"],
         analysis_period=anomaly_data["analysis_period"],
-        total_anomalies=anomaly_data["total_anomalies"]
+        total_anomalies=anomaly_data["total_anomalies"],
     )
 
 
@@ -963,35 +981,30 @@ def get_monthly_breakdown(
 ):
     """Get monthly breakdown of transaction classifications and categories."""
     from app.transaction_analytics import TransactionAnalyticsService
-    
+
     analytics_service = TransactionAnalyticsService(db=db)
-    
+
     breakdown_data = analytics_service.get_monthly_breakdown(
-        tenant_type=tenant_context["tenant_type"],
-        tenant_id=tenant_context["tenant_id"],
-        months=months
+        tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"], months=months
     )
-    
+
     # Convert to schema format
     monthly_breakdown = {}
     for month, data in breakdown_data["monthly_breakdown"].items():
         classifications = {}
         for classification, analysis in data["classifications"].items():
             classifications[classification] = ClassificationAmountAnalysis(**analysis)
-            
+
         categories = {}
         for category, analysis in data["categories"].items():
             categories[category] = ClassificationAmountAnalysis(**analysis)
-        
+
         monthly_breakdown[month] = MonthlyBreakdownData(
-            classifications=classifications,
-            categories=categories,
-            period=data["period"]
+            classifications=classifications, categories=categories, period=data["period"]
         )
-    
+
     return MonthlyBreakdownResponse(
-        monthly_breakdown=monthly_breakdown,
-        analysis_period=breakdown_data["analysis_period"]
+        monthly_breakdown=monthly_breakdown, analysis_period=breakdown_data["analysis_period"]
     )
 
 
@@ -1003,33 +1016,31 @@ def get_transaction_patterns(
 ):
     """Analyze transaction patterns for insights."""
     from app.transaction_analytics import TransactionAnalyticsService
-    
+
     analytics_service = TransactionAnalyticsService(db=db)
-    
+
     patterns_data = analytics_service.get_transaction_patterns(
-        tenant_type=tenant_context["tenant_type"],
-        tenant_id=tenant_context["tenant_id"],
-        pattern_type=pattern_type
+        tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"], pattern_type=pattern_type
     )
-    
+
     # Convert to schema format
     response_data = {}
-    
+
     if "classification_patterns" in patterns_data:
         classification_patterns = {}
         for classification, pattern_data in patterns_data["classification_patterns"].items():
             classification_patterns[classification] = TransactionPatternAnalysis(**pattern_data)
         response_data["classification_patterns"] = classification_patterns
-    
+
     if "category_patterns" in patterns_data:
         category_patterns = {}
         for category, pattern_data in patterns_data["category_patterns"].items():
             category_patterns[category] = TransactionPatternAnalysis(**pattern_data)
         response_data["category_patterns"] = category_patterns
-    
+
     if "cross_analysis" in patterns_data:
         response_data["cross_analysis"] = patterns_data["cross_analysis"]
-    
+
     return TransactionPatternsResponse(**response_data)
 
 
@@ -1040,13 +1051,13 @@ def get_classification_config(
 ):
     """Get current classification configuration patterns."""
     from app.transaction_classifier import TransactionClassifierService
-    
+
     classifier = TransactionClassifierService(db=db)
-    
+
     return ClassificationConfigResponse(
         classification_patterns=classifier.get_classification_patterns(),
         category_patterns=classifier.get_category_patterns(),
-        updated_at=datetime.now(timezone.utc).isoformat()
+        updated_at=datetime.now(timezone.utc).isoformat(),
     )
 
 
@@ -1058,9 +1069,9 @@ def update_classification_config(
 ):
     """Update classification configuration patterns."""
     from app.transaction_classifier import TransactionClassifierService, TransactionClassification, TransactionCategory
-    
+
     classifier = TransactionClassifierService(db=db)
-    
+
     # Add new classification patterns
     if request.classification_patterns:
         for classification_name, patterns in request.classification_patterns.items():
@@ -1070,7 +1081,7 @@ def update_classification_config(
                     classifier.add_classification_pattern(classification, pattern)
             except ValueError:
                 continue  # Skip invalid classification names
-    
+
     # Add new category patterns
     if request.category_patterns:
         for category_name, patterns in request.category_patterns.items():
@@ -1080,9 +1091,9 @@ def update_classification_config(
                     classifier.add_category_pattern(category, pattern)
             except ValueError:
                 continue  # Skip invalid category names
-    
+
     return ClassificationConfigResponse(
         classification_patterns=classifier.get_classification_patterns(),
         category_patterns=classifier.get_category_patterns(),
-        updated_at=datetime.now(timezone.utc).isoformat()
+        updated_at=datetime.now(timezone.utc).isoformat(),
     )
