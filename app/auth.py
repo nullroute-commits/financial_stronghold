@@ -1,6 +1,7 @@
 """Multi-tenancy extension for Financial Stronghold."""
 
 from typing import Optional, Tuple
+from datetime import datetime, timedelta
 
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -16,6 +17,102 @@ bearer_scheme = HTTPBearer(auto_error=False)
 # This would normally come from environment variables
 SECRET_KEY = "your-secret-key-here"  # In production, use proper secret management
 ALGORITHM = "HS256"
+
+
+class Authentication:
+    """Authentication service for handling user authentication."""
+    
+    def __init__(self, secret_key: str = SECRET_KEY, algorithm: str = ALGORITHM):
+        self.secret_key = secret_key
+        self.algorithm = algorithm
+    
+    def authenticate_user(self, username: str, password: str, db: Session) -> Optional[User]:
+        """Authenticate a user with username and password."""
+        user = db.query(User).filter(User.username == username).first()
+        if user and user.is_active and self.verify_password(password, user.password_hash):
+            return user
+        return None
+    
+    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
+        """Verify a password against its hash."""
+        # In a real implementation, this would use bcrypt or similar
+        return plain_password == hashed_password  # Simplified for testing
+    
+    def hash_password(self, password: str) -> str:
+        """Hash a password."""
+        # In a real implementation, this would use bcrypt or similar
+        return f"hashed_{password}"  # Simplified for testing
+
+
+class TokenManager:
+    """JWT token management service."""
+    
+    def __init__(self, secret_key: str = SECRET_KEY, algorithm: str = ALGORITHM):
+        self.secret_key = secret_key
+        self.algorithm = algorithm
+    
+    def create_access_token(self, data: dict, expires_delta: Optional[timedelta] = None) -> str:
+        """Create a JWT access token."""
+        to_encode = data.copy()
+        if expires_delta:
+            expire = datetime.utcnow() + expires_delta
+        else:
+            expire = datetime.utcnow() + timedelta(minutes=15)
+        to_encode.update({"exp": expire})
+        
+        encoded_jwt = jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
+        return encoded_jwt
+    
+    def verify_token(self, token: str) -> dict:
+        """Verify and decode a JWT token."""
+        try:
+            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+            return payload
+        except JWTError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token"
+            )
+
+
+class PermissionChecker:
+    """Permission checking service."""
+    
+    def __init__(self, db: Session):
+        self.db = db
+    
+    def has_permission(self, user: User, permission: str, tenant_type: str, tenant_id: str) -> bool:
+        """Check if a user has a specific permission."""
+        if tenant_type == TenantType.ORGANIZATION.value:
+            link = self.db.query(UserOrganizationLink).filter_by(
+                user_id=user.id, org_id=int(tenant_id)
+            ).first()
+            if not link:
+                return False
+            # Check if the role has the required permission
+            return self._role_has_permission(link.role, permission)
+        return True  # User tenant has all permissions on their own data
+    
+    def _role_has_permission(self, role: str, permission: str) -> bool:
+        """Check if a role has a specific permission."""
+        role_permissions = {
+            "admin": ["read", "write", "delete", "manage"],
+            "manager": ["read", "write", "delete"],
+            "member": ["read", "write"],
+            "viewer": ["read"]
+        }
+        return permission in role_permissions.get(role, [])
+    
+    def check_tenant_access(self, user: User, tenant_type: str, tenant_id: str) -> bool:
+        """Check if a user has access to a specific tenant."""
+        if tenant_type == TenantType.USER.value:
+            return str(user.id) == tenant_id
+        elif tenant_type == TenantType.ORGANIZATION.value:
+            link = self.db.query(UserOrganizationLink).filter_by(
+                user_id=user.id, org_id=int(tenant_id)
+            ).first()
+            return link is not None
+        return False
 
 
 def get_current_user(

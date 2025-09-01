@@ -25,19 +25,27 @@ class TestSchemas:
         """Test FinancialSummary schema creation and validation."""
         try:
             from app.schemas import FinancialSummary
+            from datetime import datetime
             
             # Test with valid data
             summary = FinancialSummary(
                 total_balance=Decimal("1500.00"),
-                total_income=Decimal("5000.00"),
-                total_expenses=Decimal("3500.00"),
-                net_worth=Decimal("1500.00")
+                total_accounts=5,
+                active_accounts=4,
+                total_transactions=100,
+                this_month_transactions=15,
+                this_month_amount=Decimal("500.00"),
+                currency="USD",
+                last_updated=datetime.now()
             )
             
             assert summary.total_balance == Decimal("1500.00")
-            assert summary.total_income == Decimal("5000.00")
-            assert summary.total_expenses == Decimal("3500.00")
-            assert summary.net_worth == Decimal("1500.00")
+            assert summary.total_accounts == 5
+            assert summary.active_accounts == 4
+            assert summary.total_transactions == 100
+            assert summary.this_month_transactions == 15
+            assert summary.this_month_amount == Decimal("500.00")
+            assert summary.currency == "USD"
             
         except ImportError:
             pytest.skip("FinancialSummary not available")
@@ -46,10 +54,11 @@ class TestSchemas:
         """Test AccountSummary validation and edge cases."""
         try:
             from app.schemas import AccountSummary
+            import uuid
             
             # Test with minimal valid data
             account = AccountSummary(
-                id=str(uuid.uuid4()),
+                account_id=uuid.uuid4(),
                 name="Test Account",
                 account_type="checking",
                 balance=Decimal("0.00"),
@@ -60,6 +69,8 @@ class TestSchemas:
             assert account.name == "Test Account"
             assert account.balance == Decimal("0.00")
             assert account.is_active is True
+            assert account.account_type == "checking"
+            assert account.currency == "USD"
             
             # Test serialization
             data = account.model_dump()
@@ -77,14 +88,17 @@ class TestSchemas:
             
             summary = TransactionSummary(
                 total_transactions=10,
-                completed_transactions=8,
-                pending_transactions=2,
-                total_amount=Decimal("1500.00")
+                total_amount=Decimal("1500.00"),
+                avg_amount=Decimal("150.00"),
+                currency="USD",
+                recent_transactions=[]
             )
             
             assert summary.total_transactions == 10
-            assert summary.completed_transactions == 8
-            assert summary.pending_transactions == 2
+            assert summary.total_amount == Decimal("1500.00")
+            assert summary.avg_amount == Decimal("150.00")
+            assert summary.currency == "USD"
+            assert summary.recent_transactions == []
             
             # Test that completed + pending equals total
             assert summary.completed_transactions + summary.pending_transactions == summary.total_transactions
