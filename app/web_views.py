@@ -149,16 +149,11 @@ def account_detail(request, account_id):
             
             # Get recent transactions for this account
             transaction_service = TenantService(db=db, model=Transaction)
-            all_transactions = transaction_service.get_all(
+            account_transactions = transaction_service.get_transactions_for_account(
+                account_id=account.id,
                 tenant_type=tenant_context['tenant_type'],
                 tenant_id=tenant_context['tenant_id']
             )
-            
-            # Filter transactions for this account
-            account_transactions = [
-                t for t in all_transactions 
-                if t.account_id == account.id or t.to_account_id == account.id
-            ]
             
             # Sort by date (newest first)
             account_transactions.sort(key=lambda x: x.created_at, reverse=True)
