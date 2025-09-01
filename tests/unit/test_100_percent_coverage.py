@@ -115,7 +115,7 @@ class TestTokenManager100:
             mock_decode.side_effect = JWTError("Token expired")
             try:
                 token_manager.verify_token("expired_token")
-                assert False, "Should have raised HTTPException"
+                pytest.fail("Should have raised HTTPException")
             except HTTPException as e:
                 # Should raise HTTPException
                 assert e.status_code == 401
