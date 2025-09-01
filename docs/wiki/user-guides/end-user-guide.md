@@ -195,7 +195,6 @@ The dashboard provides:
 - **Responsive Design**: Interface adapts to mobile screens
 - **Touch-Friendly**: Optimized for touch interactions
 - **Offline Capability**: Some features work without internet
-- **Mobile App**: Download from app store (if available)
 
 ### Tablet Usage
 - **Landscape Mode**: Optimized for tablet landscape orientation
