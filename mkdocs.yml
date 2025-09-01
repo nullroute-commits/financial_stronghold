@@ -24,6 +24,7 @@ theme:
     - search.share
 plugins:
   - search
+  - mkdocstrings
 markdown_extensions:
   - admonition
   - codehilite
@@ -40,8 +41,23 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.tilde
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
 nav:
   - Home: index.md
+  - GitHub Copilot Instructions: copilot-instructions.md
+  - Architecture & Guides:
+      - Feature Deployment Guide: FEATURE_DEPLOYMENT_GUIDE.md
+      - Architecture Overview: ARCHITECTURE.md
+      - CI/CD Pipeline: CI_CD_PIPELINE.md
+      - Testing Guide: COMPREHENSIVE_TESTING_GUIDE_FINAL.md
+      - Configuration System: CONFIGURATION_SYSTEM.md
+      - Security Model: SECURITY_MODEL.md
   - API Reference:
       - Overview: api/overview.md
       - Modules: api/modules.md
