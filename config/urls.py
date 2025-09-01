@@ -8,6 +8,7 @@ Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.http import JsonResponse
 from django.urls import include, path
 from django.views.decorators.cache import never_cache
@@ -74,6 +75,12 @@ def health_check(request):
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("health/", health_check, name="health-check"),
+    
+    # Authentication URLs
+    path("accounts/login/", auth_views.LoginView.as_view(template_name="registration/login.html"), name="login"),
+    path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
+    
+    # Web and API URLs
     path("", include("app.urls")),
 ]
 

@@ -202,3 +202,8 @@ AUDIT_ENABLED = os.environ.get("AUDIT_ENABLED", "True").lower() == "true"
 AUDIT_LOG_MODELS = os.environ.get("AUDIT_LOG_MODELS", "True").lower() == "true"
 AUDIT_LOG_REQUESTS = os.environ.get("AUDIT_LOG_REQUESTS", "True").lower() == "true"
 AUDIT_LOG_AUTHENTICATION = os.environ.get("AUDIT_LOG_AUTHENTICATION", "True").lower() == "true"
+
+# Authentication settings
+LOGIN_URL = "/accounts/login/"
+LOGIN_REDIRECT_URL = "/dashboard/"
+LOGOUT_REDIRECT_URL = "/accounts/login/"

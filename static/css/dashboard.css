@@ -1,0 +1,278 @@
+/* Financial Stronghold Dashboard Styles */
+
+:root {
+    --primary-color: #0d6efd;
+    --success-color: #198754;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #0dcaf0;
+    --dark-color: #212529;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-card .card-header {
+    background: linear-gradient(45deg, var(--primary-color), var(--info-color));
+    color: white;
+    border-radius: 10px 10px 0 0 !important;
+    border: none;
+    font-weight: 600;
+}
+
+.dashboard-card.success .card-header {
+    background: linear-gradient(45deg, var(--success-color), #20c997);
+}
+
+.dashboard-card.warning .card-header {
+    background: linear-gradient(45deg, var(--warning-color), #ffca2c);
+    color: var(--dark-color);
+}
+
+.dashboard-card.danger .card-header {
+    background: linear-gradient(45deg, var(--danger-color), #ea868f);
+}
+
+/* Financial Summary */
+.financial-summary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.financial-summary .display-4 {
+    font-weight: 700;
+}
+
+.financial-summary .lead {
+    opacity: 0.9;
+}
+
+/* Account Cards */
+.account-card {
+    border-left: 4px solid var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.account-card:hover {
+    border-left-color: var(--success-color);
+    background-color: #f8f9fa;
+}
+
+.account-balance {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--success-color);
+}
+
+.account-type {
+    font-size: 0.875rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+/* Transaction Table */
+.transaction-table {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.transaction-row:hover {
+    background-color: #f8f9fa;
+}
+
+.transaction-amount.positive {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.transaction-amount.negative {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
+/* Budget Progress */
+.budget-progress {
+    height: 8px;
+    border-radius: 4px;
+}
+
+.budget-card {
+    border: none;
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.budget-header {
+    background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-radius: 10px 10px 0 0;
+    padding: 1rem;
+    border: none;
+}
+
+/* Status Badges */
+.status-badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 50px;
+    font-weight: 500;
+}
+
+.status-active {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.status-inactive {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.status-pending {
+    background-color: var(--warning-color);
+    color: var(--dark-color);
+}
+
+/* Quick Stats */
+.quick-stat {
+    text-align: center;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.quick-stat:hover {
+    transform: translateY(-3px);
+}
+
+.quick-stat .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.quick-stat .stat-label {
+    color: #6c757d;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+}
+
+.quick-stat .stat-icon {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    opacity: 0.7;
+    margin-bottom: 1rem;
+}
+
+/* Forms */
+.form-floating {
+    margin-bottom: 1rem;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, var(--primary-color), var(--info-color));
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Navigation Active State */
+.navbar-nav .nav-link.active {
+    color: var(--info-color) !important;
+    font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .financial-summary {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .quick-stat {
+        margin-bottom: 1rem;
+    }
+    
+    .dashboard-card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #ccc;
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Alert improvements */
+.alert {
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: linear-gradient(45deg, #d1e7dd, #badbcc);
+    color: #0f5132;
+}
+
+.alert-danger {
+    background: linear-gradient(45deg, #f8d7da, #f5c2c7);
+    color: #842029;
+}
+
+.alert-warning {
+    background: linear-gradient(45deg, #fff3cd, #ffeaa7);
+    color: #664d03;
+}
+
+.alert-info {
+    background: linear-gradient(45deg, #d1ecf1, #b6e3f0);
+    color: #055160;
+}
