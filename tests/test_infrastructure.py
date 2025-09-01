@@ -300,7 +300,7 @@ class TestMarkdownDocumentation:
                 
                 # If language is specified, it should be valid
                 if lang:
-                    valid_langs = ['bash', 'python', 'yaml', 'dockerfile', 'json', 'sh']
+                    valid_langs = ['bash', 'python', 'yaml', 'dockerfile', 'json', 'sh', 'sql', 'javascript', 'typescript']
                     assert lang.lower() in valid_langs, \
                         f"Invalid code block language '{lang}' in {md_file}"
 
@@ -445,7 +445,7 @@ class TestVisionAlignment:
             
         required_stages = [
             "Quality Gates",
-            "Test Execution", 
+            "Pipeline Stages", 
             "Build Pipeline",
             "Deployment",
             "Multi-Architecture"
