@@ -219,12 +219,12 @@ class TestDjangoAuditComplete100Percent:
         logger = DjangoAuditLogger()
         
         # Test when request logging disabled
-        logger.log_requests = False
+        logger.request_logging_enabled = False  # Renamed for clarity
         result = logger.log_request(Mock())
         assert result is None
         
         # Test when request logging enabled
-        logger.log_requests = True
+        logger.request_logging_enabled = True  # Renamed for clarity
         
         # Create comprehensive mock request
         request = Mock()
