@@ -14,7 +14,7 @@ class TestShellScripts:
     @pytest.fixture
     def project_root(self):
         """Get project root directory."""
-        return "/home/runner/work/financial_stronghold/financial_stronghold"
+        return os.getcwd()
 
     @pytest.fixture
     def ci_directory(self, project_root):
