@@ -33,8 +33,8 @@ from app.api import (
 from app.middleware import TenantMiddleware, SecurityHeadersMiddleware, RateLimitMiddleware
 from app.transaction_analytics import TransactionAnalyticsService
 from app.transaction_classifier import TransactionClassifierService
-from app.tagging_service import TaggingService, Tag, ResourceTag, AutoTagger
-from app.services import TenantService, FinancialService, UserService, DashboardService
+from app.tagging_service import TaggingService, AnalyticsService
+from app.services import TenantService
 from app.schemas import (
     UserCreateSchema, UserUpdateSchema, UserResponseSchema,
     TenantCreateSchema, TenantUpdateSchema, TenantResponseSchema,
