@@ -43,6 +43,7 @@ from app.schemas import (
     FeeUpdate,
     FinancialSummary,
     MonthlyBreakdownResponse,
+    MonthlyBreakdownData,
     ResourceMetrics,
     SpendingInsights,
     TagFilterRequest,
@@ -54,6 +55,8 @@ from app.schemas import (
     TransactionRead,
     TransactionSummary,
     TransactionUpdate,
+    TransactionAnomaly,
+    TransactionPatternAnalysis,
 )
 from app.services import TenantService
 from app.dashboard_service import DashboardService
