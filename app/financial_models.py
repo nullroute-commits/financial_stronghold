@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 from typing import List
+from enum import Enum
 
 from sqlalchemy import Boolean, Column, DateTime, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY
@@ -114,3 +115,39 @@ class Budget(BaseModel, TenantMixin):
 
     def __repr__(self):
         return f"<Budget(id={self.id}, name={self.name}, total={self.total_amount}, spent={self.spent_amount})>"
+
+
+# Enums expected by tests
+class AccountType(str, Enum):
+    CHECKING = "checking"
+    SAVINGS = "savings"
+    CREDIT = "credit"
+    INVESTMENT = "investment"
+
+
+class TransactionType(str, Enum):
+    INCOME = "income"
+    EXPENSE = "expense"
+    TRANSFER = "transfer"
+
+
+class BudgetStatus(str, Enum):
+    ON_TRACK = "on_track"
+    OVER_BUDGET = "over_budget"
+    AT_RISK = "at_risk"
+
+
+class BudgetCategory(str, Enum):
+    FOOD = "food"
+    TRANSPORTATION = "transportation"
+    UTILITIES = "utilities"
+    HOUSING = "housing"
+    HEALTHCARE = "healthcare"
+    ENTERTAINMENT = "entertainment"
+    SHOPPING = "shopping"
+    EDUCATION = "education"
+    INSURANCE = "insurance"
+    TAXES = "taxes"
+    SAVINGS = "savings"
+    INVESTMENT = "investment"
+    OTHER = "other"

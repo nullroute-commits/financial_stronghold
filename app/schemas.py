@@ -662,6 +662,19 @@ class ClassificationConfigRequest(BaseModel):
     classification_patterns: Optional[Dict[str, List[str]]] = Field(None, description="Classification patterns to add")
     category_patterns: Optional[Dict[str, List[str]]] = Field(None, description="Category patterns to add")
 
+    # Additional optional controls referenced by tests
+    auto_classify: Optional[bool] = None
+    confidence_threshold: Optional[float] = Field(None, ge=0.0, le=1.0)
+    custom_rules: Optional[List[Dict[str, Any]]] = None
+
+
+class ClassificationConfigResponse(BaseModel):
+    """Schema for returning current classification configuration."""
+
+    classification_patterns: Dict[str, List[str]]
+    category_patterns: Dict[str, List[str]]
+    updated_at: str
+
 
 # Account Schema Aliases for compatibility
 AccountCreateSchema = AccountCreate
