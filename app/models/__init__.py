@@ -13,6 +13,14 @@ from .import_models import (
     MLModel
 )
 
+from .theme_models import (
+    UserThemePreference,
+    ThemeTemplate,
+    ThemeAuditLog,
+    ThemeCategory,
+    DEFAULT_THEME_DATA
+)
+
 __all__ = [
     'ImportJob',
     'ImportTemplate',
@@ -20,5 +28,10 @@ __all__ = [
     'TransactionCategory',
     'ImportedTransaction',
     'FileUpload',
-    'MLModel'
+    'MLModel',
+    'UserThemePreference',
+    'ThemeTemplate',
+    'ThemeAuditLog',
+    'ThemeCategory',
+    'DEFAULT_THEME_DATA'
 ]

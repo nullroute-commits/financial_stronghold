@@ -15,6 +15,9 @@ from .api.import_views import (
     FileUploadViewSet, ImportJobViewSet, ImportedTransactionViewSet,
     ImportTemplateViewSet, ImportAnalyticsViewSet, ImportHealthCheckViewSet
 )
+from .api.theme_views import (
+    UserThemeViewSet, ThemeTemplateViewSet, ThemeAuditLogViewSet
+)
 
 # Create DRF router for API endpoints
 router = DefaultRouter()
@@ -33,6 +36,11 @@ router.register(r'import/transactions', ImportedTransactionViewSet, basename='im
 router.register(r'import/templates', ImportTemplateViewSet, basename='importtemplate')
 router.register(r'import/analytics', ImportAnalyticsViewSet, basename='importanalytics')
 router.register(r'import/health', ImportHealthCheckViewSet, basename='importhealth')
+
+# Theme API endpoints
+router.register(r'themes', UserThemeViewSet, basename='theme')
+router.register(r'theme-templates', ThemeTemplateViewSet, basename='theme-template')
+router.register(r'theme-audit-logs', ThemeAuditLogViewSet, basename='theme-audit')
 
 urlpatterns = [
     # Web interface URLs

@@ -1,0 +1,364 @@
+/**
+ * Theme Editor Styles
+ * Styling for the theme customization interface
+ * 
+ * Created by: Team Gamma (Gabriel & Grace)
+ * Date: 2025-01-02
+ */
+
+.theme-editor-wrapper {
+    background: var(--theme-color-background);
+    border: 1px solid var(--theme-color-border);
+    border-radius: var(--theme-border-radius);
+    box-shadow: var(--theme-shadow-default);
+    overflow: hidden;
+}
+
+.theme-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: var(--theme-color-light);
+    border-bottom: 1px solid var(--theme-color-border);
+}
+
+.theme-editor-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: var(--theme-headings-font-weight);
+}
+
+.theme-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.theme-editor-tabs {
+    background: var(--theme-color-surface);
+    border-bottom: 1px solid var(--theme-color-border);
+}
+
+.theme-editor-tabs .nav-tabs {
+    border-bottom: none;
+    margin: 0;
+    padding: 0 1rem;
+}
+
+.theme-editor-tabs .nav-link {
+    color: var(--theme-color-text-secondary);
+    border: none;
+    border-radius: 0;
+    padding: 0.75rem 1rem;
+    transition: var(--theme-transition-base);
+}
+
+.theme-editor-tabs .nav-link:hover {
+    color: var(--theme-color-text-primary);
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.theme-editor-tabs .nav-link.active {
+    color: var(--theme-color-primary);
+    background: var(--theme-color-background);
+    border-bottom: 2px solid var(--theme-color-primary);
+}
+
+.theme-editor-content {
+    padding: 1.5rem;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.theme-editor-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: var(--theme-color-light);
+    border-top: 1px solid var(--theme-color-border);
+}
+
+/* Color Controls */
+.color-groups {
+    display: grid;
+    gap: 2rem;
+}
+
+.color-group h5 {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    font-weight: var(--theme-headings-font-weight);
+    color: var(--theme-color-text-secondary);
+}
+
+.color-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.color-control {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.color-control label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--theme-color-text-secondary);
+}
+
+.color-input-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.form-control-color {
+    width: 48px;
+    height: 38px;
+    padding: 0.25rem;
+    cursor: pointer;
+}
+
+.color-hex {
+    flex: 1;
+    font-family: var(--theme-font-family-monospace);
+    font-size: 0.875rem;
+}
+
+/* Typography Controls */
+.typography-controls .form-group {
+    margin-bottom: 1.25rem;
+}
+
+.typography-controls label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--theme-color-text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.typography-controls .input-group-text {
+    background: var(--theme-color-surface);
+    border-color: var(--theme-input-border-color);
+    font-size: 0.875rem;
+}
+
+/* Spacing Controls */
+.spacing-controls .form-group,
+.border-controls .form-group {
+    margin-bottom: 1.25rem;
+}
+
+.spacing-controls label,
+.border-controls label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--theme-color-text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.form-text {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+/* Component Controls */
+.component-controls {
+    display: grid;
+    gap: 2rem;
+}
+
+.component-group {
+    padding: 1rem;
+    background: var(--theme-color-surface);
+    border-radius: var(--theme-border-radius);
+    border: 1px solid var(--theme-color-border);
+}
+
+.component-group h5 {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    font-weight: var(--theme-headings-font-weight);
+    color: var(--theme-color-text-primary);
+}
+
+/* Preset Grid */
+.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.preset-card {
+    background: var(--theme-color-background);
+    border: 1px solid var(--theme-color-border);
+    border-radius: var(--theme-border-radius);
+    overflow: hidden;
+    transition: var(--theme-transition-base);
+}
+
+.preset-card:hover {
+    box-shadow: var(--theme-shadow-default);
+    transform: translateY(-2px);
+}
+
+.preset-preview {
+    height: 120px;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: 1rem;
+}
+
+.preset-colors {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+
+.color-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.preset-info {
+    padding: 1rem;
+}
+
+.preset-info h6 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    font-weight: var(--theme-headings-font-weight);
+}
+
+.preset-info p {
+    margin: 0 0 1rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.use-preset {
+    width: 100%;
+}
+
+/* Preview Toggle */
+.preview-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.preview-toggle .form-check-input {
+    cursor: pointer;
+}
+
+.preview-toggle .form-check-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Validation States */
+.form-control.is-invalid {
+    border-color: var(--theme-color-danger);
+}
+
+.form-control.is-invalid:focus {
+    border-color: var(--theme-color-danger);
+    box-shadow: 0 0 0 0.25rem rgba(var(--theme-color-danger), 0.25);
+}
+
+/* Scrollbar Styling */
+.theme-editor-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.theme-editor-content::-webkit-scrollbar-track {
+    background: var(--theme-color-surface);
+}
+
+.theme-editor-content::-webkit-scrollbar-thumb {
+    background: var(--theme-color-border);
+    border-radius: 4px;
+}
+
+.theme-editor-content::-webkit-scrollbar-thumb:hover {
+    background: var(--theme-color-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .theme-editor-tabs .nav-tabs {
+        padding: 0 0.5rem;
+    }
+    
+    .theme-editor-tabs .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .color-controls {
+        grid-template-columns: 1fr;
+    }
+    
+    .preset-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .theme-editor-content {
+        padding: 1rem;
+        max-height: 400px;
+    }
+}
+
+/* Loading State */
+.theme-editor-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+}
+
+.theme-editor-loading .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.3em;
+}
+
+/* Empty State */
+.theme-editor-empty {
+    text-align: center;
+    padding: 3rem;
+    color: var(--theme-color-text-secondary);
+}
+
+.theme-editor-empty i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Animation for theme switching */
+@keyframes themeSwitch {
+    0% {
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 0.6;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.theme-switching {
+    animation: themeSwitch 0.3s ease-in-out;
+}
