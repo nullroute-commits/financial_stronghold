@@ -1,5 +1,5 @@
 # Testing Docker Compose configuration
-# Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
+# Last updated: 2025-09-02 by CI/CD debugging
 
 services:
   web:
@@ -15,80 +15,34 @@ services:
     env_file:
       - environments/.env.testing.example
     ports:
-      - "8001:8000"  # Expose for testing validation
-    command: python manage.py runserver 0.0.0.0:8000
+      - "8001:8000"
+    command: python manage.py test --verbosity=2
 
   db:
-    image: postgres:17.2-alpine
-    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extends:
+      file: docker-compose.base.yml
+      service: db
     environment:
       - POSTGRES_DB=django_app_test
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=test-password
-    tmpfs:
-      - /var/lib/postgresql/data  # Use tmpfs for faster tests
-    command: >
-      postgres
-      -c max_connections=100
-      -c shared_buffers=256MB
-      -c work_mem=4MB
-      -c maintenance_work_mem=64MB
-      -c effective_cache_size=1GB
-      -c wal_buffers=16MB
-      -c log_statement=none
-      -c log_min_duration_statement=1000
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d django_app_test"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432"
 
   memcached:
     extends:
       file: docker-compose.base.yml
       service: memcached
+    ports:
+      - "11212:11211"
 
   rabbitmq:
     extends:
       file: docker-compose.base.yml
       service: rabbitmq
-    environment:
-      - RABBITMQ_DEFAULT_USER=test
-      - RABBITMQ_DEFAULT_PASS=test
-
-  # Test runner service
-  test-runner:
-    extends:
-      service: web
-    ports: []  # Override port mapping from web service
-    profiles: ["testing"]  # Only run when explicitly requested
-    command: >
-      sh -c "
-        python manage.py migrate --noinput &&
-        python manage.py collectstatic --noinput &&
-        python manage.py test --verbosity=2 --parallel --keepdb
-      "
-    depends_on:
-      - db
-      - memcached
-      - rabbitmq
-
-  # Code quality checks
-  linter:
-    extends:
-      service: web
-    ports: []  # Override port mapping from web service
-    profiles: ["testing"]  # Only run when explicitly requested
-    command: >
-      sh -c "
-        flake8 app/ config/ --max-line-length=120 &&
-        black --check app/ config/ &&
-        mypy app/ config/
-      "
-    volumes:
-      - .:/app
+    ports:
+      - "5673:5672"
+      - "15673:15672"
 
 volumes:
   postgres_data:

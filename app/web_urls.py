@@ -23,6 +23,25 @@ from app.web_views import (
     fee_create,
     fee_edit,
     analytics_dashboard,
+    # New views for complete API coverage
+    tags_list,
+    tag_create,
+    tag_detail,
+    classification_dashboard,
+    classify_transactions,
+    analytics_views_list,
+    analytics_view_create,
+    anomaly_detection,
+    classification_config,
+    classification_config_update,
+    # Documentation views
+    documentation_home,
+    documentation_features,
+    documentation_api,
+    documentation_examples,
+    documentation_search,
+    documentation_feature_detail,
+    documentation_api_detail,
     home_redirect,
 )
 
@@ -66,6 +85,43 @@ fee_patterns = [
     path("<uuid:fee_id>/edit/", fee_edit, name="edit"),
 ]
 
+# Tagging System URLs
+tag_patterns = [
+    path("", tags_list, name="list"),
+    path("create/", tag_create, name="create"),
+    path("<uuid:tag_id>/", tag_detail, name="detail"),
+]
+
+# Transaction Classification URLs
+classification_patterns = [
+    path("", classification_dashboard, name="dashboard"),
+    path("classify/", classify_transactions, name="classify"),
+    path("config/", classification_config, name="config"),
+    path("config/update/", classification_config_update, name="config_update"),
+]
+
+# Analytics Views URLs
+analytics_view_patterns = [
+    path("", analytics_views_list, name="list"),
+    path("create/", analytics_view_create, name="create"),
+]
+
+# Anomaly Detection URLs
+anomaly_patterns = [
+    path("", anomaly_detection, name="detection"),
+]
+
+# Documentation URLs
+documentation_patterns = [
+    path("", documentation_home, name="home"),
+    path("features/", documentation_features, name="features"),
+    path("api/", documentation_api, name="api"),
+    path("examples/", documentation_examples, name="examples"),
+    path("search/", documentation_search, name="search"),
+    path("features/<str:feature_name>/", documentation_feature_detail, name="feature_detail"),
+    path("api/<path:api_path>/", documentation_api_detail, name="api_detail"),
+]
+
 urlpatterns = [
     path("", home_redirect, name="home_redirect"),
     path("dashboard/", include((dashboard_patterns, "dashboard"), namespace="dashboard")),
@@ -73,4 +129,11 @@ urlpatterns = [
     path("transactions/", include((transaction_patterns, "transactions"), namespace="transactions")),
     path("budgets/", include((budget_patterns, "budgets"), namespace="budgets")),
     path("fees/", include((fee_patterns, "fees"), namespace="fees")),
+    # New URL patterns for complete API coverage
+    path("tags/", include((tag_patterns, "tags"), namespace="tags")),
+    path("classification/", include((classification_patterns, "classification"), namespace="classification")),
+    path("analytics/views/", include((analytics_view_patterns, "analytics_views"), namespace="analytics_views")),
+    path("anomaly/", include((anomaly_patterns, "anomaly"), namespace="anomaly")),
+    # Documentation URLs
+    path("docs/", include((documentation_patterns, "documentation"), namespace="documentation")),
 ]

@@ -850,6 +850,611 @@ def analytics_dashboard(request):
         return render(request, "analytics/dashboard.html", {})
 
 
+# Tagging System Views
+@login_required
+def tags_list(request):
+    """List all tags for the current user."""
+    try:
+        with get_db_session() as db:
+            tenant_context = get_tenant_context_from_user(request.user)
+            if not tenant_context:
+                messages.error(request, "Unable to determine tenant context")
+                return redirect("dashboard:home")
+
+            from app.tagging_service import TaggingService
+            tagging_service = TaggingService(db=db)
+            
+            # Get all tags for the tenant
+            tags = tagging_service.get_tenant_tags(
+                tenant_type=tenant_context["tenant_type"],
+                tenant_id=tenant_context["tenant_id"]
+            )
+
+            # Group tags by type
+            tag_groups = {}
+            for tag in tags:
+                tag_type = tag.tag_type
+                if tag_type not in tag_groups:
+                    tag_groups[tag_type] = []
+                tag_groups[tag_type].append(tag)
+
+            context = {
+                "tag_groups": tag_groups,
+                "total_tags": len(tags),
+                "tag_types": list(tag_groups.keys()),
+            }
+
+            return render(request, "tags/list.html", context)
+
+    except Exception as e:
+        logger.error(f"Error loading tags: {str(e)}")
+        messages.error(request, "Error loading tags")
+        return render(request, "tags/list.html", {"tag_groups": {}, "total_tags": 0, "tag_types": []})
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def tag_create(request):
+    """Create a new tag."""
+    if request.method == "GET":
+        return render(request, "tags/create.html")
+
+    try:
+        with get_db_session() as db:
+            tenant_context = get_tenant_context_from_user(request.user)
+            if not tenant_context:
+                messages.error(request, "Unable to determine tenant context")
+                return redirect("tags:list")
+
+            from app.tagging_service import TaggingService
+            from app.schemas import DataTagCreate
+
+            tagging_service = TaggingService(db=db)
+
+            # Extract form data
+            tag_data = {
+                "tag_type": request.POST.get("tag_type"),
+                "tag_key": request.POST.get("tag_key"),
+                "tag_value": request.POST.get("tag_value"),
+                "resource_type": request.POST.get("resource_type"),
+                "resource_id": request.POST.get("resource_id"),
+                "tag_label": request.POST.get("tag_label"),
+                "tag_metadata": request.POST.get("tag_metadata", "{}"),
+            }
+
+            # Create the tag
+            tag_create = DataTagCreate(**tag_data)
+            tag = tagging_service._create_tag(
+                tag_type=tag_create.tag_type,
+                tag_key=tag_create.tag_key,
+                tag_value=tag_create.tag_value,
+                resource_type=tag_create.resource_type,
+                resource_id=tag_create.resource_id,
+                tenant_type=tenant_context["tenant_type"],
+                tenant_id=tenant_context["tenant_id"],
+                label=tag_create.tag_label,
+                metadata=tag_create.tag_metadata,
+            )
+
+            messages.success(request, f"Tag '{tag.tag_label}' created successfully")
+            return redirect("tags:list")
+
+    except Exception as e:
+        logger.error(f"Error creating tag: {str(e)}")
+        messages.error(request, f"Error creating tag: {str(e)}")
+        return render(request, "tags/create.html")
+
+
+@login_required
+def tag_detail(request, tag_id):
+    """Show tag details and associated resources."""
+    try:
+        with get_db_session() as db:
+            tenant_context = get_tenant_context_from_user(request.user)
+            if not tenant_context:
+                messages.error(request, "Unable to determine tenant context")
+                return redirect("tags:list")
+
+            from app.tagging_service import TaggingService
+            tagging_service = TaggingService(db=db)
+
+            # Get tag details
+            tag = tagging_service.get_tag_by_id(tag_id)
+            if not tag:
+                messages.error(request, "Tag not found")
+                return redirect("tags:list")
+
+            # Get resources with this tag
+            tagged_resources = tagging_service.get_tagged_resources(
+                tag_filters={tag.tag_key: tag.tag_value},
+                resource_type=tag.resource_type,
+                tenant_type=tenant_context["tenant_type"],
+                tenant_id=tenant_context["tenant_id"],
+            )
+
+            context = {
+                "tag": tag,
+                "tagged_resources": tagged_resources,
+                "resource_count": len(tagged_resources),
+            }
+
+            return render(request, "tags/detail.html", context)
+
+    except Exception as e:
+        logger.error(f"Error loading tag detail: {str(e)}")
+        messages.error(request, "Error loading tag details")
+        return redirect("tags:list")
+
+
+# Transaction Classification Views
+@login_required
+def classification_dashboard(request):
+    """Transaction classification dashboard."""
+    try:
+        with get_db_session() as db:
+            tenant_context = get_tenant_context_from_user(request.user)
+            if not tenant_context:
+                messages.error(request, "Unable to determine tenant context")
+                return redirect("dashboard:home")
+
+            from app.transaction_classifier import TransactionClassifierService
+            classifier = TransactionClassifierService(db=db)
+
+            # Get classification statistics
+            classification_stats = classifier.get_classification_statistics(
+                tenant_type=tenant_context["tenant_type"],
+                tenant_id=tenant_context["tenant_id"]
+            )
+
+            # Get recent classifications
+            recent_classifications = classifier.get_recent_classifications(
+                tenant_type=tenant_context["tenant_type"],
+                tenant_id=tenant_context["tenant_id"],
+                limit=10
+            )
+
+            context = {
+                "classification_stats": classification_stats,
+                "recent_classifications": recent_classifications,
+            }
+
+            return render(request, "classification/dashboard.html", context)
+
+    except Exception as e:
+        logger.error(f"Error loading classification dashboard: {str(e)}")
+        messages.error(request, "Error loading classification data")
+        return render(request, "classification/dashboard.html", {})
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def classify_transactions(request):
+    """Classify transactions manually or automatically."""
+    if request.method == "GET":
+        return render(request, "classification/classify.html")
+
+    try:
+        with get_db_session() as db:
+            tenant_context = get_tenant_context_from_user(request.user)
+            if not tenant_context:
+                messages.error(request, "Unable to determine tenant context")
+                return redirect("classification:dashboard")
+
+            from app.transaction_classifier import TransactionClassifierService
+            from app.schemas import TransactionClassificationRequest
+
+            classifier = TransactionClassifierService(db=db)
+
+            # Extract form data
+            classification_data = {
+                "transaction_ids": request.POST.getlist("transaction_ids"),
+                "auto_tag": request.POST.get("auto_tag") == "on",
+                "force_reclassify": request.POST.get("force_reclassify") == "on",
+            }
+
+            # Classify transactions
+            classification_request = TransactionClassificationRequest(**classification_data)
+            results = classifier.classify_transactions(
+                request=classification_request,
+                tenant_context=tenant_context,
+                db=db
+            )
+
+            messages.success(request, f"Successfully classified {len(results)} transactions")
+            return redirect("classification:dashboard")
+
+    except Exception as e:
+        logger.error(f"Error classifying transactions: {str(e)}")
+        messages.error(request, f"Error classifying transactions: {str(e)}")
+        return render(request, "classification/classify.html")
+
+
+# Analytics Views Management
+@login_required
+def analytics_views_list(request):
+    """List all saved analytics views."""
+    try:
+        with get_db_session() as db:
+            tenant_context = get_tenant_context_from_user(request.user)
+            if not tenant_context:
+                messages.error(request, "Unable to determine tenant context")
+                return redirect("dashboard:home")
+
+            from app.tagging_models import AnalyticsView
+            from app.core.tenant import TenantType
+
+            views = (
+                db.query(AnalyticsView)
+                .filter(
+                    AnalyticsView.tenant_type == TenantType(tenant_context["tenant_type"]),
+                    AnalyticsView.tenant_id == tenant_context["tenant_id"],
+                    AnalyticsView.is_active == True,
+                )
+                .order_by(AnalyticsView.created_at.desc())
+                .all()
+            )
+
+            context = {
+                "analytics_views": views,
+                "total_views": len(views),
+            }
+
+            return render(request, "analytics/views_list.html", context)
+
+    except Exception as e:
+        logger.error(f"Error loading analytics views: {str(e)}")
+        messages.error(request, "Error loading analytics views")
+        return render(request, "analytics/views_list.html", {"analytics_views": [], "total_views": 0})
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def analytics_view_create(request):
+    """Create a new analytics view."""
+    if request.method == "GET":
+        return render(request, "analytics/view_create.html")
+
+    try:
+        with get_db_session() as db:
+            tenant_context = get_tenant_context_from_user(request.user)
+            if not tenant_context:
+                messages.error(request, "Unable to determine tenant context")
+                return redirect("analytics:views_list")
+
+            from app.tagging_service import AnalyticsService
+            from app.schemas import AnalyticsViewCreate
+
+            analytics_service = AnalyticsService(db=db)
+
+            # Extract form data
+            view_data = {
+                "view_name": request.POST.get("view_name"),
+                "view_description": request.POST.get("view_description"),
+                "tag_filters": request.POST.get("tag_filters", "{}"),
+                "resource_types": request.POST.getlist("resource_types"),
+                "period_start": request.POST.get("period_start"),
+                "period_end": request.POST.get("period_end"),
+            }
+
+            # Create the analytics view
+            view_create = AnalyticsViewCreate(**view_data)
+            view = analytics_service.create_analytics_view(
+                view_name=view_create.view_name,
+                tag_filters=view_create.tag_filters,
+                resource_types=view_create.resource_types,
+                tenant_type=tenant_context["tenant_type"],
+                tenant_id=tenant_context["tenant_id"],
+                description=view_create.view_description,
+                period_start=view_create.period_start,
+                period_end=view_create.period_end,
+            )
+
+            messages.success(request, f"Analytics view '{view.view_name}' created successfully")
+            return redirect("analytics:views_list")
+
+    except Exception as e:
+        logger.error(f"Error creating analytics view: {str(e)}")
+        messages.error(request, f"Error creating analytics view: {str(e)}")
+        return render(request, "analytics/view_create.html")
+
+
+# Anomaly Detection Views
+@login_required
+def anomaly_detection(request):
+    """Anomaly detection dashboard."""
+    try:
+        with get_db_session() as db:
+            tenant_context = get_tenant_context_from_user(request.user)
+            if not tenant_context:
+                messages.error(request, "Unable to determine tenant context")
+                return redirect("dashboard:home")
+
+            from app.transaction_analytics import TransactionAnalyticsService
+            from app.schemas import AnomalyDetectionRequest
+
+            analytics_service = TransactionAnalyticsService(db=db)
+
+            # Get anomaly detection data
+            sensitivity = request.GET.get("sensitivity", "medium")
+            anomaly_request = AnomalyDetectionRequest(sensitivity=sensitivity)
+            
+            anomaly_data = analytics_service.get_anomaly_detection(
+                tenant_type=tenant_context["tenant_type"],
+                tenant_id=tenant_context["tenant_id"],
+                sensitivity=anomaly_request.sensitivity,
+            )
+
+            context = {
+                "anomalies": anomaly_data["anomalies"],
+                "sensitivity": anomaly_data["sensitivity"],
+                "analysis_period": anomaly_data["analysis_period"],
+                "total_anomalies": anomaly_data["total_anomalies"],
+                "current_sensitivity": sensitivity,
+            }
+
+            return render(request, "analytics/anomaly_detection.html", context)
+
+    except Exception as e:
+        logger.error(f"Error loading anomaly detection: {str(e)}")
+        messages.error(request, "Error loading anomaly detection data")
+        return render(request, "analytics/anomaly_detection.html", {})
+
+
+# Classification Configuration Views
+@login_required
+def classification_config(request):
+    """Classification configuration management."""
+    try:
+        with get_db_session() as db:
+            tenant_context = get_tenant_context_from_user(request.user)
+            if not tenant_context:
+                messages.error(request, "Unable to determine tenant context")
+                return redirect("dashboard:home")
+
+            from app.transaction_classifier import TransactionClassifierService
+
+            classifier = TransactionClassifierService(db=db)
+
+            # Get current configuration
+            config = classifier.get_classification_config()
+
+            context = {
+                "classification_patterns": config["classification_patterns"],
+                "category_patterns": config["category_patterns"],
+                "updated_at": config["updated_at"],
+            }
+
+            return render(request, "classification/config.html", context)
+
+    except Exception as e:
+        logger.error(f"Error loading classification config: {str(e)}")
+        messages.error(request, "Error loading classification configuration")
+        return render(request, "classification/config.html", {})
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def classification_config_update(request):
+    """Update classification configuration."""
+    if request.method == "GET":
+        return redirect("classification:config")
+
+    try:
+        with get_db_session() as db:
+            tenant_context = get_tenant_context_from_user(request.user)
+            if not tenant_context:
+                messages.error(request, "Unable to determine tenant context")
+                return redirect("classification:config")
+
+            from app.transaction_classifier import TransactionClassifierService
+            from app.schemas import ClassificationConfigRequest
+
+            classifier = TransactionClassifierService(db=db)
+
+            # Extract form data
+            config_data = {
+                "classification_patterns": request.POST.get("classification_patterns", "{}"),
+                "category_patterns": request.POST.get("category_patterns", "{}"),
+            }
+
+            # Update configuration
+            config_request = ClassificationConfigRequest(**config_data)
+            updated_config = classifier.update_classification_config(
+                request=config_request,
+                tenant_context=tenant_context,
+                db=db
+            )
+
+            messages.success(request, "Classification configuration updated successfully")
+            return redirect("classification:config")
+
+    except Exception as e:
+        logger.error(f"Error updating classification config: {str(e)}")
+        messages.error(request, f"Error updating classification configuration: {str(e)}")
+        return redirect("classification:config")
+
+
+# Documentation Views
+@login_required
+def documentation_home(request):
+    """Main documentation page with system overview."""
+    try:
+        from app.documentation_service import DocumentationService
+        
+        doc_service = DocumentationService()
+        comprehensive_docs = doc_service.get_comprehensive_documentation()
+        
+        context = {
+            "system_overview": comprehensive_docs["system_overview"],
+            "quick_start": comprehensive_docs["quick_start"],
+            "architecture": comprehensive_docs["architecture"],
+            "feature_count": len(comprehensive_docs["feature_documentation"]),
+            "api_count": len(comprehensive_docs["api_documentation"]),
+            "example_count": len(comprehensive_docs["code_examples"]),
+        }
+        
+        return render(request, "documentation/home.html", context)
+        
+    except Exception as e:
+        logger.error(f"Error loading documentation: {str(e)}")
+        messages.error(request, "Error loading documentation")
+        return render(request, "documentation/home.html", {})
+
+
+@login_required
+def documentation_features(request):
+    """Feature documentation page."""
+    try:
+        from app.documentation_service import DocumentationService
+        
+        doc_service = DocumentationService()
+        feature_docs = doc_service.get_feature_documentation()
+        
+        context = {
+            "features": feature_docs,
+            "feature_count": len(feature_docs),
+        }
+        
+        return render(request, "documentation/features.html", context)
+        
+    except Exception as e:
+        logger.error(f"Error loading feature documentation: {str(e)}")
+        messages.error(request, "Error loading feature documentation")
+        return render(request, "documentation/features.html", {})
+
+
+@login_required
+def documentation_api(request):
+    """API documentation page."""
+    try:
+        from app.documentation_service import DocumentationService
+        
+        doc_service = DocumentationService()
+        api_docs = doc_service.get_api_documentation()
+        
+        # Group APIs by tags
+        apis_by_tag = {}
+        for path, api_doc in api_docs.items():
+            tags = api_doc.get('tags', ['general'])
+            for tag in tags:
+                if tag not in apis_by_tag:
+                    apis_by_tag[tag] = []
+                apis_by_tag[tag].append(api_doc)
+        
+        context = {
+            "apis_by_tag": apis_by_tag,
+            "total_apis": len(api_docs),
+            "tags": list(apis_by_tag.keys()),
+        }
+        
+        return render(request, "documentation/api.html", context)
+        
+    except Exception as e:
+        logger.error(f"Error loading API documentation: {str(e)}")
+        messages.error(request, "Error loading API documentation")
+        return render(request, "documentation/api.html", {})
+
+
+@login_required
+def documentation_examples(request):
+    """Code examples documentation page."""
+    try:
+        from app.documentation_service import DocumentationService
+        
+        doc_service = DocumentationService()
+        code_examples = doc_service.get_code_examples()
+        
+        context = {
+            "examples": code_examples,
+            "total_examples": len(code_examples),
+        }
+        
+        return render(request, "documentation/examples.html", context)
+        
+    except Exception as e:
+        logger.error(f"Error loading code examples: {str(e)}")
+        messages.error(request, "Error loading code examples")
+        return render(request, "documentation/examples.html", {})
+
+
+@login_required
+def documentation_search(request):
+    """Search documentation."""
+    query = request.GET.get('q', '')
+    results = []
+    
+    if query:
+        try:
+            from app.documentation_service import DocumentationService
+            
+            doc_service = DocumentationService()
+            results = doc_service.search_documentation(query)
+            
+        except Exception as e:
+            logger.error(f"Error searching documentation: {str(e)}")
+            messages.error(request, "Error searching documentation")
+    
+    context = {
+        "query": query,
+        "results": results,
+        "result_count": len(results),
+    }
+    
+    return render(request, "documentation/search.html", context)
+
+
+@login_required
+def documentation_feature_detail(request, feature_name):
+    """Detailed feature documentation."""
+    try:
+        from app.documentation_service import DocumentationService
+        
+        doc_service = DocumentationService()
+        feature_doc = doc_service.get_feature_documentation(feature_name)
+        
+        if not feature_doc:
+            messages.error(request, f"Feature '{feature_name}' not found")
+            return redirect("documentation:features")
+        
+        context = {
+            "feature": feature_doc,
+            "feature_name": feature_name,
+        }
+        
+        return render(request, "documentation/feature_detail.html", context)
+        
+    except Exception as e:
+        logger.error(f"Error loading feature detail: {str(e)}")
+        messages.error(request, "Error loading feature details")
+        return redirect("documentation:features")
+
+
+@login_required
+def documentation_api_detail(request, api_path):
+    """Detailed API documentation."""
+    try:
+        from app.documentation_service import DocumentationService
+        
+        doc_service = DocumentationService()
+        api_doc = doc_service.get_api_documentation(api_path)
+        
+        if not api_doc:
+            messages.error(request, f"API '{api_path}' not found")
+            return redirect("documentation:api")
+        
+        context = {
+            "api": api_doc,
+            "api_path": api_path,
+        }
+        
+        return render(request, "documentation/api_detail.html", context)
+        
+    except Exception as e:
+        logger.error(f"Error loading API detail: {str(e)}")
+        messages.error(request, "Error loading API details")
+        return redirect("documentation:api")
+
+
 def home_redirect(request):
     """Redirect to appropriate home page."""
     if request.user.is_authenticated:
