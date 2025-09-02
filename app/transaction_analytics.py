@@ -87,7 +87,6 @@ class TransactionAnalyticsService:
         """Get comprehensive analytics for transaction categories."""
         # Get category amounts and trends
         category_amounts = {}
-        category_trends = {}
 
         for category in TransactionCategory:
             transaction_ids = self.classifier.get_transactions_by_category(
@@ -444,7 +443,7 @@ class TransactionAnalyticsService:
                 DataTag.resource_type == "transaction",
                 DataTag.tenant_type == TenantType(tenant_type),
                 DataTag.tenant_id == tenant_id,
-                DataTag.is_active == True,
+                DataTag.is_active.is_(True),
             )
             .all()
         )
@@ -456,7 +455,7 @@ class TransactionAnalyticsService:
                 DataTag.resource_type == "transaction",
                 DataTag.tenant_type == TenantType(tenant_type),
                 DataTag.tenant_id == tenant_id,
-                DataTag.is_active == True,
+                DataTag.is_active.is_(True),
             )
             .all()
         )

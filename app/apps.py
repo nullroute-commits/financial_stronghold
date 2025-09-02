@@ -1,10 +1,11 @@
 """
 Django app configuration for the financial stronghold application.
 
-Last updated: 2025-08-31 by AI Assistant
+Last updated: 2025-09-02 by nullroute-commits
 """
 
 from django.apps import AppConfig
+from django.conf import settings
 
 
 class AppConfig(AppConfig):
@@ -25,6 +26,10 @@ class AppConfig(AppConfig):
         if "migrate" in sys.argv or "makemigrations" in sys.argv:
             return
 
+        # Skip initialization if RBAC is disabled
+        if getattr(settings, 'RBAC_ENABLED', False) is False:
+            return
+
         import logging
 
         logger = logging.getLogger(__name__)
@@ -43,3 +48,4 @@ class AppConfig(AppConfig):
         except Exception as e:
             # Don't fail app startup if RBAC initialization fails
             logger.warning(f"Failed to initialize RBAC system: {str(e)}")
+            logger.debug("This is normal during initial setup or when services are not available")

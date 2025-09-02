@@ -42,15 +42,18 @@ from app.schemas import (
     FeeRead,
     FeeUpdate,
     FinancialSummary,
+    MonthlyBreakdownData,
     MonthlyBreakdownResponse,
     MonthlyBreakdownData,
     ResourceMetrics,
     SpendingInsights,
     TagFilterRequest,
     TaggedResourceResponse,
+    TransactionAnomaly,
     TransactionClassificationRequest,
     TransactionClassificationResult,
     TransactionCreate,
+    TransactionPatternAnalysis,
     TransactionPatternsResponse,
     TransactionRead,
     TransactionSummary,
@@ -681,7 +684,7 @@ def list_analytics_views(
         .filter(
             AnalyticsView.tenant_type == TenantType(tenant_context["tenant_type"]),
             AnalyticsView.tenant_id == tenant_context["tenant_id"],
-            AnalyticsView.is_active == True,
+            AnalyticsView.is_active.is_(True),
         )
         .order_by(AnalyticsView.created_at.desc())
     )
