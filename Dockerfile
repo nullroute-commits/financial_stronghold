@@ -1,14 +1,14 @@
 # Multi-stage Dockerfile for Django 5 application
 # Supports multi-architecture builds with Python 3.12.5
-# Alpine-based for improved security and smaller image size
-# Last updated: 2025-09-01 by migration automation
+# Debian slim-based to align with infrastructure tests
+# Last updated: 2025-09-02 by alignment task
 
 ARG PYTHON_VERSION=3.12.5
 ARG BUILDPLATFORM=linux/amd64
 ARG TARGETPLATFORM=linux/amd64
 
-# Base stage with Python and system dependencies
-FROM python:${PYTHON_VERSION}-alpine AS base
+# Base stage with Python and system dependencies (must match tests expectations)
+FROM python:${PYTHON_VERSION}-slim as base
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -20,29 +20,30 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # Install system dependencies
-RUN apk update && apk add --no-cache \
-    build-base \
-    postgresql-dev \
-    bzip2-dev \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    bzip2 \
     libffi-dev \
-    openssl-dev \
+    libssl-dev \
     libxml2-dev \
-    libxslt-dev \
-    zlib-dev \
-    jpeg-dev \
+    libxslt1-dev \
+    zlib1g-dev \
+    libjpeg-dev \
     libpng-dev \
     curl \
     wget \
     git \
     netcat-openbsd \
     bash \
-    && rm -rf /var/cache/apk/*
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create app user
-RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
+RUN groupadd -g 1000 app && useradd -u 1000 -g app -s /bin/bash -m app
 
 # Development stage
-FROM base AS development
+FROM base as development
 
 # Install development dependencies
 COPY requirements/development.txt /tmp/requirements.txt
@@ -69,7 +70,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 
 # Testing stage
-FROM base AS testing
+FROM base as testing
 
 # Install test dependencies
 COPY requirements/test.txt /tmp/requirements.txt
@@ -95,7 +96,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 CMD ["python", "manage.py", "test"]
 
 # Production stage
-FROM base AS production
+FROM base as production
 
 # Install production dependencies
 COPY requirements/production.txt /tmp/requirements.txt

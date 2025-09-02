@@ -48,10 +48,13 @@ PASSWORD_HASHERS = [
 # Email backend for testing
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
-# Testing logging - reduce verbosity
+# Testing logging - console only, avoid file handler to prevent filesystem dependency
 LOGGING["handlers"]["console"]["level"] = "WARNING"
-LOGGING["loggers"]["django"]["level"] = "WARNING"
+LOGGING["handlers"].pop("file", None)
+LOGGING["root"]["handlers"] = ["console"]
 LOGGING["root"]["level"] = "WARNING"
+LOGGING["loggers"]["django"]["handlers"] = ["console"]
+LOGGING["loggers"]["django"]["level"] = "WARNING"
 
 # Disable HTTPS redirects for testing
 SECURE_SSL_REDIRECT = False

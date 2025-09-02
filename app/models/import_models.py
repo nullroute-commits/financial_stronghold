@@ -7,12 +7,12 @@ Created by Team Sigma (Data Processing & Import) - Sprint 7
 
 import uuid
 from django.db import models
-from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.utils import timezone
 from django.core.validators import FileExtensionValidator
 from decimal import Decimal
 
-User = get_user_model()
+# Avoid calling get_user_model at import time; use AUTH_USER_MODEL for relations
 
 
 class ImportJob(models.Model):
@@ -31,7 +31,7 @@ class ImportJob(models.Model):
         PDF = 'PDF', 'PDF File'
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='import_jobs')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='import_jobs')
     
     # File information
     filename = models.CharField(max_length=255)
@@ -129,7 +129,7 @@ class ImportTemplate(models.Model):
     """Reusable templates for file import column mappings."""
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='import_templates')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='import_templates')
     
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -217,7 +217,7 @@ class TransactionCategory(models.Model):
     """Enhanced transaction categories for ML categorization."""
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transaction_categories', null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='transaction_categories', null=True, blank=True)
     
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -390,7 +390,7 @@ class FileUpload(models.Model):
         PROCESSED = 'PROCESSED', 'Processed'
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='file_uploads')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='file_uploads')
     
     # File information
     file = models.FileField(

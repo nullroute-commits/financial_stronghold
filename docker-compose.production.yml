@@ -1,5 +1,6 @@
 # Production Docker Compose configuration
 # Last updated: 2025-09-01 by migration automation
+version: "3.9"
 
 services:
   web:
