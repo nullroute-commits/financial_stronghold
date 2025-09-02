@@ -382,3 +382,336 @@ def api_transaction_summary(request):
     except Exception as e:
         logger.error(f"Error getting transaction summary: {str(e)}")
         return JsonResponse({'error': 'Unable to get transaction summary'}, status=500)
+
+
+# Additional view functions for complete web interface
+@login_required
+@require_http_methods(["GET", "POST"])
+def account_edit(request, account_id):
+    """Edit account details."""
+    account = get_object_or_404(Account, id=account_id, created_by=request.user)
+    
+    if request.method == "POST":
+        try:
+            account.name = request.POST.get("name", account.name)
+            account.account_type = request.POST.get("account_type", account.account_type)
+            account.currency = request.POST.get("currency", account.currency)
+            account.description = request.POST.get("description", account.description)
+            account.save()
+            
+            messages.success(request, f"Account '{account.name}' updated successfully")
+            return redirect("accounts:detail", account_id=account.id)
+            
+        except Exception as e:
+            logger.error(f"Error updating account: {str(e)}")
+            messages.error(request, "Error updating account")
+    
+    context = {"account": account}
+    return render(request, "accounts/edit.html", context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def account_delete(request, account_id):
+    """Delete account (with confirmation)."""
+    account = get_object_or_404(Account, id=account_id, created_by=request.user)
+    
+    try:
+        account_name = account.name
+        account.delete()
+        messages.success(request, f"Account '{account_name}' deleted successfully")
+    except Exception as e:
+        logger.error(f"Error deleting account: {str(e)}")
+        messages.error(request, "Error deleting account")
+    
+    return redirect("accounts:list")
+
+
+@login_required
+def transaction_detail(request, transaction_id):
+    """Display transaction details."""
+    transaction = get_object_or_404(
+        Transaction, 
+        id=transaction_id, 
+        account__created_by=request.user
+    )
+    
+    context = {"transaction": transaction}
+    return render(request, "transactions/detail.html", context)
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def transaction_edit(request, transaction_id):
+    """Edit transaction details."""
+    transaction = get_object_or_404(
+        Transaction, 
+        id=transaction_id, 
+        account__created_by=request.user
+    )
+    
+    if request.method == "POST":
+        try:
+            transaction.amount = Decimal(request.POST.get("amount", transaction.amount))
+            transaction.description = request.POST.get("description", transaction.description)
+            transaction.category = request.POST.get("category", transaction.category)
+            date_str = request.POST.get("date")
+            if date_str:
+                transaction.date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            transaction.save()
+            
+            messages.success(request, "Transaction updated successfully")
+            return redirect("transactions:detail", transaction_id=transaction.id)
+            
+        except Exception as e:
+            logger.error(f"Error updating transaction: {str(e)}")
+            messages.error(request, "Error updating transaction")
+    
+    context = {"transaction": transaction}
+    return render(request, "transactions/edit.html", context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def transaction_delete(request, transaction_id):
+    """Delete transaction (with confirmation)."""
+    transaction = get_object_or_404(
+        Transaction, 
+        id=transaction_id, 
+        account__created_by=request.user
+    )
+    
+    try:
+        transaction.delete()
+        messages.success(request, "Transaction deleted successfully")
+    except Exception as e:
+        logger.error(f"Error deleting transaction: {str(e)}")
+        messages.error(request, "Error deleting transaction")
+    
+    return redirect("transactions:list")
+
+
+@login_required
+def budget_detail(request, budget_id):
+    """Display budget details and status."""
+    budget = get_object_or_404(Budget, id=budget_id, created_by=request.user)
+    
+    # Calculate budget status
+    transactions = Transaction.objects.filter(
+        account__created_by=request.user,
+        date__gte=budget.start_date,
+        date__lte=budget.end_date,
+        category=budget.category
+    )
+    
+    spent = sum(abs(t.amount) for t in transactions if t.amount < 0)
+    budget.spent_amount = spent
+    budget.remaining_amount = budget.amount - spent
+    budget.percentage_used = (spent / budget.amount * 100) if budget.amount > 0 else 0
+    
+    context = {
+        "budget": budget,
+        "transactions": transactions[:10],  # Recent transactions
+        "total_transactions": transactions.count(),
+    }
+    return render(request, "budgets/detail.html", context)
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def budget_create(request):
+    """Create a new budget."""
+    user_accounts = Account.objects.filter(created_by=request.user)
+    
+    if request.method == "POST":
+        try:
+            budget = Budget.objects.create(
+                name=request.POST.get("name"),
+                description=request.POST.get("description", ""),
+                amount=Decimal(request.POST.get("amount")),
+                currency=request.POST.get("currency", "USD"),
+                category=request.POST.get("category"),
+                start_date=datetime.strptime(request.POST.get("start_date"), '%Y-%m-%d').date(),
+                end_date=datetime.strptime(request.POST.get("end_date"), '%Y-%m-%d').date(),
+                created_by=request.user
+            )
+            
+            # Add selected accounts to budget
+            account_ids = request.POST.getlist("accounts")
+            if account_ids:
+                accounts = Account.objects.filter(id__in=account_ids, created_by=request.user)
+                budget.accounts.set(accounts)
+            
+            messages.success(request, f"Budget '{budget.name}' created successfully")
+            return redirect("budgets:detail", budget_id=budget.id)
+            
+        except Exception as e:
+            logger.error(f"Error creating budget: {str(e)}")
+            messages.error(request, "Error creating budget")
+    
+    context = {"accounts": user_accounts}
+    return render(request, "budgets/create.html", context)
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def budget_edit(request, budget_id):
+    """Edit budget details."""
+    budget = get_object_or_404(Budget, id=budget_id, created_by=request.user)
+    user_accounts = Account.objects.filter(created_by=request.user)
+    
+    if request.method == "POST":
+        try:
+            budget.name = request.POST.get("name", budget.name)
+            budget.description = request.POST.get("description", budget.description)
+            budget.amount = Decimal(request.POST.get("amount", budget.amount))
+            budget.category = request.POST.get("category", budget.category)
+            
+            start_date = request.POST.get("start_date")
+            if start_date:
+                budget.start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            
+            end_date = request.POST.get("end_date")
+            if end_date:
+                budget.end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+            
+            budget.save()
+            
+            # Update associated accounts
+            account_ids = request.POST.getlist("accounts")
+            if account_ids:
+                accounts = Account.objects.filter(id__in=account_ids, created_by=request.user)
+                budget.accounts.set(accounts)
+            
+            messages.success(request, f"Budget '{budget.name}' updated successfully")
+            return redirect("budgets:detail", budget_id=budget.id)
+            
+        except Exception as e:
+            logger.error(f"Error updating budget: {str(e)}")
+            messages.error(request, "Error updating budget")
+    
+    context = {
+        "budget": budget,
+        "accounts": user_accounts,
+        "selected_accounts": budget.accounts.all()
+    }
+    return render(request, "budgets/edit.html", context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def budget_delete(request, budget_id):
+    """Delete budget (with confirmation)."""
+    budget = get_object_or_404(Budget, id=budget_id, created_by=request.user)
+    
+    try:
+        budget_name = budget.name
+        budget.delete()
+        messages.success(request, f"Budget '{budget_name}' deleted successfully")
+    except Exception as e:
+        logger.error(f"Error deleting budget: {str(e)}")
+        messages.error(request, "Error deleting budget")
+    
+    return redirect("budgets:list")
+
+
+@login_required
+@csrf_exempt
+def budget_status(request, budget_id):
+    """Get budget status via AJAX."""
+    try:
+        budget = get_object_or_404(Budget, id=budget_id, created_by=request.user)
+        
+        # Calculate budget status
+        transactions = Transaction.objects.filter(
+            account__created_by=request.user,
+            date__gte=budget.start_date,
+            date__lte=budget.end_date,
+            category=budget.category
+        )
+        
+        spent = sum(abs(t.amount) for t in transactions if t.amount < 0)
+        remaining = budget.amount - spent
+        percentage = (spent / budget.amount * 100) if budget.amount > 0 else 0
+        
+        return JsonResponse({
+            'budget_id': str(budget.id),
+            'allocated_amount': float(budget.amount),
+            'spent_amount': float(spent),
+            'remaining_amount': float(remaining),
+            'percentage_used': round(percentage, 2),
+            'status': 'over_budget' if spent > budget.amount else 'on_track',
+            'days_remaining': (budget.end_date - datetime.now().date()).days
+        })
+    
+    except Exception as e:
+        logger.error(f"Error getting budget status: {str(e)}")
+        return JsonResponse({'error': 'Unable to get budget status'}, status=500)
+
+
+@require_http_methods(["GET", "POST"])
+def register_view(request):
+    """User registration view."""
+    if request.user.is_authenticated:
+        return redirect("dashboard:home")
+    
+    if request.method == "POST":
+        try:
+            email = request.POST.get("email")
+            first_name = request.POST.get("first_name")
+            last_name = request.POST.get("last_name")
+            password = request.POST.get("password")
+            password_confirm = request.POST.get("password_confirm")
+            
+            # Validation
+            if not all([email, first_name, last_name, password]):
+                messages.error(request, "All fields are required")
+                return render(request, "registration/register.html")
+            
+            if password != password_confirm:
+                messages.error(request, "Passwords do not match")
+                return render(request, "registration/register.html")
+            
+            if User.objects.filter(email=email).exists():
+                messages.error(request, "Email already registered")
+                return render(request, "registration/register.html")
+            
+            # Create user
+            user = User.objects.create_user(
+                email=email,
+                username=email,
+                first_name=first_name,
+                last_name=last_name,
+                password=password
+            )
+            
+            messages.success(request, "Account created successfully! Please log in.")
+            return redirect("login")
+            
+        except Exception as e:
+            logger.error(f"Error creating user: {str(e)}")
+            messages.error(request, "Error creating account")
+    
+    return render(request, "registration/register.html")
+
+
+@require_http_methods(["GET", "POST"])
+def password_reset_view(request):
+    """Password reset view (simplified)."""
+    if request.method == "POST":
+        email = request.POST.get("email")
+        
+        if email and User.objects.filter(email=email).exists():
+            # In production, this would send an email
+            messages.success(request, "Password reset instructions sent to your email")
+        else:
+            messages.error(request, "Email not found")
+    
+    return render(request, "registration/password_reset.html")
+
+
+@login_required
+@csrf_exempt
+def api_budget_status(request, budget_id):
+    """Get budget status via AJAX (alias for budget_status)."""
+    return budget_status(request, budget_id)

@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, os.path.join(BASE_DIR, "app"))
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-change-me")
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-secret-key-replace-in-production-12345678901234567890")
 
 # Application definition
 DJANGO_APPS = [
@@ -53,6 +53,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "app.middleware.TenantMiddleware",
     "app.middleware.ModelAuditMiddleware",
+    "app.monitoring.MonitoringMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]

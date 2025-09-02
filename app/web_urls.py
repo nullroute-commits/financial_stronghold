@@ -1,76 +1,78 @@
 """
-URL configuration for the web interface.
-Maps URLs to Django views for the HTML interface.
+URL configuration for Django web interface.
+Complete routing for all web views and functionality.
+
+Last updated: 2025-01-02 by Team Zeta (Frontend & UX Agents)
 """
 
 from django.urls import path, include
-from app.web_views import (
-    dashboard_home,
-    accounts_list,
-    account_detail,
-    account_create,
-    account_edit,
-    transactions_list,
-    transaction_detail,
-    transaction_create,
-    transaction_edit,
-    budgets_list,
-    budget_detail,
-    budget_create,
-    budget_edit,
-    fees_list,
-    fee_detail,
-    fee_create,
-    fee_edit,
-    analytics_dashboard,
-    home_redirect,
-)
-
-app_name = "web"
+from . import web_views
 
 # Dashboard URLs
 dashboard_patterns = [
-    path("", dashboard_home, name="home"),
-    path("analytics/", analytics_dashboard, name="analytics"),
+    path('', web_views.dashboard_home, name='home'),
 ]
 
-# Account URLs
+# Account URLs  
 account_patterns = [
-    path("", accounts_list, name="list"),
-    path("create/", account_create, name="create"),
-    path("<uuid:account_id>/", account_detail, name="detail"),
-    path("<uuid:account_id>/edit/", account_edit, name="edit"),
+    path('', web_views.accounts_list, name='list'),
+    path('create/', web_views.account_create, name='create'),
+    path('<uuid:account_id>/', web_views.account_detail, name='detail'),
+    path('<uuid:account_id>/edit/', web_views.account_edit, name='edit'),
+    path('<uuid:account_id>/delete/', web_views.account_delete, name='delete'),
 ]
 
 # Transaction URLs
 transaction_patterns = [
-    path("", transactions_list, name="list"),
-    path("create/", transaction_create, name="create"),
-    path("<uuid:transaction_id>/", transaction_detail, name="detail"),
-    path("<uuid:transaction_id>/edit/", transaction_edit, name="edit"),
+    path('', web_views.transactions_list, name='list'),
+    path('create/', web_views.transaction_create, name='create'),
+    path('<uuid:transaction_id>/', web_views.transaction_detail, name='detail'),
+    path('<uuid:transaction_id>/edit/', web_views.transaction_edit, name='edit'),
+    path('<uuid:transaction_id>/delete/', web_views.transaction_delete, name='delete'),
 ]
 
 # Budget URLs
 budget_patterns = [
-    path("", budgets_list, name="list"),
-    path("create/", budget_create, name="create"),
-    path("<uuid:budget_id>/", budget_detail, name="detail"),
-    path("<uuid:budget_id>/edit/", budget_edit, name="edit"),
+    path('', web_views.budgets_list, name='list'),
+    path('create/', web_views.budget_create, name='create'),
+    path('<uuid:budget_id>/', web_views.budget_detail, name='detail'),
+    path('<uuid:budget_id>/edit/', web_views.budget_edit, name='edit'),
+    path('<uuid:budget_id>/delete/', web_views.budget_delete, name='delete'),
+    path('<uuid:budget_id>/status/', web_views.budget_status, name='status'),
 ]
 
-# Fee URLs
-fee_patterns = [
-    path("", fees_list, name="list"),
-    path("create/", fee_create, name="create"),
-    path("<uuid:fee_id>/", fee_detail, name="detail"),
-    path("<uuid:fee_id>/edit/", fee_edit, name="edit"),
+# AJAX API URLs for web interface
+ajax_patterns = [
+    path('account/<uuid:account_id>/balance/', web_views.api_account_balance, name='account_balance'),
+    path('transaction/summary/', web_views.api_transaction_summary, name='transaction_summary'),
+    path('budget/<uuid:budget_id>/status/', web_views.api_budget_status, name='budget_status'),
+]
+
+# Authentication URLs
+auth_patterns = [
+    path('login/', web_views.login_view, name='login'),
+    path('logout/', web_views.logout_view, name='logout'),
+    path('register/', web_views.register_view, name='register'),
+    path('password-reset/', web_views.password_reset_view, name='password_reset'),
 ]
 
 urlpatterns = [
-    path("", home_redirect, name="home_redirect"),
-    path("dashboard/", include((dashboard_patterns, "dashboard"), namespace="dashboard")),
-    path("accounts/", include((account_patterns, "accounts"), namespace="accounts")),
-    path("transactions/", include((transaction_patterns, "transactions"), namespace="transactions")),
-    path("budgets/", include((budget_patterns, "budgets"), namespace="budgets")),
-    path("fees/", include((fee_patterns, "fees"), namespace="fees")),
+    # Main dashboard
+    path('', web_views.dashboard_home, name='dashboard_home'),
+    
+    # Namespaced URL patterns
+    path('dashboard/', include((dashboard_patterns, 'dashboard'))),
+    path('accounts/', include((account_patterns, 'accounts'))),
+    path('transactions/', include((transaction_patterns, 'transactions'))),
+    path('budgets/', include((budget_patterns, 'budgets'))),
+    
+    # AJAX endpoints for web interface
+    path('ajax/', include((ajax_patterns, 'ajax'))),
+    
+    # Authentication
+    path('auth/', include((auth_patterns, 'auth'))),
+    
+    # Alternative auth URLs for compatibility
+    path('accounts/login/', web_views.login_view, name='login'),
+    path('accounts/logout/', web_views.logout_view, name='logout'),
 ]

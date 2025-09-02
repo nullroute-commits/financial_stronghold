@@ -6,6 +6,7 @@ Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
 """
 
 from .base import *
+from config.logging import get_logging_config
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -34,9 +35,15 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@example.com")
 
 # Production logging
+LOGGING = get_logging_config()
 LOGGING["handlers"]["file"]["filename"] = "/app/logs/django.log"
 LOGGING["loggers"]["django"]["level"] = "WARNING"
 LOGGING["root"]["level"] = "WARNING"
+
+# Production monitoring
+MONITORING_ENABLED = True
+PERFORMANCE_MONITORING = True
+SECURITY_MONITORING = True
 
 # Security settings for production
 SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "True").lower() == "true"
