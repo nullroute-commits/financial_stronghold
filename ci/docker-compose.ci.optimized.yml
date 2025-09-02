@@ -1,0 +1,337 @@
+# Optimized CI/CD Docker Compose configuration
+# Team Beta - Architecture Sprint 2
+# Features: Parallel testing, enhanced caching, quality gates, security scanning
+
+version: '3.8'
+
+services:
+  # Base CI runner with enhanced caching
+  ci-runner-base:
+    build:
+      context: ${PWD}/..
+      dockerfile: ci/Dockerfile.ci
+      args:
+        - PYTHON_VERSION=3.12.5
+        - BUILDPLATFORM=${DOCKER_PLATFORM:-linux/amd64}
+        - TARGETPLATFORM=${DOCKER_PLATFORM:-linux/amd64}
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ci_cache:/app/.cache
+      - pip_cache:/root/.cache/pip
+      - node_modules_cache:/app/node_modules
+    environment:
+      - CI=true
+      - DJANGO_SETTINGS_MODULE=config.settings.testing
+      - PYTHONPATH=/app
+      - COVERAGE_FILE=/app/.coverage
+    working_dir: /app
+    depends_on:
+      - test-db
+      - test-memcached
+      - test-rabbitmq
+      - test-redis
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Infrastructure services with optimized configuration
+  test-db:
+    image: postgres:17.2-alpine
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    environment:
+      - POSTGRES_DB=django_app_ci
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=ci-password
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8 --lc-collate=C --lc-ctype=C
+    tmpfs:
+      - /var/lib/postgresql/data
+    command: >
+      postgres
+      -c max_connections=50
+      -c shared_buffers=128MB
+      -c work_mem=2MB
+      -c maintenance_work_mem=32MB
+      -c effective_cache_size=512MB
+      -c wal_buffers=8MB
+      -c log_statement=none
+      -c log_min_duration_statement=1000
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d django_app_ci"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  test-memcached:
+    image: memcached:1.6-alpine
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    command: memcached -m 64 -c 256 -t 2
+    healthcheck:
+      test: ["CMD-SHELL", "echo stats | nc localhost 11211"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  test-rabbitmq:
+    image: rabbitmq:3.12-alpine
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    environment:
+      - RABBITMQ_DEFAULT_USER=ci
+      - RABBITMQ_DEFAULT_PASS=ci
+      - RABBITMQ_DEFAULT_VHOST=/
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  test-redis:
+    image: redis:7-alpine
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    command: redis-server --maxmemory 64mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Parallel test runners with optimized configuration
+  unit-tests:
+    extends:
+      service: ci-runner-base
+    command: /app/ci/test.sh unit
+    environment:
+      - TEST_TYPE=unit
+      - PYTEST_WORKERS=4
+      - PYTEST_ADDOPTS=--maxfail=20 --tb=short
+    volumes:
+      - .:/app
+      - ci_cache:/app/.cache
+      - pip_cache:/root/.cache/pip
+      - coverage_cache:/app/.coverage
+    depends_on:
+      test-db:
+        condition: service_healthy
+      test-memcached:
+        condition: service_healthy
+      test-rabbitmq:
+        condition: service_healthy
+      test-redis:
+        condition: service_healthy
+
+  integration-tests:
+    extends:
+      service: ci-runner-base
+    command: /app/ci/test.sh integration
+    environment:
+      - TEST_TYPE=integration
+      - PYTEST_WORKERS=2
+      - PYTEST_ADDOPTS=--maxfail=10 --tb=short
+    volumes:
+      - .:/app
+      - ci_cache:/app/.cache
+      - pip_cache:/root/.cache/pip
+      - coverage_cache:/app/.coverage
+    depends_on:
+      test-db:
+        condition: service_healthy
+      test-memcached:
+        condition: service_healthy
+      test-rabbitmq:
+        condition: service_healthy
+      test-redis:
+        condition: service_healthy
+
+  performance-tests:
+    extends:
+      service: ci-runner-base
+    command: /app/ci/test.sh performance
+    environment:
+      - TEST_TYPE=performance
+      - PYTEST_ADDOPTS=--tb=short --durations=20
+    volumes:
+      - .:/app
+      - ci_cache:/app/.cache
+      - pip_cache:/root/.cache/pip
+    depends_on:
+      test-db:
+        condition: service_healthy
+      test-memcached:
+        condition: service_healthy
+      test-rabbitmq:
+        condition: service_healthy
+      test-redis:
+        condition: service_healthy
+
+  security-tests:
+    extends:
+      service: ci-runner-base
+    command: /app/ci/test.sh security
+    environment:
+      - TEST_TYPE=security
+      - PYTEST_ADDOPTS=--tb=short
+    volumes:
+      - .:/app
+      - ci_cache:/app/.cache
+      - pip_cache:/root/.cache/pip
+    depends_on:
+      test-db:
+        condition: service_healthy
+      test-memcached:
+        condition: service_healthy
+      test-rabbitmq:
+        condition: service_healthy
+      test-redis:
+        condition: service_healthy
+
+  # Enhanced code quality checks
+  lint-check:
+    extends:
+      service: ci-runner-base
+    command: /app/ci/lint.sh
+    environment:
+      - LINT_STRICT=true
+      - BLACK_LINE_LENGTH=120
+      - FLAKE8_MAX_LINE_LENGTH=120
+    volumes:
+      - .:/app
+      - ci_cache:/app/.cache
+      - pip_cache:/root/.cache/pip
+
+  type-check:
+    extends:
+      service: ci-runner-base
+    command: /app/ci/type-check.sh
+    environment:
+      - MYPY_STRICT=true
+      - MYPY_DISALLOW_ANY_EXPLICIT=true
+    volumes:
+      - .:/app
+      - ci_cache:/app/.cache
+      - pip_cache:/root/.cache/pip
+
+  # Security scanning and analysis
+  security-scan:
+    image: pyupio/safety:latest
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    volumes:
+      - .:/app
+      - pip_cache:/root/.cache/pip
+    working_dir: /app
+    command: >
+      sh -c "
+        echo '🔒 Running security vulnerability scan...' &&
+        safety check -r requirements/production.txt --json > reports/security-vulnerabilities.json &&
+        safety check -r requirements/production.txt --full-report > reports/security-report.txt &&
+        echo '✅ Security scan completed'"
+
+  bandit-scan:
+    extends:
+      service: ci-runner-base
+    command: /app/ci/security-scan.sh
+    environment:
+      - BANDIT_SEVERITY=medium
+      - BANDIT_CONFIDENCE=medium
+    volumes:
+      - .:/app
+      - ci_cache:/app/.cache
+      - pip_cache:/root/.cache/pip
+
+  # Build verification and optimization
+  build-test:
+    extends:
+      service: ci-runner-base
+    command: /app/ci/build.sh
+    environment:
+      - BUILD_OPTIMIZE=true
+      - BUILD_CACHE=true
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - build_cache:/app/build
+      - ci_cache:/app/.cache
+
+  # Documentation build and validation
+  docs-build:
+    extends:
+      service: ci-runner-base
+    command: /app/ci/docs.sh
+    environment:
+      - DOCS_STRICT=true
+      - DOCS_LINT=true
+    volumes:
+      - .:/app
+      - ci_cache:/app/.cache
+      - docs_cache:/app/docs/_build
+
+  # Coverage aggregation and reporting
+  coverage-aggregate:
+    extends:
+      service: ci-runner-base
+    command: /app/ci/coverage-aggregate.sh
+    environment:
+      - COVERAGE_MIN=85
+      - COVERAGE_FAIL_UNDER=true
+    volumes:
+      - .:/app
+      - coverage_cache:/app/.coverage
+      - ci_cache:/app/.cache
+    depends_on:
+      - unit-tests
+      - integration-tests
+
+  # Performance monitoring and analysis
+  performance-monitor:
+    extends:
+      service: ci-runner-base
+    command: /app/ci/performance-monitor.sh
+    environment:
+      - PERFORMANCE_THRESHOLD=2.0
+      - PERFORMANCE_SAMPLES=10
+    volumes:
+      - .:/app
+      - ci_cache:/app/.cache
+      - performance_cache:/app/performance
+
+  # Final quality gate and reporting
+  quality-gate:
+    extends:
+      service: ci-runner-base
+    command: /app/ci/quality-gate.sh
+    environment:
+      - QUALITY_THRESHOLD=90
+      - SECURITY_THRESHOLD=0
+      - COVERAGE_THRESHOLD=85
+    volumes:
+      - .:/app
+      - ci_cache:/app/.cache
+      - reports_cache:/app/reports
+    depends_on:
+      - unit-tests
+      - integration-tests
+      - security-scan
+      - bandit-scan
+      - coverage-aggregate
+      - performance-monitor
+
+volumes:
+  ci_cache:
+    driver: local
+  pip_cache:
+    driver: local
+  node_modules_cache:
+    driver: local
+  coverage_cache:
+    driver: local
+  build_cache:
+    driver: local
+  docs_cache:
+    driver: local
+  performance_cache:
+    driver: local
+  reports_cache:
+    driver: local
