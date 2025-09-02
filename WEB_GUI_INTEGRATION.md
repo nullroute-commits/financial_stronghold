@@ -220,6 +220,26 @@ if (result.success) {
 - Font Awesome icons
 - Consistent color scheme
 - Hover effects and animations
+- Theme option with CSS tokens and data-theme attribute
+
+### Theme Architecture
+
+- Tokens defined via CSS custom properties and overridden per theme in `static/css/themes.css` using `[data-theme="..."]` selectors.
+- Active theme injected server-side via `app.context_processors.theme` into all templates as `active_theme`.
+- `<html data-theme="{{ active_theme }}">` set in `templates/base.html` for FOUC-free application.
+- User preference stored in `app.django_models.UserPreference` (`theme` field) and persisted by `web_views.theme_settings`.
+- System default stored in `SystemConfiguration` under key `ui.default_theme`.
+- Guests persist selection in `localStorage` and a `ui_theme` cookie via `static/js/theme.js`.
+- Supported themes: `light`, `dark`, `high-contrast`, `system`.
+
+### User Settings
+
+- Route: `/settings/theme/` (GET/POST) to view and change theme.
+- Navbar quick toggle in `templates/base.html` updates theme instantly; saving via settings persists to server.
+
+### Accessibility
+
+- `high-contrast` theme meets WCAG 2.1 AA color contrast guidelines for text and UI elements.
 
 ## 🔄 Real-time Features
 

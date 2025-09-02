@@ -72,6 +72,9 @@ urlpatterns = [
     # Authentication
     path('auth/', include((auth_patterns, 'auth'))),
     
+    # Settings
+    path('settings/theme/', web_views.theme_settings, name='settings_theme'),
+    
     # Alternative auth URLs for compatibility
     path('accounts/login/', web_views.login_view, name='login'),
     path('accounts/logout/', web_views.logout_view, name='logout'),

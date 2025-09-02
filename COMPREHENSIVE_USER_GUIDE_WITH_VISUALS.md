@@ -69,6 +69,23 @@ The Financial Stronghold import feature transforms hours of manual data entry in
 
 ---
 
+## 🖌️ Theme Customization
+
+You can customize the appearance of the web app.
+
+### Quick Toggle
+- In the top navigation, open the “Theme” menu.
+- Choose Light, Dark, High Contrast, or System. The page updates instantly.
+
+### Persisting Your Choice
+- Guests: the choice is remembered on this device only.
+- Signed-in users: visit “Theme Settings…” and click Save to persist across sessions/devices.
+
+### Accessibility
+- High Contrast mode improves readability and meets WCAG 2.1 AA color contrast guidelines.
+
+---
+
 ## 📤 **Step 2: File Upload Process**
 
 ### **Upload Interface Overview**

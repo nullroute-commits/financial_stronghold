@@ -211,6 +211,46 @@ class SystemConfiguration(BaseModel):
         verbose_name_plural = "System Configurations"
 
 
+# User preference and UI settings
+class UserPreference(BaseModel):
+    """
+    Per-user UI and experience preferences.
+
+    Stores primary fields for quick lookup along with a JSON blob for
+    forward-compatible settings. Designed to support theme selection and
+    related UI preferences.
+    """
+
+    THEME_LIGHT = "light"
+    THEME_DARK = "dark"
+    THEME_SYSTEM = "system"
+    THEME_HIGH_CONTRAST = "high-contrast"
+
+    THEME_CHOICES = [
+        (THEME_LIGHT, "Light"),
+        (THEME_DARK, "Dark"),
+        (THEME_SYSTEM, "System"),
+        (THEME_HIGH_CONTRAST, "High Contrast"),
+    ]
+
+    user = models.OneToOneField("User", on_delete=models.CASCADE, related_name="preference")
+
+    # Primary theme selector for quick access
+    theme = models.CharField(max_length=20, choices=THEME_CHOICES, default=THEME_SYSTEM)
+
+    # Additional UI preferences stored as JSON for flexibility
+    ui_preferences = JSONField(blank=True, null=True, default=dict)
+
+    def __str__(self):
+        return f"Preferences for {self.user.email}"
+
+    class Meta:
+        verbose_name = "User Preference"
+        verbose_name_plural = "User Preferences"
+        indexes = [
+            models.Index(fields=["theme"], name="idx_userpref_theme"),
+        ]
+
 # Multi-tenancy models
 class TenantType(models.TextChoices):
     USER = "user", "User"

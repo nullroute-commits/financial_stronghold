@@ -11,6 +11,7 @@ from .django_models import (  # Core models; Multi-tenancy models; Financial mod
     AuditLog,
     BaseModel,
     Budget,
+    UserPreference,
     Fee,
     Organization,
     Permission,
@@ -50,6 +51,7 @@ __all__ = [
     "Transaction",
     "Fee",
     "Budget",
+    "UserPreference",
     # Import feature models
     "ImportJob",
     "ImportTemplate",

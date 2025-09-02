@@ -1,0 +1,69 @@
+/* Theme overrides using CSS custom properties and [data-theme] attribute */
+
+:root,
+[data-theme="system"] {
+    /* In system mode, default to light tokens; OS dark will be handled via prefers-color-scheme in custom.css as enhancement */
+    --primary-color: #0d6efd;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --surface-bg: #ffffff;
+    --surface-fg: #212529;
+}
+
+[data-theme="light"] {
+    --primary-color: #0d6efd;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --surface-bg: #ffffff;
+    --surface-fg: #212529;
+}
+
+[data-theme="dark"] {
+    --primary-color: #4c84ff;
+    --success-color: #20c997;
+    --danger-color: #ff6b6b;
+    --warning-color: #ffd166;
+    --info-color: #66d9e8;
+    --light-color: #343a40;
+    --dark-color: #f8f9fa;
+    --surface-bg: #1a1a1a;
+    --surface-fg: #f8f9fa;
+}
+
+[data-theme="high-contrast"] {
+    --primary-color: #0000ff;
+    --success-color: #007f00;
+    --danger-color: #ff0000;
+    --warning-color: #ffbf00;
+    --info-color: #00bfff;
+    --light-color: #ffffff;
+    --dark-color: #000000;
+    --surface-bg: #ffffff;
+    --surface-fg: #000000;
+}
+
+/* Apply surface tokens to common elements */
+body {
+    background-color: var(--surface-bg);
+    color: var(--surface-fg);
+}
+
+.card,
+.modal-content,
+.dropdown-menu {
+    background-color: var(--surface-bg);
+    color: var(--surface-fg);
+}
+
+.table th {
+    color: var(--surface-fg);
+}
+

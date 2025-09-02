@@ -219,7 +219,10 @@ class ProductionValidator:
         
         static_files = [
             'static/css/custom.css',
-            'static/js/app.js'
+            'static/css/dashboard.css',
+            'static/css/themes.css',
+            'static/js/app.js',
+            'static/js/theme.js',
         ]
         
         for file_path in static_files:
@@ -231,6 +234,7 @@ class ProductionValidator:
         # Check templates
         template_files = [
             'templates/base.html',
+            'templates/settings/theme.html',
             'templates/dashboard/home.html',
             'templates/registration/login.html'
         ]

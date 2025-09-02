@@ -22,6 +22,8 @@ from datetime import datetime, timedelta
 import logging
 
 from .django_models import User, Account, Transaction, Budget, Organization, UserOrganizationLink
+from .django_models import UserPreference
+from .services import ThemeService
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +79,39 @@ def dashboard_home(request):
         logger.error(f"Error loading dashboard: {str(e)}")
         messages.error(request, "Error loading dashboard data")
         return render(request, "dashboard/home.html", {"user": request.user})
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def theme_settings(request):
+    """Allow users to select and save their UI theme preference."""
+    if request.method == "POST":
+        selected_theme = request.POST.get("theme", "system")
+        if selected_theme not in {"light", "dark", "system", "high-contrast"}:
+            messages.error(request, "Invalid theme selection")
+            return redirect("settings_theme")
+
+        pref, _ = UserPreference.objects.get_or_create(user=request.user, defaults={"created_by": request.user})
+        pref.theme = selected_theme
+        # Merge any other UI preferences if needed later
+        pref.updated_by = request.user
+        pref.save()
+
+        messages.success(request, "Theme preference updated")
+        response = redirect("settings_theme")
+        # Also set cookie so guest pages or pre-login pages honor selection
+        response.set_cookie(
+            ThemeService.COOKIE_NAME,
+            selected_theme,
+            max_age=60 * 60 * 24 * 365,
+            samesite="Lax",
+            secure=False,
+        )
+        return response
+
+    # GET request
+    current_theme = ThemeService.get_user_theme(request.user) or ThemeService.get_system_default_theme()
+    return render(request, "settings/theme.html", {"current_theme": current_theme})
 
 
 @login_required
