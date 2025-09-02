@@ -45,7 +45,15 @@ class MemcachedClient:
         """
         self.namespace = namespace
         self.default_timeout = int(os.environ.get("CACHE_DEFAULT_TIMEOUT", "300"))
-        self.client = memcache.Client(servers, **kwargs)
+        # Configure connection pooling
+        pool_size = int(os.environ.get("MEMCACHED_POOL_SIZE", "10"))
+        self.client = memcache.Client(
+            servers,
+            socket_timeout=3,
+            dead_retry=30,
+            server_max_value_length=1024*1024*25,  # 25MB max value size
+            **kwargs
+        )
         logger.info(f"Initialized Memcached client with servers: {servers}")
 
     def _make_key(self, key: str) -> str:
