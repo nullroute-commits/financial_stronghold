@@ -5,9 +5,19 @@ Handles CSV, Excel, and PDF file import with comprehensive validation.
 Created by Team Sigma (Data Processing & Import) - Sprint 7
 """
 
-import pandas as pd
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
+    pd = None
 import hashlib
-import magic
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except ImportError:
+    MAGIC_AVAILABLE = False
+    magic = None
 import os
 import logging
 from typing import Dict, List, Optional, Tuple, Any
@@ -17,7 +27,7 @@ from django.core.files.storage import default_storage
 from django.conf import settings
 from django.utils import timezone
 
-from ..models.import_models import ImportJob, FileUpload, ImportedTransaction, ImportValidationError
+from ..import_models import ImportJob, FileUpload, ImportedTransaction, ImportValidationError
 from ..django_models import Account, Transaction
 
 logger = logging.getLogger('import')

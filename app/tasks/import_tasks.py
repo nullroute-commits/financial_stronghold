@@ -6,10 +6,20 @@ Created by Team Phi (Infrastructure & Performance) - Sprint 7
 """
 
 import logging
-from celery import shared_task, current_task
+try:
+    from celery import shared_task, current_task
+    CELERY_AVAILABLE = True
+except ImportError:
+    CELERY_AVAILABLE = False
+    # Create dummy decorators for when Celery is not available
+    def shared_task(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    current_task = None
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from ..models.import_models import ImportJob, FileUpload
+from ..import_models import ImportJob, FileUpload
 from ..services.file_import_service import FileImportService
 
 User = get_user_model()
@@ -58,11 +68,11 @@ def process_file_import_task(self, import_job_id):
         
         # Process file based on type
         if import_job.file_type == ImportJob.FileType.CSV:
-            await process_csv_import(import_service, import_job, file_upload)
+            process_csv_import(import_service, import_job, file_upload)
         elif import_job.file_type == ImportJob.FileType.EXCEL:
-            await process_excel_import(import_service, import_job, file_upload)
+            process_excel_import(import_service, import_job, file_upload)
         elif import_job.file_type == ImportJob.FileType.PDF:
-            await process_pdf_import(import_service, import_job, file_upload)
+            process_pdf_import(import_service, import_job, file_upload)
         
         # Mark job as completed
         import_job.mark_completed()

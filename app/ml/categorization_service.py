@@ -21,7 +21,7 @@ from sklearn.metrics import accuracy_score, classification_report
 import pandas as pd
 import numpy as np
 
-from ..models.import_models import TransactionCategory, MLModel
+from ..import_models import TransactionCategory, MLModel
 from ..django_models import Transaction
 
 logger = logging.getLogger('ml.categorization')

@@ -37,11 +37,10 @@ DATABASES = {
     }
 }
 
-# Development cache settings - use memcached for consistency
+# Development cache settings - use dummy cache to avoid dependency issues
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
-        "LOCATION": os.environ.get("MEMCACHED_SERVERS", "memcached:11211"),
+        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
     }
 }
 

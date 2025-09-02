@@ -19,7 +19,7 @@ from .django_models import (
     User, Role, Permission, AuditLog, SystemConfiguration,
     Organization, UserOrganizationLink, Account, Transaction, Budget, Fee
 )
-from .serializers import (
+from .core_serializers import (
     UserSerializer, RoleSerializer, PermissionSerializer,
     AccountSerializer, TransactionSerializer, BudgetSerializer,
     OrganizationSerializer, AuditLogSerializer

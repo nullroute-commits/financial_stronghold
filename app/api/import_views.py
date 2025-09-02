@@ -14,7 +14,7 @@ from django.core.files.storage import default_storage
 from django.http import Http404
 import logging
 
-from ..models.import_models import (
+from ..import_models import (
     ImportJob, FileUpload, ImportedTransaction, 
     ImportTemplate, ImportValidationError
 )

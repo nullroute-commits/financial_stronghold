@@ -7,13 +7,14 @@ Created by Team Sigma (Data Processing & Import) - Sprint 7
 
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from ..models.import_models import (
+from ..import_models import (
     ImportJob, FileUpload, ImportedTransaction,
     ImportTemplate, ImportValidationError, TransactionCategory
 )
 from ..django_models import Account
 
-User = get_user_model()
+# Use string reference for User to avoid circular imports
+User = 'app.User'
 
 
 class FileUploadSerializer(serializers.ModelSerializer):
