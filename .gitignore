@@ -184,7 +184,9 @@ Desktop.ini
 .dockerignore
 
 # Logs
-logs/
+logs/*.log
+logs/*.txt
+!logs/.gitkeep
 *.log
 
 # Backup files
