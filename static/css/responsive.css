@@ -1,0 +1,74 @@
+/* Responsive Design - Team Zeta - Frontend Sprint 5 */
+
+/* Mobile First Approach */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+/* Extra Small Devices (phones, 576px and down) */
+@media (max-width: 575.98px) {
+  .container {
+    padding: 0 var(--spacing-sm);
+  }
+  
+  .btn {
+    width: 100%;
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .card {
+    padding: var(--spacing-md);
+  }
+  
+  .form-input {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Small Devices (landscape phones, 576px and up) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Medium Devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Large Devices (desktops, 992px and up) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Extra Large Devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  .container {
+    padding: 0 var(--spacing-lg);
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .card {
+    border: 1px solid black !important;
+    box-shadow: none !important;
+  }
+}
