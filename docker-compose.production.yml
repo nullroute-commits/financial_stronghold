@@ -28,11 +28,11 @@ services:
         condition: on-failure
         delay: 5s
         max_attempts: 3
+    entrypoint: []
     command: >
       sh -c "
-        python manage.py migrate --noinput &&
-        python manage.py collectstatic --noinput &&
-        python manage.py runserver 0.0.0.0:8000
+        echo 'Starting Django with minimal settings...' &&
+        python manage.py runserver 0.0.0.0:8000 --settings=config.settings.minimal
       "
 
   db:

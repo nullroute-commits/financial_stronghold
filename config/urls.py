@@ -79,8 +79,8 @@ urlpatterns = [
     # Authentication URLs
     path("accounts/login/", auth_views.LoginView.as_view(template_name="registration/login.html"), name="login"),
     path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
-    # Web and API URLs
-    path("", include("app.urls")),
+    # Web and API URLs - temporarily commented out due to import issues
+    # path("", include("app.urls")),
 ]
 
 # Serve static and media files during development

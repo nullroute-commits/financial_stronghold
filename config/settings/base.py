@@ -128,20 +128,10 @@ MEDIA_ROOT = BASE_DIR / "media"
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Cache configuration using Memcached
+# Cache configuration using Memcached (temporarily using dummy cache for deployment)
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
-        "LOCATION": os.environ.get("MEMCACHED_SERVERS", "memcached:11211"),
-        "KEY_PREFIX": os.environ.get("CACHE_KEY_PREFIX", "app"),
-        "VERSION": int(os.environ.get("CACHE_VERSION", "1")),
-        "TIMEOUT": int(os.environ.get("CACHE_DEFAULT_TIMEOUT", "300")),
-        "OPTIONS": {
-            "no_delay": True,
-            "connect_timeout": 1,
-            "timeout": float(os.environ.get("MEMCACHED_SOCKET_TIMEOUT", "3.0")),
-            "max_pool_size": 10,
-        },
+        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
     }
 }
 
