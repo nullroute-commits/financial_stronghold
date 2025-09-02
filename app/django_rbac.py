@@ -17,7 +17,8 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 
-from .django_models import AuditLog, Permission, Role, User
+# Remove module-level imports to avoid circular imports
+# from .django_models import AuditLog, Permission, Role, User
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ class DjangoRBACManager:
         """
         self.cache_timeout = cache_timeout
 
-    def get_user_permissions(self, user: User, use_cache: bool = True) -> Set[str]:
+    def get_user_permissions(self, user, use_cache: bool = True):
         """
         Get all permissions for a user.
 
@@ -55,6 +56,9 @@ class DjangoRBACManager:
         Returns:
             Set of permission names
         """
+        # Import models here to avoid circular imports
+        from .django_models import Permission
+        
         cache_key = f"user_permissions:{user.id}"
 
         if use_cache:

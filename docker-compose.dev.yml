@@ -1,0 +1,94 @@
+# Development Docker Compose configuration
+# Standalone version without extends to avoid depends_on issues
+
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        - PYTHON_VERSION=3.13.3
+        - BUILDPLATFORM=${DOCKER_PLATFORM:-linux/amd64}
+        - TARGETPLATFORM=${DOCKER_PLATFORM:-linux/amd64}
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.development
+      - DEBUG=True
+      - POSTGRES_DB=django_app_dev
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - MEMCACHED_SERVERS=memcached:11211
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+    env_file:
+      - .env.development
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - logs_volume:/app/logs
+    ports:
+      - "8000:8000"
+    command: python manage.py runserver 0.0.0.0:8000
+    depends_on:
+      - db
+      - memcached
+      - rabbitmq
+    restart: unless-stopped
+
+  db:
+    image: postgres:17.2-alpine
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    environment:
+      - POSTGRES_DB=django_app_dev
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  memcached:
+    image: memcached:1.6-alpine
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    ports:
+      - "11211:11211"
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.12-alpine
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:4-standalone
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    ports:
+      - "8080:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=db
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  static_volume:
+  media_volume:
+  logs_volume:

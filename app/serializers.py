@@ -8,7 +8,7 @@ Last updated: 2025-01-02 by Team Beta (Architecture & Backend Agents)
 from rest_framework import serializers
 from .django_models import (
     Role, Permission, AuditLog, SystemConfiguration,
-    Organization, UserOrganizationLink, Account, Transaction, Budget, Fee
+    Organization, UserOrganizationLink, Account, Transaction, Budget, Fee, User
 )
 
 
@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
     """Serializer for User model."""
     
     class Meta:
-        model = 'auth.User'  # Use string reference to avoid circular imports
+        model = User
         fields = [
             'id', 'username', 'email', 'first_name', 'last_name',
             'is_active', 'date_joined', 'last_login'
@@ -25,8 +25,6 @@ class UserSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         """Create user with proper password hashing."""
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
         password = validated_data.pop('password', None)
         user = User.objects.create(**validated_data)
         if password:

@@ -12,7 +12,8 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest, HttpResponse
 from django.utils.deprecation import MiddlewareMixin
 
-from .django_models import TenantType, User, UserOrganizationLink
+# Remove module-level imports to avoid circular imports
+# from .django_models import TenantType, User, UserOrganizationLink
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,9 @@ class TenantMiddleware(MiddlewareMixin):
             request: Django HttpRequest object
         """
         try:
+            # Import models here to avoid circular imports
+            from .django_models import TenantType, UserOrganizationLink
+            
             # Initialize tenant context
             request.tenant_type = TenantType.USER
             request.tenant_id = None

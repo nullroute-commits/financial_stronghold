@@ -101,6 +101,7 @@ MIDDLEWARE = [
 
 # Temporarily disable admin for testing
 INSTALLED_APPS = [
+    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -111,8 +112,8 @@ INSTALLED_APPS = [
     "app",
 ]
 
-# Temporarily use default User model for testing
-AUTH_USER_MODEL = "auth.User"
+# Use the custom User model
+AUTH_USER_MODEL = "app.User"
 
 # Disable SQLAlchemy connection attempts during startup
 SQLALCHEMY_ENABLED = False
