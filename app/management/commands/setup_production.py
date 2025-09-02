@@ -76,7 +76,7 @@ class Command(BaseCommand):
         warnings = []
         
         # Check SECRET_KEY
-        if settings.SECRET_KEY == 'django-insecure-change-me':
+        if 'dev-only-secret-key' in settings.SECRET_KEY or 'django-insecure' in settings.SECRET_KEY:
             errors.append('SECRET_KEY is using default insecure value')
         elif len(settings.SECRET_KEY) < 50:
             warnings.append('SECRET_KEY should be at least 50 characters long')
