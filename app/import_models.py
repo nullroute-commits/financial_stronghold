@@ -172,7 +172,7 @@ class ImportValidationError(models.Model):
         INFO = 'INFO', 'Info'
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    import_job = models.ForeignKey(ImportJob, on_delete=models.CASCADE, related_name='validation_errors')
+    import_job = models.ForeignKey(ImportJob, on_delete=models.CASCADE, related_name='import_validation_errors')
     
     # Error details
     row_number = models.IntegerField()
@@ -296,7 +296,7 @@ class ImportedTransaction(models.Model):
     
     # Duplicate detection
     duplicate_of = models.ForeignKey(
-        'django_models.Transaction', 
+        'app.Transaction', 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,

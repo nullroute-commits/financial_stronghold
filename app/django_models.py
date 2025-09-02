@@ -51,6 +51,7 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=150)
     email = models.EmailField(unique=True)
     date_joined = models.DateTimeField(default=timezone.now)
+    tenant_id = models.CharField(max_length=50, db_index=True, blank=True, null=True)
 
     # Override username to be optional
     username = models.CharField(max_length=150, unique=True, blank=True, null=True)
