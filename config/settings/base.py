@@ -39,8 +39,8 @@ LOCAL_APPS = [
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
-# Use the custom User model
-AUTH_USER_MODEL = "app.User"
+# Use the default Django User model for simplicity
+# AUTH_USER_MODEL = "app.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

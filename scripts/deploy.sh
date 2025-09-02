@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 # Configuration
 ENVIRONMENT=${1:-production}
 PROJECT_NAME="financial-stronghold"
-BACKUP_DIR="/backups"
+BACKUP_DIR="./backups"
 DEPLOY_DIR="/opt/${PROJECT_NAME}"
 
 echo -e "${BLUE}🚀 Starting deployment to ${ENVIRONMENT}...${NC}"
@@ -44,13 +44,13 @@ fi
 echo -e "${GREEN}✅ Pre-deployment checks passed${NC}"
 
 # Database backup (production only)
-if [ "$ENVIRONMENT" = "production" ]; then
+if [ "$ENVIRONMENT" = "production" ] && docker compose -f docker-compose.${ENVIRONMENT}.yml ps db | grep -q "Up"; then
     echo -e "${YELLOW}💾 Creating database backup...${NC}"
     
     BACKUP_FILE="${BACKUP_DIR}/backup-$(date +%Y%m%d-%H%M%S).sql"
     mkdir -p "$BACKUP_DIR"
     
-    docker-compose -f docker-compose.${ENVIRONMENT}.yml exec -T db pg_dump \
+    docker compose -f docker-compose.${ENVIRONMENT}.yml exec -T db pg_dump \
         -U "$POSTGRES_USER" "$POSTGRES_DB" > "$BACKUP_FILE"
     
     if [ $? -eq 0 ]; then
@@ -59,32 +59,34 @@ if [ "$ENVIRONMENT" = "production" ]; then
         echo -e "${RED}❌ Database backup failed${NC}"
         exit 1
     fi
+elif [ "$ENVIRONMENT" = "production" ]; then
+    echo -e "${YELLOW}ℹ️ Skipping backup - database not running${NC}"
 fi
 
 # Pull latest images
 echo -e "${YELLOW}📦 Pulling latest Docker images...${NC}"
-docker-compose -f docker-compose.${ENVIRONMENT}.yml pull
+docker compose -f docker-compose.${ENVIRONMENT}.yml pull
 
 # Build application image
 echo -e "${YELLOW}🔨 Building application image...${NC}"
-docker-compose -f docker-compose.${ENVIRONMENT}.yml build --no-cache
+docker compose -f docker-compose.${ENVIRONMENT}.yml build --no-cache
 
 # Run database migrations
 echo -e "${YELLOW}🔄 Running database migrations...${NC}"
-docker-compose -f docker-compose.${ENVIRONMENT}.yml run --rm web python manage.py migrate
+docker compose -f docker-compose.${ENVIRONMENT}.yml run --rm web python manage.py migrate
 
 # Collect static files
 echo -e "${YELLOW}📦 Collecting static files...${NC}"
-docker-compose -f docker-compose.${ENVIRONMENT}.yml run --rm web python manage.py collectstatic --noinput
+docker compose -f docker-compose.${ENVIRONMENT}.yml run --rm web python manage.py collectstatic --noinput
 
 # Deploy application
 echo -e "${YELLOW}🚀 Deploying application...${NC}"
 
 # Stop existing containers
-docker-compose -f docker-compose.${ENVIRONMENT}.yml down
+docker compose -f docker-compose.${ENVIRONMENT}.yml down
 
 # Start new containers
-docker-compose -f docker-compose.${ENVIRONMENT}.yml up -d
+docker compose -f docker-compose.${ENVIRONMENT}.yml up -d
 
 # Wait for application to be ready
 echo -e "${YELLOW}⏳ Waiting for application to be ready...${NC}"
@@ -93,7 +95,7 @@ sleep 30
 # Health check
 echo -e "${YELLOW}🏥 Running health checks...${NC}"
 for i in {1..10}; do
-    if curl -f http://localhost:8000/api/v1/health/ > /dev/null 2>&1; then
+    if curl -f http://localhost:8002/api/v1/health/ > /dev/null 2>&1; then
         echo -e "${GREEN}✅ Application is healthy${NC}"
         break
     else
@@ -104,7 +106,7 @@ for i in {1..10}; do
     if [ $i -eq 10 ]; then
         echo -e "${RED}❌ Health check failed after 10 attempts${NC}"
         echo -e "${YELLOW}📋 Container logs:${NC}"
-        docker-compose -f docker-compose.${ENVIRONMENT}.yml logs web
+        docker compose -f docker-compose.${ENVIRONMENT}.yml logs web
         exit 1
     fi
 done
@@ -114,7 +116,7 @@ echo -e "${YELLOW}📋 Running post-deployment tasks...${NC}"
 
 # Create superuser if it doesn't exist (staging/development only)
 if [ "$ENVIRONMENT" != "production" ]; then
-    docker-compose -f docker-compose.${ENVIRONMENT}.yml exec -T web python manage.py shell << EOF
+    docker compose -f docker-compose.${ENVIRONMENT}.yml exec -T web python manage.py shell << EOF
 from django.contrib.auth import get_user_model
 User = get_user_model()
 if not User.objects.filter(email='admin@example.com').exists():
@@ -133,9 +135,9 @@ echo -e "${GREEN}🎉 Deployment to ${ENVIRONMENT} completed successfully!${NC}"
 echo -e "${BLUE}📊 Deployment Summary:${NC}"
 echo -e "Environment: ${ENVIRONMENT}"
 echo -e "Deployed at: $(date)"
-echo -e "Application URL: http://localhost:8000"
-echo -e "Admin URL: http://localhost:8000/admin"
-echo -e "API URL: http://localhost:8000/api/v1/"
+echo -e "Application URL: http://localhost:8002"
+echo -e "Admin URL: http://localhost:8002/admin"
+echo -e "API URL: http://localhost:8002/api/v1/"
 
 if [ "$ENVIRONMENT" = "production" ]; then
     echo -e "Backup created: $BACKUP_FILE"

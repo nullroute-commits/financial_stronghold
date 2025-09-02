@@ -42,7 +42,7 @@ services:
     environment:
       - POSTGRES_DB=django_app_prod
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PASSWORD=test-prod-password
     deploy:
       resources:
         limits:
@@ -81,8 +81,8 @@ services:
       file: docker-compose.base.yml
       service: rabbitmq
     environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USERNAME}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+      - RABBITMQ_DEFAULT_USER=prod_user
+      - RABBITMQ_DEFAULT_PASS=test-prod-rabbitmq-password
     deploy:
       resources:
         limits:

@@ -3,22 +3,23 @@ Models package for Financial Stronghold application.
 Organizes models by functionality.
 """
 
-from .import_models import (
-    ImportJob,
-    ImportTemplate, 
-    ImportValidationError,
-    TransactionCategory,
-    ImportedTransaction,
-    FileUpload,
-    MLModel
-)
+# Commented out import models that have User dependencies to fix circular import
+# from .import_models import (
+#     ImportJob,
+#     ImportTemplate, 
+#     ImportValidationError,
+#     TransactionCategory,
+#     ImportedTransaction,
+#     FileUpload,
+#     MLModel
+# )
 
 __all__ = [
-    'ImportJob',
-    'ImportTemplate',
-    'ImportValidationError', 
-    'TransactionCategory',
-    'ImportedTransaction',
-    'FileUpload',
-    'MLModel'
+    # 'ImportJob',
+    # 'ImportTemplate',
+    # 'ImportValidationError', 
+    # 'TransactionCategory',
+    # 'ImportedTransaction',
+    # 'FileUpload',
+    # 'MLModel'
 ]

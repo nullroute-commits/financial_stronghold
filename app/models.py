@@ -23,16 +23,16 @@ from .django_models import (  # Core models; Multi-tenancy models; Financial mod
     UserOrganizationLink,
 )
 
-# Import new import feature models
-from .models.import_models import (
-    ImportJob,
-    ImportTemplate,
-    ImportValidationError,
-    TransactionCategory,
-    ImportedTransaction,
-    FileUpload,
-    MLModel
-)
+# Import new import feature models (commented out due to circular import issues)
+# from .models.import_models import (
+#     ImportJob,
+#     ImportTemplate,
+#     ImportValidationError,
+#     TransactionCategory,
+#     ImportedTransaction,
+#     FileUpload,
+#     MLModel
+# )
 
 # Make all models available at module level
 __all__ = [
@@ -50,12 +50,12 @@ __all__ = [
     "Transaction",
     "Fee",
     "Budget",
-    # Import feature models
-    "ImportJob",
-    "ImportTemplate",
-    "ImportValidationError",
-    "TransactionCategory",
-    "ImportedTransaction",
-    "FileUpload",
-    "MLModel",
+    # Import feature models (commented out due to circular import)
+    # "ImportJob",
+    # "ImportTemplate",
+    # "ImportValidationError",
+    # "TransactionCategory",
+    # "ImportedTransaction",
+    # "FileUpload",
+    # "MLModel",
 ]
