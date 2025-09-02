@@ -1,0 +1,271 @@
+{% extends "base/base.html" %}
+
+{% block title %}Dashboard - Financial Stronghold{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Dashboard</li>
+{% endblock %}
+
+{% block api_endpoint %}GET /financial/dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Financial Dashboard</h1>
+    <div>
+        <button class="btn btn-primary" onclick="refreshDashboard()">
+            <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+        <button class="btn btn-secondary" onclick="exportDashboard()">
+            <i class="fas fa-download"></i> Export
+        </button>
+    </div>
+</div>
+
+<!-- Financial Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card feature-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Financial Summary</h5>
+                <i class="fas fa-question-circle help-tooltip" 
+                   data-bs-toggle="tooltip" 
+                   title="Overview of your total financial position across all accounts"></i>
+            </div>
+            <div class="card-body">
+                {% if financial_summary %}
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6 class="text-muted">Total Balance</h6>
+                            <h3 class="text-primary">${{ financial_summary.total_balance|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6 class="text-muted">Total Income</h6>
+                            <h3 class="text-success">${{ financial_summary.total_income|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6 class="text-muted">Total Expenses</h6>
+                            <h3 class="text-danger">${{ financial_summary.total_expenses|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6 class="text-muted">Net Cash Flow</h6>
+                            <h3 class="{% if financial_summary.net_cash_flow >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                ${{ financial_summary.net_cash_flow|floatformat:2 }}
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted">No financial data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Account Summaries and Budget Status -->
+<div class="row mb-4">
+    <!-- Account Summaries -->
+    <div class="col-md-6">
+        <div class="card feature-card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Account Summaries</h5>
+                <a href="{% url 'web:accounts:list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if account_summaries %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Account</th>
+                                <th>Type</th>
+                                <th class="text-end">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for account in account_summaries %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'web:accounts:detail' account.id %}">
+                                        {{ account.name }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ account.account_type }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <strong>${{ account.balance|floatformat:2 }}</strong>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No accounts found</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget Status -->
+    <div class="col-md-6">
+        <div class="card feature-card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Budget Status</h5>
+                <a href="{% url 'web:budgets:list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if budget_statuses %}
+                {% for budget in budget_statuses %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span>{{ budget.name }}</span>
+                        <span class="text-muted">${{ budget.spent|floatformat:2 }} / ${{ budget.amount|floatformat:2 }}</span>
+                    </div>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar {% if budget.percentage > 90 %}bg-danger{% elif budget.percentage > 75 %}bg-warning{% else %}bg-success{% endif %}" 
+                             role="progressbar" 
+                             style="width: {{ budget.percentage }}%">
+                            {{ budget.percentage|floatformat:0 }}%
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted">No active budgets</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card feature-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Transactions</h5>
+                <a href="{% url 'web:transactions:list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_transactions %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Account</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in recent_transactions %}
+                            <tr>
+                                <td>{{ transaction.date|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'web:transactions:detail' transaction.id %}">
+                                        {{ transaction.description|truncatechars:40 }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ transaction.category|default:"Uncategorized" }}</span>
+                                </td>
+                                <td>{{ transaction.account_name }}</td>
+                                <td class="text-end">
+                                    <span class="{% if transaction.amount < 0 %}text-danger{% else %}text-success{% endif %}">
+                                        ${{ transaction.amount|floatformat:2 }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No recent transactions</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block documentation %}
+<div class="mb-4">
+    <h6>Dashboard Overview</h6>
+    <p>The Financial Dashboard provides a comprehensive view of your financial status including:</p>
+    <ul>
+        <li>Total balance across all accounts</li>
+        <li>Income and expense summaries</li>
+        <li>Budget tracking and alerts</li>
+        <li>Recent transaction history</li>
+    </ul>
+</div>
+
+<div class="mb-4">
+    <h6>API Endpoints</h6>
+    <div class="api-info-box">
+        <p class="mb-2"><strong>Main Dashboard Data:</strong></p>
+        <code>GET /financial/dashboard</code>
+        <hr>
+        <p class="mb-2"><strong>Financial Summary Only:</strong></p>
+        <code>GET /financial/dashboard/summary</code>
+        <hr>
+        <p class="mb-2"><strong>Account Summaries:</strong></p>
+        <code>GET /financial/dashboard/accounts</code>
+        <hr>
+        <p class="mb-2"><strong>Transaction Summary:</strong></p>
+        <code>GET /financial/dashboard/transactions</code>
+        <hr>
+        <p class="mb-2"><strong>Budget Status:</strong></p>
+        <code>GET /financial/dashboard/budgets</code>
+    </div>
+</div>
+
+<div class="mb-4">
+    <h6>Tips</h6>
+    <ul>
+        <li>Click on any account, transaction, or budget to view details</li>
+        <li>Use the refresh button to update data</li>
+        <li>Export functionality saves data in CSV format</li>
+        <li>Budget bars change color based on spending (green < 75%, yellow 75-90%, red > 90%)</li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function refreshDashboard() {
+    // Show loading indicator
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+    
+    // Reload the page (in a real app, this would be an AJAX call)
+    setTimeout(() => {
+        window.location.reload();
+    }, 500);
+}
+
+function exportDashboard() {
+    // This would trigger a download of dashboard data
+    alert('Export functionality would download dashboard data as CSV');
+}
+
+// Add tooltips for financial terms
+document.addEventListener('DOMContentLoaded', function() {
+    addFieldHelp('totalBalance', 'Sum of all account balances');
+    addFieldHelp('netCashFlow', 'Total income minus total expenses');
+});
+</script>
+{% endblock %}

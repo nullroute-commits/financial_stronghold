@@ -1,0 +1,335 @@
+{% extends "base/base.html" %}
+
+{% block title %}Documentation Browser - Financial Stronghold{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Documentation</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Sidebar Navigation -->
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Documentation</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <a href="#overview" class="list-group-item list-group-item-action active" 
+                       data-bs-toggle="list">
+                        <i class="fas fa-home"></i> Overview
+                    </a>
+                    <a href="#features" class="list-group-item list-group-item-action" 
+                       data-bs-toggle="list">
+                        <i class="fas fa-puzzle-piece"></i> Features
+                    </a>
+                    <a href="#api-reference" class="list-group-item list-group-item-action" 
+                       data-bs-toggle="list">
+                        <i class="fas fa-code"></i> API Reference
+                    </a>
+                    <a href="#schemas" class="list-group-item list-group-item-action" 
+                       data-bs-toggle="list">
+                        <i class="fas fa-database"></i> Data Schemas
+                    </a>
+                    <a href="#guides" class="list-group-item list-group-item-action" 
+                       data-bs-toggle="list">
+                        <i class="fas fa-book"></i> User Guides
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <input type="text" class="form-control" id="docSearch" 
+                       placeholder="Search documentation...">
+                <div id="searchResults" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="col-md-9">
+        <div class="tab-content">
+            <!-- Overview -->
+            <div class="tab-pane fade show active" id="overview">
+                <h2>Financial Stronghold Documentation</h2>
+                <p class="lead">
+                    Welcome to the Financial Stronghold documentation. This integrated documentation
+                    system provides comprehensive information about all features, APIs, and usage guides.
+                </p>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card feature-card">
+                            <div class="card-body">
+                                <h5><i class="fas fa-rocket text-primary"></i> Getting Started</h5>
+                                <p>Learn the basics of Financial Stronghold and set up your first account.</p>
+                                <a href="#guides" class="btn btn-sm btn-outline-primary">View Guide</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card feature-card">
+                            <div class="card-body">
+                                <h5><i class="fas fa-code text-success"></i> API Integration</h5>
+                                <p>Integrate Financial Stronghold with your applications using our API.</p>
+                                <a href="#api-reference" class="btn btn-sm btn-outline-success">API Docs</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="mt-4">Key Features</h3>
+                <div class="list-group">
+                    {% for feature in features %}
+                    <a href="#" class="list-group-item list-group-item-action" 
+                       onclick="loadFeatureDoc('{{ feature }}')">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>{{ feature|title|replace:"_":" " }}</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="tab-pane fade" id="features">
+                <h2>Features</h2>
+                <div id="featureContent">
+                    <p>Select a feature from the list below to view its documentation.</p>
+                    
+                    <div class="row">
+                        {% for feature in features %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card feature-card h-100" onclick="loadFeatureDoc('{{ feature }}')">
+                                <div class="card-body">
+                                    <h5>{{ feature|title|replace:"_":" " }}</h5>
+                                    <p class="text-muted">Click to view documentation</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Reference -->
+            <div class="tab-pane fade" id="api-reference">
+                <h2>API Reference</h2>
+                <p>Complete reference for all API endpoints.</p>
+
+                <div class="accordion" id="apiAccordion">
+                    {% for endpoint in api_endpoints %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#api{{ forloop.counter }}">
+                                {{ endpoint }}
+                            </button>
+                        </h2>
+                        <div id="api{{ forloop.counter }}" class="accordion-collapse collapse" 
+                             data-bs-parent="#apiAccordion">
+                            <div class="accordion-body">
+                                <div class="api-doc-content" data-endpoint="{{ endpoint }}">
+                                    <p>Loading API documentation...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Schemas -->
+            <div class="tab-pane fade" id="schemas">
+                <h2>Data Schemas</h2>
+                <p>Detailed information about data models and request/response schemas.</p>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="list-group">
+                            <button class="list-group-item list-group-item-action" 
+                                    onclick="loadSchemaDoc('AccountCreate')">
+                                Account Schemas
+                            </button>
+                            <button class="list-group-item list-group-item-action" 
+                                    onclick="loadSchemaDoc('TransactionCreate')">
+                                Transaction Schemas
+                            </button>
+                            <button class="list-group-item list-group-item-action" 
+                                    onclick="loadSchemaDoc('BudgetCreate')">
+                                Budget Schemas
+                            </button>
+                            <button class="list-group-item list-group-item-action" 
+                                    onclick="loadSchemaDoc('FeeCreate')">
+                                Fee Schemas
+                            </button>
+                            <button class="list-group-item list-group-item-action" 
+                                    onclick="loadSchemaDoc('DataTagCreate')">
+                                Tag Schemas
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div id="schemaContent" class="card">
+                            <div class="card-body">
+                                <p>Select a schema to view its documentation.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Guides -->
+            <div class="tab-pane fade" id="guides">
+                <h2>User Guides</h2>
+                
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h4>Quick Start Guide</h4>
+                        <ol>
+                            <li>Create your first account by navigating to Accounts → Create Account</li>
+                            <li>Add transactions to track your income and expenses</li>
+                            <li>Set up budgets to monitor your spending</li>
+                            <li>Use the dashboard to get an overview of your finances</li>
+                            <li>Explore analytics for deeper insights</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h4>Advanced Features</h4>
+                        <h5>Tagging System</h5>
+                        <p>Use tags to categorize and analyze your financial data:</p>
+                        <ul>
+                            <li>Auto-tagging based on transaction patterns</li>
+                            <li>Custom tags for specific needs</li>
+                            <li>Tag-based analytics and reporting</li>
+                        </ul>
+
+                        <h5>Multi-Tenancy</h5>
+                        <p>Manage multiple organizations or users:</p>
+                        <ul>
+                            <li>User-level data isolation</li>
+                            <li>Organization hierarchies</li>
+                            <li>Role-based access control</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Documentation search
+$('#docSearch').on('input', function() {
+    const query = $(this).val();
+    if (query.length < 3) {
+        $('#searchResults').empty();
+        return;
+    }
+    
+    $.get('/docs/api/search', { q: query }, function(data) {
+        const results = data.results;
+        let html = '<div class="list-group mt-2">';
+        
+        results.forEach(result => {
+            html += `
+                <a href="${result.url}" class="list-group-item list-group-item-action">
+                    <div class="d-flex justify-content-between">
+                        <span>${result.title}</span>
+                        <small class="text-muted">${result.type}</small>
+                    </div>
+                </a>
+            `;
+        });
+        
+        html += '</div>';
+        $('#searchResults').html(html);
+    });
+});
+
+// Load feature documentation
+function loadFeatureDoc(feature) {
+    $.get(`/docs/api/feature/${feature}`, function(data) {
+        let html = `
+            <h3>${data.title}</h3>
+            <div class="feature-doc-content">
+                ${data.html}
+            </div>
+        `;
+        $('#featureContent').html(html);
+        
+        // Switch to features tab
+        $('a[href="#features"]').tab('show');
+    });
+}
+
+// Load schema documentation
+function loadSchemaDoc(schemaName) {
+    $.get(`/docs/api/schema/${schemaName}`, function(data) {
+        let html = `
+            <h4>${data.name}</h4>
+            <p>${data.description}</p>
+            <h5>Fields</h5>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Required</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        for (const [field, info] of Object.entries(data.fields)) {
+            html += `
+                <tr>
+                    <td><code>${field}</code></td>
+                    <td><small>${info.type}</small></td>
+                    <td>${info.required ? '✓' : ''}</td>
+                    <td><small>${info.description}</small></td>
+                </tr>
+            `;
+        }
+        
+        html += '</tbody></table>';
+        $('#schemaContent .card-body').html(html);
+    });
+}
+
+// Load API documentation when accordion is opened
+$('.accordion-button').on('click', function() {
+    const content = $(this).parent().next().find('.api-doc-content');
+    const endpoint = content.data('endpoint');
+    
+    if (!content.data('loaded')) {
+        $.get(`/docs/api/endpoint`, { endpoint: endpoint }, function(data) {
+            let html = `
+                <p><strong>Description:</strong> ${data.description}</p>
+                <p><strong>Methods:</strong> ${data.methods.join(', ')}</p>
+                <p><strong>Full Endpoint:</strong> <code>${data.endpoint}</code></p>
+            `;
+            content.html(html);
+            content.data('loaded', true);
+        });
+    }
+});
+
+// Initialize tooltips
+$(document).ready(function() {
+    $('[data-bs-toggle="tooltip"]').tooltip();
+});
+</script>
+{% endblock %}

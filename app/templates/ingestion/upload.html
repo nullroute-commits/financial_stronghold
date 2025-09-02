@@ -1,0 +1,511 @@
+{% extends "base/base.html" %}
+
+{% block title %}Upload Financial Data - Financial Stronghold{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'web:dashboard:home' %}">Dashboard</a></li>
+<li class="breadcrumb-item"><a href="{% url 'web:ingestion:sources' %}">Data Sources</a></li>
+<li class="breadcrumb-item active">Upload</li>
+{% endblock %}
+
+{% block api_endpoint %}POST /financial/data-ingestion/sources/{id}/upload{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Upload Financial Data</h1>
+        <p class="lead">Upload CSV, Excel, or other supported file formats to import transactions.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Upload Form -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form id="uploadForm">
+                    <!-- Step 1: Select Data Source -->
+                    <div class="upload-step" data-step="1">
+                        <h5>Step 1: Select Data Source Configuration</h5>
+                        <p class="text-muted">Choose a configured data source that matches your file format.</p>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Data Source</label>
+                            <select class="form-select" id="dataSourceSelect" required>
+                                <option value="">Select a data source...</option>
+                                <!-- Options loaded dynamically -->
+                            </select>
+                            <small class="form-text text-muted">
+                                Only CSV upload sources are shown. 
+                                <a href="{% url 'web:ingestion:sources' %}">Create a new data source</a> if needed.
+                            </small>
+                        </div>
+                        
+                        <div id="sourceDetails" class="alert alert-info" style="display: none;">
+                            <!-- Source details shown here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Upload File -->
+                    <div class="upload-step" data-step="2" style="display: none;">
+                        <h5>Step 2: Upload File</h5>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Select File</label>
+                            <input type="file" class="form-control" id="fileInput" accept=".csv,.xlsx,.xls,.ofx,.qif" required>
+                            <small class="form-text text-muted">
+                                Supported formats: CSV, Excel (XLSX/XLS), OFX, QIF
+                            </small>
+                        </div>
+                        
+                        <div id="fileInfo" class="alert alert-secondary" style="display: none;">
+                            <!-- File information shown here -->
+                        </div>
+                        
+                        <!-- Drag and Drop Area -->
+                        <div class="border border-2 border-dashed rounded p-5 text-center" id="dropZone">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                            <p class="mb-0">Or drag and drop your file here</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Preview & Configure -->
+                    <div class="upload-step" data-step="3" style="display: none;">
+                        <h5>Step 3: Preview & Configure Import</h5>
+                        
+                        <div id="previewContainer">
+                            <!-- Preview will be shown here -->
+                        </div>
+                        
+                        <h6 class="mt-4">Import Options</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="skipDuplicates" checked>
+                            <label class="form-check-label" for="skipDuplicates">
+                                Skip duplicate transactions
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="updateExisting">
+                            <label class="form-check-label" for="updateExisting">
+                                Update existing transactions
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="dryRun">
+                            <label class="form-check-label" for="dryRun">
+                                Dry run (validate without importing)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-secondary" onclick="previousStep()" 
+                                id="prevBtn" style="display: none;">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="nextStep()" id="nextBtn">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="startImport()" 
+                                id="importBtn" style="display: none;">
+                            <i class="fas fa-upload"></i> Start Import
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Help & Tips -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Tips & Help</h5>
+            </div>
+            <div class="card-body">
+                <h6>File Format Requirements</h6>
+                <ul class="small">
+                    <li><strong>CSV:</strong> First row should contain column headers</li>
+                    <li><strong>Excel:</strong> Data should be in the first sheet</li>
+                    <li><strong>Date Format:</strong> YYYY-MM-DD or MM/DD/YYYY</li>
+                    <li><strong>Amount:</strong> Use negative values for expenses</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>Required Fields</h6>
+                <p class="small">Your file should contain at least:</p>
+                <ul class="small">
+                    <li>Date of transaction</li>
+                    <li>Description or merchant name</li>
+                    <li>Amount (positive or negative)</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>Sample CSV Format</h6>
+                <pre class="small bg-light p-2">Date,Description,Amount,Category
+2024-01-15,Grocery Store,-125.50,Food
+2024-01-16,Salary Deposit,3000.00,Income
+2024-01-17,Electric Bill,-85.00,Utilities</pre>
+            </div>
+        </div>
+        
+        <!-- Import Progress -->
+        <div class="card mt-3" id="progressCard" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">Import Progress</h5>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-3">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                         id="importProgress" style="width: 0%">0%</div>
+                </div>
+                
+                <div id="importStats">
+                    <!-- Stats will be shown here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Results Modal -->
+<div class="modal fade" id="resultsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="resultsContent">
+                <!-- Results will be shown here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{% url 'web:transactions:list' %}" class="btn btn-primary">
+                    View Transactions
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block documentation %}
+<div class="mb-4">
+    <h6>File Upload</h6>
+    <p>Upload financial data files for bulk import. The system will:</p>
+    <ul>
+        <li>Validate file format and data</li>
+        <li>Map fields based on your configuration</li>
+        <li>Apply transformations and validations</li>
+        <li>Detect and handle duplicates</li>
+        <li>Import transactions to your account</li>
+    </ul>
+</div>
+
+<div class="mb-4">
+    <h6>Supported Formats</h6>
+    <ul>
+        <li><strong>CSV:</strong> Comma-separated values</li>
+        <li><strong>Excel:</strong> Microsoft Excel files</li>
+        <li><strong>OFX:</strong> Open Financial Exchange</li>
+        <li><strong>QIF:</strong> Quicken Interchange Format</li>
+    </ul>
+</div>
+
+<div class="mb-4">
+    <h6>API Endpoint</h6>
+    <div class="api-info-box">
+        <p class="mb-2"><strong>Upload File:</strong></p>
+        <code>POST /financial/data-ingestion/sources/{id}/upload</code>
+        <p class="mt-2 mb-0 small">Multipart form data with file</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentStep = 1;
+const totalSteps = 3;
+let selectedFile = null;
+let selectedSourceId = null;
+
+// Initialize
+$(document).ready(function() {
+    loadDataSources();
+    
+    // File input change
+    $('#fileInput').on('change', function(e) {
+        handleFileSelect(e.target.files[0]);
+    });
+    
+    // Data source selection
+    $('#dataSourceSelect').on('change', function() {
+        const sourceId = $(this).val();
+        if (sourceId) {
+            loadSourceDetails(sourceId);
+            selectedSourceId = sourceId;
+        } else {
+            $('#sourceDetails').hide();
+        }
+    });
+    
+    // Drag and drop
+    setupDragAndDrop();
+});
+
+// Load CSV upload data sources
+function loadDataSources() {
+    $.get('/financial/data-ingestion/sources?source_type=csv_upload', function(data) {
+        let options = '<option value="">Select a data source...</option>';
+        
+        data.forEach(source => {
+            if (source.is_active) {
+                options += `<option value="${source.id}">${source.name}</option>`;
+            }
+        });
+        
+        $('#dataSourceSelect').html(options);
+    });
+}
+
+// Load source details
+function loadSourceDetails(sourceId) {
+    $.get(`/financial/data-ingestion/sources/${sourceId}`, function(source) {
+        let html = `
+            <h6>${source.name}</h6>
+            <p class="mb-1"><strong>Format:</strong> ${source.data_format.toUpperCase()}</p>
+            <p class="mb-1"><strong>Field Mappings:</strong> ${Object.keys(source.field_mapping || {}).length} configured</p>
+        `;
+        
+        if (source.default_account_id) {
+            html += '<p class="mb-0"><strong>Default Account:</strong> Configured</p>';
+        }
+        
+        $('#sourceDetails').html(html).show();
+    });
+}
+
+// Setup drag and drop
+function setupDragAndDrop() {
+    const dropZone = $('#dropZone');
+    
+    dropZone.on('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).addClass('bg-light');
+    });
+    
+    dropZone.on('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).removeClass('bg-light');
+    });
+    
+    dropZone.on('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).removeClass('bg-light');
+        
+        const files = e.originalEvent.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelect(files[0]);
+            $('#fileInput')[0].files = files;
+        }
+    });
+}
+
+// Handle file selection
+function handleFileSelect(file) {
+    if (!file) return;
+    
+    selectedFile = file;
+    
+    // Show file info
+    const sizeKB = (file.size / 1024).toFixed(2);
+    const html = `
+        <h6>${file.name}</h6>
+        <p class="mb-0">Size: ${sizeKB} KB</p>
+        <p class="mb-0">Type: ${file.type || 'Unknown'}</p>
+    `;
+    
+    $('#fileInfo').html(html).show();
+    
+    // Auto-advance if on step 2
+    if (currentStep === 2) {
+        setTimeout(() => nextStep(), 500);
+    }
+}
+
+// Step navigation
+function nextStep() {
+    if (currentStep < totalSteps) {
+        // Validate current step
+        if (currentStep === 1 && !$('#dataSourceSelect').val()) {
+            alert('Please select a data source configuration.');
+            return;
+        }
+        if (currentStep === 2 && !selectedFile) {
+            alert('Please select a file to upload.');
+            return;
+        }
+        
+        $(`.upload-step[data-step="${currentStep}"]`).hide();
+        currentStep++;
+        $(`.upload-step[data-step="${currentStep}"]`).show();
+        
+        $('#prevBtn').show();
+        if (currentStep === totalSteps) {
+            $('#nextBtn').hide();
+            $('#importBtn').show();
+            previewFile();
+        }
+    }
+}
+
+function previousStep() {
+    if (currentStep > 1) {
+        $(`.upload-step[data-step="${currentStep}"]`).hide();
+        currentStep--;
+        $(`.upload-step[data-step="${currentStep}"]`).show();
+        
+        if (currentStep === 1) {
+            $('#prevBtn').hide();
+        }
+        $('#nextBtn').show();
+        $('#importBtn').hide();
+    }
+}
+
+// Preview file
+function previewFile() {
+    // For CSV files, we could parse and show preview
+    // For now, just show file info
+    let html = '<div class="alert alert-info">';
+    html += `<h6>Ready to import: ${selectedFile.name}</h6>`;
+    html += '<p class="mb-0">The file will be processed using your configured field mappings.</p>';
+    html += '</div>';
+    
+    $('#previewContainer').html(html);
+}
+
+// Start import
+function startImport() {
+    if (!selectedFile || !selectedSourceId) {
+        alert('Missing file or data source selection.');
+        return;
+    }
+    
+    // Show progress
+    $('#progressCard').show();
+    updateProgress(0, 'Starting import...');
+    
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('skip_duplicates', $('#skipDuplicates').is(':checked'));
+    formData.append('update_existing', $('#updateExisting').is(':checked'));
+    formData.append('dry_run', $('#dryRun').is(':checked'));
+    
+    // Start upload
+    $.ajax({
+        url: `/financial/data-ingestion/sources/${selectedSourceId}/upload`,
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        xhr: function() {
+            const xhr = new window.XMLHttpRequest();
+            xhr.upload.addEventListener('progress', function(evt) {
+                if (evt.lengthComputable) {
+                    const percentComplete = (evt.loaded / evt.total) * 100;
+                    updateProgress(percentComplete, 'Uploading file...');
+                }
+            }, false);
+            return xhr;
+        },
+        success: function(result) {
+            updateProgress(100, 'Import completed!');
+            showResults(result);
+        },
+        error: function(xhr) {
+            updateProgress(0, 'Import failed');
+            alert(xhr.responseJSON?.detail || 'Import failed. Please try again.');
+        }
+    });
+}
+
+// Update progress
+function updateProgress(percent, status) {
+    $('#importProgress').css('width', percent + '%').text(Math.round(percent) + '%');
+    
+    if (status) {
+        $('#importStats').html(`<p class="mb-0">${status}</p>`);
+    }
+}
+
+// Show results
+function showResults(result) {
+    let html = '<div class="row">';
+    
+    // Summary cards
+    html += `
+        <div class="col-md-6 mb-3">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">Import Summary</h6>
+                    <p class="mb-1">Status: ${getStatusBadge(result.status)}</p>
+                    <p class="mb-1">Total Records: ${result.total_records}</p>
+                    <p class="mb-0">Processing Time: ${result.processing_time.toFixed(2)}s</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">Results</h6>
+                    <p class="mb-1 text-success">Created: ${result.created_records}</p>
+                    <p class="mb-1 text-info">Updated: ${result.updated_records}</p>
+                    <p class="mb-1 text-warning">Skipped: ${result.skipped_records}</p>
+                    <p class="mb-0 text-danger">Failed: ${result.failed_records}</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Errors if any
+    if (result.errors && result.errors.length > 0) {
+        html += '<div class="col-12"><h6>Errors</h6><ul class="small">';
+        result.errors.forEach(error => {
+            html += `<li>${error.error || JSON.stringify(error)}</li>`;
+        });
+        html += '</ul></div>';
+    }
+    
+    html += '</div>';
+    
+    if (result.dry_run) {
+        html += '<div class="alert alert-warning">This was a dry run. No data was actually imported.</div>';
+    }
+    
+    $('#resultsContent').html(html);
+    $('#resultsModal').modal('show');
+}
+
+// Get status badge
+function getStatusBadge(status) {
+    const badges = {
+        'completed': '<span class="badge bg-success">Completed</span>',
+        'partial': '<span class="badge bg-warning">Partial</span>',
+        'failed': '<span class="badge bg-danger">Failed</span>'
+    };
+    return badges[status] || `<span class="badge bg-secondary">${status}</span>`;
+}
+</script>
+{% endblock %}

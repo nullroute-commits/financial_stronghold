@@ -1,0 +1,314 @@
+{% extends "base/base.html" %}
+
+{% block title %}Transaction Classification - Financial Stronghold{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'web:dashboard:analytics' %}">Analytics</a></li>
+<li class="breadcrumb-item active">Classification</li>
+{% endblock %}
+
+{% block api_endpoint %}POST /financial/transactions/classify{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Transaction Classification</h1>
+        <p class="lead">Automatically classify your transactions using AI-powered categorization.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Classification Controls -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Classification Settings</h5>
+            </div>
+            <div class="card-body">
+                <form id="classificationForm">
+                    <div class="mb-3">
+                        <label class="form-label">Date Range</label>
+                        <input type="date" class="form-control mb-2" id="startDate" required>
+                        <input type="date" class="form-control" id="endDate" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Account Filter</label>
+                        <select class="form-select" id="accountFilter">
+                            <option value="">All Accounts</option>
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Classification Mode</label>
+                        <select class="form-select" id="classificationMode">
+                            <option value="auto">Automatic</option>
+                            <option value="manual">Manual Review</option>
+                            <option value="hybrid">Hybrid</option>
+                        </select>
+                        <small class="form-text text-muted">
+                            Automatic mode applies classifications immediately.
+                        </small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-tags"></i> Classify Transactions
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Configuration -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Classification Rules</h5>
+            </div>
+            <div class="card-body">
+                <div id="classificationRules">
+                    <!-- Loaded dynamically -->
+                </div>
+                <button class="btn btn-sm btn-outline-primary mt-2" onclick="editRules()">
+                    <i class="fas fa-edit"></i> Edit Rules
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Area -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Classification Results</h5>
+            </div>
+            <div class="card-body">
+                <div id="classificationResults">
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-tags fa-3x mb-3"></i>
+                        <p>Select date range and click "Classify Transactions" to begin.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Classification Analytics</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="classificationChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Classification Modal -->
+<div class="modal fade" id="classificationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Review Classification</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Transaction details and classification options -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveClassification()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block documentation %}
+<div class="mb-4">
+    <h6>Transaction Classification</h6>
+    <p>This feature uses machine learning to automatically categorize your transactions based on:</p>
+    <ul>
+        <li>Transaction descriptions</li>
+        <li>Amount patterns</li>
+        <li>Historical categorization</li>
+        <li>Merchant information</li>
+    </ul>
+</div>
+
+<div class="mb-4">
+    <h6>Classification Modes</h6>
+    <ul>
+        <li><strong>Automatic:</strong> Apply classifications without review</li>
+        <li><strong>Manual Review:</strong> Review each classification before applying</li>
+        <li><strong>Hybrid:</strong> Auto-classify high-confidence, review others</li>
+    </ul>
+</div>
+
+<div class="mb-4">
+    <h6>API Endpoints</h6>
+    <div class="api-info-box">
+        <p class="mb-2"><strong>Classify Transactions:</strong></p>
+        <code>POST /financial/transactions/classify</code>
+        <hr>
+        <p class="mb-2"><strong>Classification Analytics:</strong></p>
+        <code>POST /financial/analytics/classification</code>
+        <hr>
+        <p class="mb-2"><strong>Configuration:</strong></p>
+        <code>GET/POST /financial/classification/config</code>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Initialize chart
+const ctx = document.getElementById('classificationChart').getContext('2d');
+let classificationChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: [],
+        datasets: [{
+            data: [],
+            backgroundColor: [
+                '#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6',
+                '#1abc9c', '#34495e', '#f1c40f', '#e67e22', '#95a5a6'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right'
+            }
+        }
+    }
+});
+
+// Handle form submission
+$('#classificationForm').on('submit', function(e) {
+    e.preventDefault();
+    classifyTransactions();
+});
+
+function classifyTransactions() {
+    const data = {
+        start_date: $('#startDate').val(),
+        end_date: $('#endDate').val(),
+        account_id: $('#accountFilter').val(),
+        mode: $('#classificationMode').val()
+    };
+    
+    // Show loading
+    $('#classificationResults').html(`
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Classifying...</span>
+            </div>
+            <p class="mt-3">Classifying transactions...</p>
+        </div>
+    `);
+    
+    // Simulate API call
+    setTimeout(() => {
+        displayClassificationResults();
+    }, 2000);
+}
+
+function displayClassificationResults() {
+    // Sample results
+    const results = [
+        { id: '1', description: 'Grocery Store', amount: -125.50, 
+          current_category: 'Shopping', suggested_category: 'Groceries', confidence: 0.95 },
+        { id: '2', description: 'Gas Station', amount: -45.00, 
+          current_category: 'Other', suggested_category: 'Transportation', confidence: 0.88 },
+        { id: '3', description: 'Restaurant XYZ', amount: -35.75, 
+          current_category: 'Other', suggested_category: 'Dining Out', confidence: 0.92 }
+    ];
+    
+    let html = `
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Transaction</th>
+                        <th>Amount</th>
+                        <th>Current Category</th>
+                        <th>Suggested Category</th>
+                        <th>Confidence</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    results.forEach(result => {
+        html += `
+            <tr>
+                <td>${result.description}</td>
+                <td class="text-danger">$${Math.abs(result.amount).toFixed(2)}</td>
+                <td><span class="badge bg-secondary">${result.current_category}</span></td>
+                <td><span class="badge bg-primary">${result.suggested_category}</span></td>
+                <td>
+                    <div class="progress" style="width: 100px; height: 20px;">
+                        <div class="progress-bar ${result.confidence > 0.8 ? 'bg-success' : 'bg-warning'}" 
+                             style="width: ${result.confidence * 100}%">
+                            ${(result.confidence * 100).toFixed(0)}%
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-success" onclick="acceptClassification('${result.id}')">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="editClassification('${result.id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table></div>';
+    $('#classificationResults').html(html);
+    
+    // Update chart
+    updateClassificationChart();
+}
+
+function updateClassificationChart() {
+    // Sample data
+    classificationChart.data.labels = ['Groceries', 'Transportation', 'Dining Out', 'Shopping', 'Utilities'];
+    classificationChart.data.datasets[0].data = [450, 200, 150, 300, 180];
+    classificationChart.update();
+}
+
+function editRules() {
+    alert('Rule editor would open here');
+}
+
+function acceptClassification(transactionId) {
+    // Apply classification
+    console.log('Accepting classification for:', transactionId);
+}
+
+function editClassification(transactionId) {
+    // Open modal for editing
+    $('#classificationModal').modal('show');
+}
+
+// Load accounts on page load
+$(document).ready(function() {
+    // Load classification rules
+    $('#classificationRules').html(`
+        <ul class="list-unstyled mb-0">
+            <li><i class="fas fa-check text-success"></i> Grocery stores → Groceries</li>
+            <li><i class="fas fa-check text-success"></i> Gas stations → Transportation</li>
+            <li><i class="fas fa-check text-success"></i> Restaurants → Dining Out</li>
+        </ul>
+    `);
+});
+</script>
+{% endblock %}

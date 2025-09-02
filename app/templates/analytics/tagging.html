@@ -1,0 +1,385 @@
+{% extends "base/base.html" %}
+
+{% block title %}Tagging System - Financial Stronghold{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'web:dashboard:analytics' %}">Analytics</a></li>
+<li class="breadcrumb-item active">Tagging</li>
+{% endblock %}
+
+{% block api_endpoint %}POST /financial/tags{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Tagging & Categorization</h1>
+        <p class="lead">Organize your financial data with multi-dimensional tagging for powerful analytics.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Tag Management -->
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Tag Categories</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="#" class="list-group-item list-group-item-action active" 
+                   onclick="filterByTagType('all')">
+                    <i class="fas fa-tags"></i> All Tags
+                    <span class="badge bg-primary float-end">156</span>
+                </a>
+                <a href="#" class="list-group-item list-group-item-action" 
+                   onclick="filterByTagType('user')">
+                    <i class="fas fa-user"></i> User Tags
+                    <span class="badge bg-secondary float-end">45</span>
+                </a>
+                <a href="#" class="list-group-item list-group-item-action" 
+                   onclick="filterByTagType('organization')">
+                    <i class="fas fa-building"></i> Organization Tags
+                    <span class="badge bg-secondary float-end">23</span>
+                </a>
+                <a href="#" class="list-group-item list-group-item-action" 
+                   onclick="filterByTagType('role')">
+                    <i class="fas fa-user-tag"></i> Role Tags
+                    <span class="badge bg-secondary float-end">12</span>
+                </a>
+                <a href="#" class="list-group-item list-group-item-action" 
+                   onclick="filterByTagType('category')">
+                    <i class="fas fa-folder"></i> Category Tags
+                    <span class="badge bg-secondary float-end">58</span>
+                </a>
+                <a href="#" class="list-group-item list-group-item-action" 
+                   onclick="filterByTagType('custom')">
+                    <i class="fas fa-star"></i> Custom Tags
+                    <span class="badge bg-secondary float-end">18</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Create New Tag -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#createTagModal">
+                    <i class="fas fa-plus"></i> Create New Tag
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tag List and Management -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Tags</h5>
+                    <div class="input-group" style="width: 250px;">
+                        <input type="text" class="form-control form-control-sm" 
+                               placeholder="Search tags..." id="tagSearch">
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="tagList">
+                    <!-- Tag items -->
+                    <div class="tag-item border-bottom py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-info">USER</span>
+                                <strong>john.doe@example.com</strong>
+                                <p class="mb-0 small text-muted">Applied to 45 resources</p>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary" onclick="viewTagDetails('user_123')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteTag('user_123')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tag-item border-bottom py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-success">CATEGORY</span>
+                                <strong>Essential Expenses</strong>
+                                <p class="mb-0 small text-muted">Applied to 128 transactions</p>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary" onclick="viewTagDetails('cat_456')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteTag('cat_456')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tag-item border-bottom py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-warning">CUSTOM</span>
+                                <strong>Tax Deductible</strong>
+                                <p class="mb-0 small text-muted">Applied to 23 transactions</p>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary" onclick="viewTagDetails('custom_789')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteTag('custom_789')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tag Analytics -->
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Tag Analytics</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="tagDistributionChart" height="200"></canvas>
+                
+                <hr>
+                
+                <h6>Most Used Tags</h6>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Essential Expenses</span>
+                        <span class="badge bg-primary">128</span>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Monthly Recurring</span>
+                        <span class="badge bg-primary">95</span>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Business Related</span>
+                        <span class="badge bg-primary">67</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <button class="btn btn-sm btn-outline-primary w-100 mb-2" onclick="autoTagResources()">
+                    <i class="fas fa-magic"></i> Auto-Tag Resources
+                </button>
+                <button class="btn btn-sm btn-outline-secondary w-100 mb-2" onclick="exportTags()">
+                    <i class="fas fa-download"></i> Export Tags
+                </button>
+                <button class="btn btn-sm btn-outline-info w-100" onclick="viewTagHierarchy()">
+                    <i class="fas fa-sitemap"></i> View Hierarchy
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Tag Modal -->
+<div class="modal fade" id="createTagModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Tag</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTagForm">
+                    <div class="mb-3">
+                        <label class="form-label">Tag Type</label>
+                        <select class="form-select" id="tagType" required>
+                            <option value="">Select type...</option>
+                            <option value="USER">User</option>
+                            <option value="ORGANIZATION">Organization</option>
+                            <option value="ROLE">Role</option>
+                            <option value="CATEGORY">Category</option>
+                            <option value="CUSTOM">Custom</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Tag Key</label>
+                        <input type="text" class="form-control" id="tagKey" required
+                               placeholder="e.g., user_id, category_name">
+                        <small class="form-text text-muted">
+                            Unique identifier for this tag type
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Tag Value</label>
+                        <input type="text" class="form-control" id="tagValue" required
+                               placeholder="e.g., john.doe@example.com, Essential">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" id="tagDescription" rows="2"
+                                  placeholder="Optional description"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Color</label>
+                        <input type="color" class="form-control form-control-color" 
+                               id="tagColor" value="#3498db">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createTag()">Create Tag</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block documentation %}
+<div class="mb-4">
+    <h6>Tagging System Overview</h6>
+    <p>The tagging system enables multi-dimensional categorization of financial data:</p>
+    <ul>
+        <li><strong>User Tags:</strong> Associate data with specific users</li>
+        <li><strong>Organization Tags:</strong> Group data by organization</li>
+        <li><strong>Role Tags:</strong> Apply role-based categorization</li>
+        <li><strong>Category Tags:</strong> Standard financial categories</li>
+        <li><strong>Custom Tags:</strong> Create your own tags</li>
+    </ul>
+</div>
+
+<div class="mb-4">
+    <h6>Tag Operations</h6>
+    <ul>
+        <li>Create tags manually or through auto-tagging</li>
+        <li>Apply tags to transactions, accounts, budgets</li>
+        <li>Query resources by tag combinations</li>
+        <li>Generate analytics based on tags</li>
+    </ul>
+</div>
+
+<div class="mb-4">
+    <h6>API Endpoints</h6>
+    <div class="api-info-box">
+        <p class="mb-2"><strong>Create Tag:</strong></p>
+        <code>POST /financial/tags</code>
+        <hr>
+        <p class="mb-2"><strong>Get Resource Tags:</strong></p>
+        <code>GET /financial/tags/resource/{type}/{id}</code>
+        <hr>
+        <p class="mb-2"><strong>Auto-Tag Resources:</strong></p>
+        <code>POST /financial/tags/auto/{type}/{id}</code>
+        <hr>
+        <p class="mb-2"><strong>Query by Tags:</strong></p>
+        <code>POST /financial/tags/query</code>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Initialize tag distribution chart
+const ctx = document.getElementById('tagDistributionChart').getContext('2d');
+const tagChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: ['User', 'Organization', 'Role', 'Category', 'Custom'],
+        datasets: [{
+            data: [45, 23, 12, 58, 18],
+            backgroundColor: ['#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+function filterByTagType(type) {
+    // Update active state
+    $('.list-group-item').removeClass('active');
+    event.target.closest('.list-group-item').classList.add('active');
+    
+    // Filter tags (would make API call in real implementation)
+    console.log('Filtering by type:', type);
+}
+
+function createTag() {
+    const tagData = {
+        tag_type: $('#tagType').val(),
+        tag_key: $('#tagKey').val(),
+        tag_value: $('#tagValue').val(),
+        description: $('#tagDescription').val(),
+        color: $('#tagColor').val()
+    };
+    
+    console.log('Creating tag:', tagData);
+    
+    // Close modal and refresh list
+    $('#createTagModal').modal('hide');
+    // Would make API call and refresh tag list
+}
+
+function viewTagDetails(tagId) {
+    console.log('Viewing tag details:', tagId);
+    // Would open detail view or modal
+}
+
+function deleteTag(tagId) {
+    if (confirm('Are you sure you want to delete this tag?')) {
+        console.log('Deleting tag:', tagId);
+        // Would make API call to delete
+    }
+}
+
+function autoTagResources() {
+    if (confirm('This will automatically tag all untagged resources. Continue?')) {
+        console.log('Starting auto-tagging process');
+        // Would trigger auto-tagging API
+    }
+}
+
+function exportTags() {
+    console.log('Exporting tags to CSV');
+    // Would trigger download
+}
+
+function viewTagHierarchy() {
+    console.log('Opening tag hierarchy view');
+    // Would open hierarchy visualization
+}
+
+// Tag search functionality
+$('#tagSearch').on('input', function() {
+    const searchTerm = $(this).val().toLowerCase();
+    // Filter displayed tags
+});
+</script>
+{% endblock %}

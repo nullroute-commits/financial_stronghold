@@ -1,0 +1,786 @@
+{% extends "base/base.html" %}
+
+{% block title %}Data Sources - Financial Stronghold{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'web:dashboard:home' %}">Dashboard</a></li>
+<li class="breadcrumb-item active">Data Sources</li>
+{% endblock %}
+
+{% block api_endpoint %}GET /financial/data-ingestion/sources{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Data Sources</h1>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createDataSourceModal">
+                <i class="fas fa-plus"></i> Add Data Source
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Data Sources List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Configured Data Sources</h5>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-secondary active" onclick="filterSources('all')">
+                            All
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="filterSources('active')">
+                            Active
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="filterSources('inactive')">
+                            Inactive
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="dataSourcesList">
+                    <!-- Data sources will be loaded here -->
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Import Jobs -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Import Jobs</h5>
+            </div>
+            <div class="card-body">
+                <div id="recentJobsList">
+                    <!-- Jobs will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Data Source Modal -->
+<div class="modal fade" id="createDataSourceModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Data Source</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createDataSourceForm">
+                    <!-- Step 1: Basic Information -->
+                    <div class="step" data-step="1">
+                        <h6>Basic Information</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Data Source Name</label>
+                            <input type="text" class="form-control" id="sourceName" required>
+                            <small class="form-text text-muted">A descriptive name for this data source</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="sourceDescription" rows="2"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Source Type</label>
+                            <select class="form-select" id="sourceType" required>
+                                <option value="">Select type...</option>
+                                <option value="csv_upload">CSV File Upload</option>
+                                <option value="csv_url">CSV from URL</option>
+                                <option value="https_endpoint">HTTPS Endpoint</option>
+                                <option value="api_endpoint">API Endpoint</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3" id="sourceUrlGroup" style="display: none;">
+                            <label class="form-label">Source URL</label>
+                            <input type="url" class="form-control" id="sourceUrl">
+                            <small class="form-text text-muted">Full URL including https://</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Data Format</label>
+                            <select class="form-select" id="dataFormat" required>
+                                <option value="csv">CSV</option>
+                                <option value="json">JSON</option>
+                                <option value="xml">XML</option>
+                                <option value="xlsx">Excel (XLSX)</option>
+                                <option value="ofx">OFX</option>
+                                <option value="qif">QIF</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Authentication -->
+                    <div class="step" data-step="2" style="display: none;">
+                        <h6>Authentication</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Authentication Type</label>
+                            <select class="form-select" id="authType">
+                                <option value="none">No Authentication</option>
+                                <option value="basic">Basic Authentication</option>
+                                <option value="bearer">Bearer Token</option>
+                                <option value="api_key">API Key</option>
+                                <option value="oauth2">OAuth 2.0</option>
+                                <option value="custom_header">Custom Header</option>
+                            </select>
+                        </div>
+                        
+                        <div id="authConfigFields">
+                            <!-- Dynamic auth fields based on type -->
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Field Mapping -->
+                    <div class="step" data-step="3" style="display: none;">
+                        <h6>Field Mapping</h6>
+                        <p>Configure how source fields map to transaction fields.</p>
+                        
+                        <button type="button" class="btn btn-sm btn-outline-primary mb-3" onclick="previewData()">
+                            <i class="fas fa-eye"></i> Preview Data
+                        </button>
+                        
+                        <div id="fieldMappingContainer">
+                            <!-- Field mappings will be loaded here after preview -->
+                            <p class="text-muted">Preview data first to see available fields</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 4: Advanced Settings -->
+                    <div class="step" data-step="4" style="display: none;">
+                        <h6>Advanced Settings</h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Default Account</label>
+                            <select class="form-select" id="defaultAccount">
+                                <option value="">Select account...</option>
+                                <!-- Accounts loaded dynamically -->
+                            </select>
+                            <small class="form-text text-muted">
+                                Transactions will be imported to this account if not specified
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Default Tags</label>
+                            <input type="text" class="form-control" id="defaultTags" 
+                                   placeholder="Enter tags separated by commas">
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="scheduleEnabled">
+                            <label class="form-check-label" for="scheduleEnabled">
+                                Enable Scheduled Import
+                            </label>
+                        </div>
+                        
+                        <div id="scheduleConfig" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label">Schedule Frequency</label>
+                                <select class="form-select" id="scheduleFrequency">
+                                    <option value="hourly">Every Hour</option>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="previousStep()" id="prevBtn" style="display: none;">
+                    Previous
+                </button>
+                <button type="button" class="btn btn-primary" onclick="nextStep()" id="nextBtn">
+                    Next
+                </button>
+                <button type="button" class="btn btn-success" onclick="createDataSource()" id="createBtn" style="display: none;">
+                    Create Data Source
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Preview Modal -->
+<div class="modal fade" id="dataPreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Data Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="previewContent">
+                    <!-- Preview data will be shown here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block documentation %}
+<div class="mb-4">
+    <h6>Data Sources Overview</h6>
+    <p>Configure and manage data sources for importing financial transactions from various formats:</p>
+    <ul>
+        <li><strong>CSV Files:</strong> Upload or fetch from URL</li>
+        <li><strong>HTTPS Endpoints:</strong> REST APIs and web services</li>
+        <li><strong>API Integrations:</strong> Connect to financial services</li>
+    </ul>
+</div>
+
+<div class="mb-4">
+    <h6>Supported Features</h6>
+    <ul>
+        <li>Automatic field mapping suggestions</li>
+        <li>Data validation and transformation</li>
+        <li>Duplicate detection</li>
+        <li>Scheduled imports</li>
+        <li>Authentication support (Basic, Bearer, API Key, OAuth2)</li>
+    </ul>
+</div>
+
+<div class="mb-4">
+    <h6>API Endpoints</h6>
+    <div class="api-info-box">
+        <p class="mb-2"><strong>List Data Sources:</strong></p>
+        <code>GET /financial/data-ingestion/sources</code>
+        <hr>
+        <p class="mb-2"><strong>Create Data Source:</strong></p>
+        <code>POST /financial/data-ingestion/sources</code>
+        <hr>
+        <p class="mb-2"><strong>Preview Data:</strong></p>
+        <code>POST /financial/data-ingestion/sources/{id}/preview</code>
+        <hr>
+        <p class="mb-2"><strong>Import Data:</strong></p>
+        <code>POST /financial/data-ingestion/sources/{id}/import</code>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentStep = 1;
+const totalSteps = 4;
+let previewData = null;
+
+// Initialize page
+$(document).ready(function() {
+    loadDataSources();
+    loadRecentJobs();
+    loadAccounts();
+    
+    // Source type change handler
+    $('#sourceType').on('change', function() {
+        const type = $(this).val();
+        if (type === 'csv_url' || type === 'https_endpoint' || type === 'api_endpoint') {
+            $('#sourceUrlGroup').show();
+            $('#sourceUrl').prop('required', true);
+        } else {
+            $('#sourceUrlGroup').hide();
+            $('#sourceUrl').prop('required', false);
+        }
+    });
+    
+    // Auth type change handler
+    $('#authType').on('change', function() {
+        updateAuthFields($(this).val());
+    });
+    
+    // Schedule toggle
+    $('#scheduleEnabled').on('change', function() {
+        $('#scheduleConfig').toggle($(this).is(':checked'));
+    });
+});
+
+// Load data sources
+function loadDataSources() {
+    $.get('/financial/data-ingestion/sources', function(data) {
+        let html = '';
+        
+        if (data.length === 0) {
+            html = `
+                <div class="text-center py-5">
+                    <i class="fas fa-database fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No data sources configured yet.</p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createDataSourceModal">
+                        <i class="fas fa-plus"></i> Create Your First Data Source
+                    </button>
+                </div>
+            `;
+        } else {
+            html = '<div class="table-responsive"><table class="table"><thead><tr>';
+            html += '<th>Name</th><th>Type</th><th>Format</th><th>Status</th><th>Last Sync</th><th>Actions</th>';
+            html += '</tr></thead><tbody>';
+            
+            data.forEach(source => {
+                const statusBadge = source.is_active ? 
+                    '<span class="badge bg-success">Active</span>' : 
+                    '<span class="badge bg-secondary">Inactive</span>';
+                
+                const lastSync = source.last_sync ? 
+                    new Date(source.last_sync).toLocaleString() : 'Never';
+                
+                html += `
+                    <tr>
+                        <td>
+                            <strong>${source.name}</strong>
+                            ${source.description ? `<br><small class="text-muted">${source.description}</small>` : ''}
+                        </td>
+                        <td>${formatSourceType(source.source_type)}</td>
+                        <td><span class="badge bg-info">${source.data_format.toUpperCase()}</span></td>
+                        <td>${statusBadge}</td>
+                        <td>${lastSync}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="importData('${source.id}')">
+                                    <i class="fas fa-download"></i> Import
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="editSource('${source.id}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="deleteSource('${source.id}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table></div>';
+        }
+        
+        $('#dataSourcesList').html(html);
+    });
+}
+
+// Load recent jobs
+function loadRecentJobs() {
+    $.get('/financial/data-ingestion/jobs?limit=5', function(data) {
+        let html = '';
+        
+        if (data.length === 0) {
+            html = '<p class="text-muted">No import jobs yet.</p>';
+        } else {
+            html = '<div class="table-responsive"><table class="table table-sm"><thead><tr>';
+            html += '<th>Job ID</th><th>Source</th><th>Status</th><th>Records</th><th>Started</th><th>Duration</th>';
+            html += '</tr></thead><tbody>';
+            
+            data.forEach(job => {
+                const statusBadge = getStatusBadge(job.status);
+                const duration = job.duration ? `${job.duration.toFixed(1)}s` : '-';
+                
+                html += `
+                    <tr>
+                        <td><small>${job.job_id.substring(0, 8)}...</small></td>
+                        <td>${job.data_source_name}</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <small>
+                                ${job.processed_records}/${job.total_records}
+                                ${job.success_rate > 0 ? `(${job.success_rate.toFixed(0)}%)` : ''}
+                            </small>
+                        </td>
+                        <td><small>${new Date(job.created_at).toLocaleString()}</small></td>
+                        <td><small>${duration}</small></td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table></div>';
+        }
+        
+        $('#recentJobsList').html(html);
+    });
+}
+
+// Load accounts for default selection
+function loadAccounts() {
+    $.get('/financial/accounts', function(data) {
+        let options = '<option value="">Select account...</option>';
+        data.forEach(account => {
+            options += `<option value="${account.id}">${account.name} (${account.account_type})</option>`;
+        });
+        $('#defaultAccount').html(options);
+    });
+}
+
+// Format source type for display
+function formatSourceType(type) {
+    const types = {
+        'csv_upload': 'CSV Upload',
+        'csv_url': 'CSV URL',
+        'https_endpoint': 'HTTPS Endpoint',
+        'api_endpoint': 'API Endpoint'
+    };
+    return types[type] || type;
+}
+
+// Get status badge
+function getStatusBadge(status) {
+    const badges = {
+        'pending': '<span class="badge bg-secondary">Pending</span>',
+        'processing': '<span class="badge bg-primary">Processing</span>',
+        'completed': '<span class="badge bg-success">Completed</span>',
+        'failed': '<span class="badge bg-danger">Failed</span>',
+        'partial': '<span class="badge bg-warning">Partial</span>',
+        'cancelled': '<span class="badge bg-secondary">Cancelled</span>'
+    };
+    return badges[status] || `<span class="badge bg-secondary">${status}</span>`;
+}
+
+// Step navigation
+function nextStep() {
+    if (currentStep < totalSteps) {
+        $(`.step[data-step="${currentStep}"]`).hide();
+        currentStep++;
+        $(`.step[data-step="${currentStep}"]`).show();
+        
+        $('#prevBtn').show();
+        if (currentStep === totalSteps) {
+            $('#nextBtn').hide();
+            $('#createBtn').show();
+        }
+    }
+}
+
+function previousStep() {
+    if (currentStep > 1) {
+        $(`.step[data-step="${currentStep}"]`).hide();
+        currentStep--;
+        $(`.step[data-step="${currentStep}"]`).show();
+        
+        if (currentStep === 1) {
+            $('#prevBtn').hide();
+        }
+        $('#nextBtn').show();
+        $('#createBtn').hide();
+    }
+}
+
+// Update auth fields based on type
+function updateAuthFields(authType) {
+    let html = '';
+    
+    switch (authType) {
+        case 'basic':
+            html = `
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-control" id="authUsername">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-control" id="authPassword">
+                </div>
+            `;
+            break;
+            
+        case 'bearer':
+            html = `
+                <div class="mb-3">
+                    <label class="form-label">Bearer Token</label>
+                    <input type="text" class="form-control" id="authToken">
+                </div>
+            `;
+            break;
+            
+        case 'api_key':
+            html = `
+                <div class="mb-3">
+                    <label class="form-label">API Key Header Name</label>
+                    <input type="text" class="form-control" id="authKeyName" value="X-API-Key">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">API Key Value</label>
+                    <input type="text" class="form-control" id="authKeyValue">
+                </div>
+            `;
+            break;
+    }
+    
+    $('#authConfigFields').html(html);
+}
+
+// Preview data
+function previewData() {
+    const sourceType = $('#sourceType').val();
+    const sourceUrl = $('#sourceUrl').val();
+    const authType = $('#authType').val();
+    const dataFormat = $('#dataFormat').val();
+    
+    // Build preview request
+    const request = {
+        source_type: sourceType,
+        source_url: sourceUrl,
+        auth_type: authType,
+        auth_config: getAuthConfig(),
+        data_format: dataFormat,
+        preview_rows: 10
+    };
+    
+    // Show loading
+    $('#previewContent').html('<div class="text-center"><div class="spinner-border"></div></div>');
+    $('#dataPreviewModal').modal('show');
+    
+    // Fetch preview
+    $.ajax({
+        url: '/financial/data-ingestion/preview',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(request),
+        success: function(data) {
+            previewData = data;
+            displayPreview(data);
+            setupFieldMappings(data);
+        },
+        error: function(xhr) {
+            $('#previewContent').html(
+                `<div class="alert alert-danger">Error: ${xhr.responseJSON?.detail || 'Failed to preview data'}</div>`
+            );
+        }
+    });
+}
+
+// Display preview data
+function displayPreview(data) {
+    let html = '<h6>Data Preview</h6>';
+    
+    if (data.sample_data && data.sample_data.length > 0) {
+        html += '<div class="table-responsive"><table class="table table-sm"><thead><tr>';
+        
+        // Headers
+        data.columns.forEach(col => {
+            html += `<th>${col}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+        
+        // Data rows
+        data.sample_data.forEach(row => {
+            html += '<tr>';
+            data.columns.forEach(col => {
+                html += `<td>${row[col] || ''}</td>`;
+            });
+            html += '</tr>';
+        });
+        
+        html += '</tbody></table></div>';
+        html += `<p class="text-muted">Showing ${data.sample_data.length} of ${data.total_rows} total rows</p>`;
+    } else {
+        html += '<p class="text-muted">No data found</p>';
+    }
+    
+    $('#previewContent').html(html);
+}
+
+// Setup field mappings
+function setupFieldMappings(data) {
+    let html = '<div class="table-responsive"><table class="table"><thead><tr>';
+    html += '<th>Source Field</th><th>Data Type</th><th>Maps To</th>';
+    html += '</tr></thead><tbody>';
+    
+    data.columns.forEach(col => {
+        const dataType = data.data_types[col] || 'string';
+        const suggestedMapping = data.suggested_mappings[col] || '';
+        
+        html += `
+            <tr>
+                <td>${col}</td>
+                <td><span class="badge bg-secondary">${dataType}</span></td>
+                <td>
+                    <select class="form-select form-select-sm field-mapping" data-source="${col}">
+                        <option value="">-- Skip --</option>
+                        <option value="date" ${suggestedMapping === 'date' ? 'selected' : ''}>Date</option>
+                        <option value="description" ${suggestedMapping === 'description' ? 'selected' : ''}>Description</option>
+                        <option value="amount" ${suggestedMapping === 'amount' ? 'selected' : ''}>Amount</option>
+                        <option value="category" ${suggestedMapping === 'category' ? 'selected' : ''}>Category</option>
+                        <option value="reference" ${suggestedMapping === 'reference' ? 'selected' : ''}>Reference</option>
+                        <option value="notes" ${suggestedMapping === 'notes' ? 'selected' : ''}>Notes</option>
+                    </select>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table></div>';
+    $('#fieldMappingContainer').html(html);
+}
+
+// Get auth configuration
+function getAuthConfig() {
+    const authType = $('#authType').val();
+    let config = {};
+    
+    switch (authType) {
+        case 'basic':
+            config = {
+                username: $('#authUsername').val(),
+                password: $('#authPassword').val()
+            };
+            break;
+        case 'bearer':
+            config = {
+                token: $('#authToken').val()
+            };
+            break;
+        case 'api_key':
+            config = {
+                key_name: $('#authKeyName').val(),
+                key_value: $('#authKeyValue').val()
+            };
+            break;
+    }
+    
+    return config;
+}
+
+// Create data source
+function createDataSource() {
+    // Gather field mappings
+    const fieldMapping = {};
+    $('.field-mapping').each(function() {
+        const source = $(this).data('source');
+        const target = $(this).val();
+        if (target) {
+            fieldMapping[source] = target;
+        }
+    });
+    
+    // Build request
+    const request = {
+        name: $('#sourceName').val(),
+        description: $('#sourceDescription').val(),
+        source_type: $('#sourceType').val(),
+        source_url: $('#sourceUrl').val() || null,
+        auth_type: $('#authType').val(),
+        auth_config: getAuthConfig(),
+        data_format: $('#dataFormat').val(),
+        field_mapping: fieldMapping,
+        default_account_id: $('#defaultAccount').val() || null,
+        default_tags: $('#defaultTags').val().split(',').map(t => t.trim()).filter(t => t),
+        schedule_enabled: $('#scheduleEnabled').is(':checked'),
+        schedule_frequency: $('#scheduleFrequency').val()
+    };
+    
+    // Create data source
+    $.ajax({
+        url: '/financial/data-ingestion/sources',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(request),
+        success: function(data) {
+            $('#createDataSourceModal').modal('hide');
+            loadDataSources();
+            showAlert('success', 'Data source created successfully!');
+            
+            // Reset form
+            $('#createDataSourceForm')[0].reset();
+            currentStep = 1;
+            $('.step').hide();
+            $('.step[data-step="1"]').show();
+            $('#prevBtn').hide();
+            $('#nextBtn').show();
+            $('#createBtn').hide();
+        },
+        error: function(xhr) {
+            showAlert('danger', xhr.responseJSON?.detail || 'Failed to create data source');
+        }
+    });
+}
+
+// Import data from source
+function importData(sourceId) {
+    if (confirm('Start importing data from this source?')) {
+        const config = {
+            data_source_id: sourceId,
+            skip_duplicates: true,
+            update_existing: false,
+            dry_run: false
+        };
+        
+        $.ajax({
+            url: `/financial/data-ingestion/sources/${sourceId}/import`,
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(config),
+            success: function(result) {
+                showAlert('success', 
+                    `Import completed! Created: ${result.created_records}, ` +
+                    `Updated: ${result.updated_records}, Failed: ${result.failed_records}`
+                );
+                loadRecentJobs();
+            },
+            error: function(xhr) {
+                showAlert('danger', xhr.responseJSON?.detail || 'Import failed');
+            }
+        });
+    }
+}
+
+// Delete data source
+function deleteSource(sourceId) {
+    if (confirm('Are you sure you want to delete this data source?')) {
+        $.ajax({
+            url: `/financial/data-ingestion/sources/${sourceId}`,
+            method: 'DELETE',
+            success: function() {
+                loadDataSources();
+                showAlert('success', 'Data source deleted successfully');
+            },
+            error: function(xhr) {
+                showAlert('danger', xhr.responseJSON?.detail || 'Failed to delete data source');
+            }
+        });
+    }
+}
+
+// Show alert
+function showAlert(type, message) {
+    const alert = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    $('.container-fluid').prepend(alert);
+}
+
+// Filter sources
+function filterSources(filter) {
+    // Update button states
+    $('.btn-group button').removeClass('active');
+    event.target.classList.add('active');
+    
+    // Reload with filter
+    let url = '/financial/data-ingestion/sources';
+    if (filter === 'active') {
+        url += '?is_active=true';
+    } else if (filter === 'inactive') {
+        url += '?is_active=false';
+    }
+    
+    $.get(url, function(data) {
+        // Rerender list
+        loadDataSources();
+    });
+}
+</script>
+{% endblock %}

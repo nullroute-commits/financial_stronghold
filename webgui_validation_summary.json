@@ -1,0 +1,511 @@
+{
+  "mapping": {
+    "total_api_endpoints": 29,
+    "total_web_routes": 21,
+    "apis_with_gui": 14,
+    "apis_without_gui": 30,
+    "coverage_percentage": 48.275862068965516,
+    "api_coverage": {
+      "/accounts": {
+        "methods": [
+          {
+            "method": "POST",
+            "function": "create_account",
+            "full_path": "/financial/accounts"
+          },
+          {
+            "method": "GET",
+            "function": "list_accounts",
+            "full_path": "/financial/accounts"
+          }
+        ],
+        "has_gui": true,
+        "gui_paths": [
+          "accounts/create/",
+          "accounts/"
+        ]
+      },
+      "/accounts/{account_id}": {
+        "methods": [
+          {
+            "method": "GET",
+            "function": "get_account",
+            "full_path": "/financial/accounts/{account_id}"
+          },
+          {
+            "method": "PUT",
+            "function": "update_account",
+            "full_path": "/financial/accounts/{account_id}"
+          },
+          {
+            "method": "DELETE",
+            "function": "delete_account",
+            "full_path": "/financial/accounts/{account_id}"
+          }
+        ],
+        "has_gui": true,
+        "gui_paths": [
+          "accounts/<uuid:account_id>/",
+          "accounts/<uuid:account_id>/edit/",
+          "accounts/<uuid:account_id>/edit/"
+        ]
+      },
+      "/transactions": {
+        "methods": [
+          {
+            "method": "POST",
+            "function": "create_transaction",
+            "full_path": "/financial/transactions"
+          },
+          {
+            "method": "GET",
+            "function": "list_transactions",
+            "full_path": "/financial/transactions"
+          }
+        ],
+        "has_gui": true,
+        "gui_paths": [
+          "transactions/create/",
+          "transactions/"
+        ]
+      },
+      "/transactions/{transaction_id}": {
+        "methods": [
+          {
+            "method": "GET",
+            "function": "get_transaction",
+            "full_path": "/financial/transactions/{transaction_id}"
+          },
+          {
+            "method": "PUT",
+            "function": "update_transaction",
+            "full_path": "/financial/transactions/{transaction_id}"
+          },
+          {
+            "method": "DELETE",
+            "function": "delete_transaction",
+            "full_path": "/financial/transactions/{transaction_id}"
+          }
+        ],
+        "has_gui": true,
+        "gui_paths": [
+          "transactions/<uuid:transaction_id>/",
+          "transactions/<uuid:transaction_id>/edit/",
+          "transactions/<uuid:transaction_id>/edit/"
+        ]
+      },
+      "/fees": {
+        "methods": [
+          {
+            "method": "POST",
+            "function": "create_fee",
+            "full_path": "/financial/fees"
+          },
+          {
+            "method": "GET",
+            "function": "list_fees",
+            "full_path": "/financial/fees"
+          }
+        ],
+        "has_gui": true,
+        "gui_paths": [
+          "fees/create/",
+          "fees/"
+        ]
+      },
+      "/fees/{fee_id}": {
+        "methods": [
+          {
+            "method": "GET",
+            "function": "get_fee",
+            "full_path": "/financial/fees/{fee_id}"
+          },
+          {
+            "method": "PUT",
+            "function": "update_fee",
+            "full_path": "/financial/fees/{fee_id}"
+          },
+          {
+            "method": "DELETE",
+            "function": "delete_fee",
+            "full_path": "/financial/fees/{fee_id}"
+          }
+        ],
+        "has_gui": true,
+        "gui_paths": [
+          "fees/<uuid:fee_id>/",
+          "fees/<uuid:fee_id>/edit/",
+          "fees/<uuid:fee_id>/edit/"
+        ]
+      },
+      "/budgets": {
+        "methods": [
+          {
+            "method": "POST",
+            "function": "create_budget",
+            "full_path": "/financial/budgets"
+          },
+          {
+            "method": "GET",
+            "function": "list_budgets",
+            "full_path": "/financial/budgets"
+          }
+        ],
+        "has_gui": true,
+        "gui_paths": [
+          "budgets/create/",
+          "budgets/"
+        ]
+      },
+      "/budgets/{budget_id}": {
+        "methods": [
+          {
+            "method": "GET",
+            "function": "get_budget",
+            "full_path": "/financial/budgets/{budget_id}"
+          },
+          {
+            "method": "PUT",
+            "function": "update_budget",
+            "full_path": "/financial/budgets/{budget_id}"
+          },
+          {
+            "method": "DELETE",
+            "function": "delete_budget",
+            "full_path": "/financial/budgets/{budget_id}"
+          }
+        ],
+        "has_gui": true,
+        "gui_paths": [
+          "budgets/<uuid:budget_id>/",
+          "budgets/<uuid:budget_id>/edit/",
+          "budgets/<uuid:budget_id>/edit/"
+        ]
+      },
+      "/dashboard": {
+        "methods": [
+          {
+            "method": "GET",
+            "function": "get_dashboard_data",
+            "full_path": "/financial/dashboard"
+          }
+        ],
+        "has_gui": true,
+        "gui_paths": [
+          "dashboard/"
+        ]
+      },
+      "/dashboard/summary": {
+        "methods": [
+          {
+            "method": "GET",
+            "function": "get_financial_summary",
+            "full_path": "/financial/dashboard/summary"
+          }
+        ],
+        "has_gui": false,
+        "gui_paths": []
+      },
+      "/dashboard/accounts": {
+        "methods": [
+          {
+            "method": "GET",
+            "function": "get_account_summaries",
+            "full_path": "/financial/dashboard/accounts"
+          }
+        ],
+        "has_gui": false,
+        "gui_paths": []
+      },
+      "/dashboard/transactions": {
+        "methods": [
+          {
+            "method": "GET",
+            "function": "get_transaction_summary",
+            "full_path": "/financial/dashboard/transactions"
+          }
+        ],
+        "has_gui": false,
+        "gui_paths": []
+      },
+      "/dashboard/budgets": {
+        "methods": [
+          {
+            "method": "GET",
+            "function": "get_budget_statuses",
+            "full_path": "/financial/dashboard/budgets"
+          }
+        ],
+        "has_gui": false,
+        "gui_paths": []
+      },
+      "/tags": {
+        "methods": [
+          {
+            "method": "POST",
+            "function": "create_tag",
+            "full_path": "/financial/tags"
+          }
+        ],
+        "has_gui": true,
+        "gui_paths": [
+          "analytics/tagging/"
+        ]
+      },
+      "/tags/resource/{resource_type}/{resource_id}": {
+        "methods": [
+          {
+            "method": "GET",
+            "function": "get_resource_tags",
+            "full_path": "/financial/tags/resource/{resource_type}/{resource_id}"
+          }
+        ],
+        "has_gui": false,
+        "gui_paths": []
+      },
+      "/tags/auto/{resource_type}/{resource_id}": {
+        "methods": [
+          {
+            "method": "POST",
+            "function": "auto_tag_resource",
+            "full_path": "/financial/tags/auto/{resource_type}/{resource_id}"
+          }
+        ],
+        "has_gui": false,
+        "gui_paths": []
+      },
+      "/tags/query": {
+        "methods": [
+          {
+            "method": "POST",
+            "function": "query_tagged_resources",
+            "full_path": "/financial/tags/query"
+          }
+        ],
+        "has_gui": false,
+        "gui_paths": []
+      },
+      "/analytics/compute": {
+        "methods": [
+          {
+            "method": "POST",
+            "function": "compute_tag_metrics",
+            "full_path": "/financial/analytics/compute"
+          }
+        ],
+        "has_gui": false,
+        "gui_paths": []
+      },
+      "/analytics/summary": {
+        "methods": [
+          {
+            "method": "POST",
+            "function": "get_analytics_summary",
+            "full_path": "/financial/analytics/summary"
+          }
+        ],
+        "has_gui": false,
+        "gui_paths": []
+      },
+      "/analytics/views": {
+        "methods": [
+          {
+            "method": "POST",
+            "function": "create_analytics_view",
+            "full_path": "/financial/analytics/views"
+          },
+          {
+            "method": "GET",
+            "function": "list_analytics_views",
+            "full_path": "/financial/analytics/views"
+          }
+        ],
+        "has_gui": false,
+        "gui_paths": []
+      },
+      "/analytics/views/{view_id}": {
+        "methods": [
+          {
+            "method": "GET",
+            "function": "get_analytics_view",
+            "full_path": "/financial/analytics/views/{view_id}"
+          }
+        ],
+        "has_gui": false,
+        "gui_paths": []
+      },
+      "/analytics/views/{view_id}/refresh": {
+        "methods": [
+          {
+            "method": "POST",
+            "function": "refresh_analytics_view",
+            "full_path": "/financial/analytics/views/{view_id}/refresh"
+          }
+        ],
+        "has_gui": false,
+        "gui_paths": []
+      },
+      "/dashboard/analytics": {
+        "methods": [
+          {
+            "method": "GET",
+            "function": "get_dashboard_analytics",
+            "full_path": "/financial/dashboard/analytics"
+          }
+        ],
+        "has_gui": true,
+        "gui_paths": [
+          "dashboard/analytics/"
+        ]
+      },
+      "/transactions/classify": {
+        "methods": [
+          {
+            "method": "POST",
+            "function": "classify_transactions",
+            "full_path": "/financial/transactions/classify"
+          }
+        ],
+        "has_gui": true,
+        "gui_paths": [
+          "analytics/classification/"
+        ]
+      },
+      "/analytics/classification": {
+        "methods": [
+          {
+            "method": "POST",
+            "function": "get_classification_analytics",
+            "full_path": "/financial/analytics/classification"
+          }
+        ],
+        "has_gui": false,
+        "gui_paths": []
+      },
+      "/analytics/anomalies": {
+        "methods": [
+          {
+            "method": "POST",
+            "function": "detect_transaction_anomalies",
+            "full_path": "/financial/analytics/anomalies"
+          }
+        ],
+        "has_gui": true,
+        "gui_paths": [
+          "analytics/anomalies/"
+        ]
+      },
+      "/analytics/monthly-breakdown": {
+        "methods": [
+          {
+            "method": "GET",
+            "function": "get_monthly_breakdown",
+            "full_path": "/financial/analytics/monthly-breakdown"
+          }
+        ],
+        "has_gui": false,
+        "gui_paths": []
+      },
+      "/analytics/patterns": {
+        "methods": [
+          {
+            "method": "GET",
+            "function": "get_transaction_patterns",
+            "full_path": "/financial/analytics/patterns"
+          }
+        ],
+        "has_gui": true,
+        "gui_paths": [
+          "analytics/patterns/"
+        ]
+      },
+      "/classification/config": {
+        "methods": [
+          {
+            "method": "GET",
+            "function": "get_classification_config",
+            "full_path": "/financial/classification/config"
+          },
+          {
+            "method": "POST",
+            "function": "update_classification_config",
+            "full_path": "/financial/classification/config"
+          }
+        ],
+        "has_gui": false,
+        "gui_paths": []
+      }
+    },
+    "missing_gui": [
+      "/dashboard/summary",
+      "/dashboard/accounts",
+      "/dashboard/transactions",
+      "/dashboard/budgets",
+      "/tags/resource/{resource_type}/{resource_id}",
+      "/tags/auto/{resource_type}/{resource_id}",
+      "/tags/query",
+      "/analytics/compute",
+      "/analytics/summary",
+      "/analytics/views",
+      "/analytics/views/{view_id}",
+      "/analytics/views/{view_id}/refresh",
+      "/analytics/classification",
+      "/analytics/monthly-breakdown",
+      "/classification/config",
+      "/dashboard/summary",
+      "/dashboard/accounts",
+      "/dashboard/transactions",
+      "/dashboard/budgets",
+      "/tags/resource/{resource_type}/{resource_id}",
+      "/tags/auto/{resource_type}/{resource_id}",
+      "/tags/query",
+      "/analytics/compute",
+      "/analytics/summary",
+      "/analytics/views",
+      "/analytics/views/{view_id}",
+      "/analytics/views/{view_id}/refresh",
+      "/analytics/classification",
+      "/analytics/monthly-breakdown",
+      "/classification/config"
+    ]
+  },
+  "documentation": {
+    "documentation_service": true,
+    "documentation_views": true,
+    "documentation_templates": true,
+    "help_system": true,
+    "api_docs_link": true
+  },
+  "missing_gui_endpoints": [
+    "/dashboard/summary",
+    "/dashboard/accounts",
+    "/dashboard/transactions",
+    "/dashboard/budgets",
+    "/tags/resource/{resource_type}/{resource_id}",
+    "/tags/auto/{resource_type}/{resource_id}",
+    "/tags/query",
+    "/analytics/compute",
+    "/analytics/summary",
+    "/analytics/views",
+    "/analytics/views/{view_id}",
+    "/analytics/views/{view_id}/refresh",
+    "/analytics/classification",
+    "/analytics/monthly-breakdown",
+    "/classification/config",
+    "/dashboard/summary",
+    "/dashboard/accounts",
+    "/dashboard/transactions",
+    "/dashboard/budgets",
+    "/tags/resource/{resource_type}/{resource_id}",
+    "/tags/auto/{resource_type}/{resource_id}",
+    "/tags/query",
+    "/analytics/compute",
+    "/analytics/summary",
+    "/analytics/views",
+    "/analytics/views/{view_id}",
+    "/analytics/views/{view_id}/refresh",
+    "/analytics/classification",
+    "/analytics/monthly-breakdown",
+    "/classification/config"
+  ]
+}
