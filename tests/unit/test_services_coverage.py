@@ -8,9 +8,9 @@ from uuid import uuid4
 from app.services import TenantService
 from app.financial_models import Account, Transaction, Budget
 from app.core.tenant import TenantType, TenantMixin
-from app.core.models import BaseModel
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import NoResultFound
+from app.django_models import BaseModel
+from unittest.mock import Mock
+# Remove SQLAlchemy imports - using Django ORM
 
 
 class TestTenantService:
@@ -19,7 +19,7 @@ class TestTenantService:
     @pytest.fixture
     def db_session(self):
         """Mock database session."""
-        return Mock(spec=Session)
+        return Mock()
 
     @pytest.fixture
     def tenant_service(self, db_session):

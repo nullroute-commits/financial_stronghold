@@ -1,16 +1,6 @@
-Django==5.1.3
-psycopg2-binary==2.9.10
-python-memcached==1.59
-pika==1.3.2
-gunicorn==23.0.0
-djangorestframework==3.14.0
-django-cors-headers==4.3.1
+-r base.txt
+# Testing-specific dependencies
 pytest==7.4.3
 pytest-django==4.7.0
 pytest-cov==4.1.0
 factory-boy==3.3.0
-psutil==5.9.6
-docker==6.1.3
-PyJWT==2.8.0
-PyYAML==6.0.1
-markdown==3.5.1

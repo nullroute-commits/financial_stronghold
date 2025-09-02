@@ -16,3 +16,7 @@ pdfplumber==0.10.3
 # ML dependencies
 scikit-learn==1.3.2
 numpy==1.24.4
+# Additional dependencies from pyproject.toml
+PyJWT==2.8.0
+PyYAML==6.0.1
+markdown==3.5.1
