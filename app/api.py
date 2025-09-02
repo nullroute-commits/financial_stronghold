@@ -5,13 +5,10 @@ from typing import List, Optional, Tuple
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import and_
-from sqlalchemy.orm import Session
+from django.db.models import Q
 
 from app.auth import get_current_user, get_tenant_context, require_role
-from app.core.db.connection import get_db_session
-from app.core.tenant import TenantType
-from app.financial_models import Account, Budget, Fee, Transaction
+from app.django_models import Account, Budget, Fee, Transaction, TenantType
 from app.schemas import (
     AccountCreate,
     AccountRead,

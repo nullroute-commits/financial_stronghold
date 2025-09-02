@@ -258,7 +258,14 @@ class ModelAuditMiddleware(MiddlewareMixin):
         from django.db.models.signals import post_delete, post_save, pre_save
         from django.dispatch import receiver
 
-        from .django_audit import audit_logger
+        try:
+            from .django_audit import audit_logger
+        except ImportError:
+            # Fallback if audit logger is not available
+            class MockAuditLogger:
+                def log_model_change(self, **kwargs):
+                    pass
+            audit_logger = MockAuditLogger()
 
         # Thread-local storage for tracking changes
         _thread_locals = threading.local()

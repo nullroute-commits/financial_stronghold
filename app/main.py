@@ -1,61 +1,47 @@
-"""Multi-tenancy extension for Financial Stronghold."""
+"""
+FastAPI application with Django integration.
+Main entry point for the FastAPI application that uses Django ORM.
 
+Last updated: 2025-01-21 by AI Assistant
+"""
+
+import os
+import django
+from django.conf import settings
 from fastapi import Depends, FastAPI
 
-from app.api import router as financial_router
-from app.auth import get_tenant_context
+# Configure Django settings
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.development')
+django.setup()
+
+from app.api_django import router as financial_router
+from app.auth import get_current_user
 
 app = FastAPI(
-    title="Financial Stronghold Multi-Tenant API",
-    description="A production-ready multi-tenant financial services API",
-    version="1.0.0",
+    title="Financial Stronghold API",
+    description="Multi-tenant financial management system",
+    version="1.0.0"
 )
 
-# Include financial endpoints
+# Include routers
 app.include_router(financial_router)
 
-
 @app.get("/")
-def read_root():
+def root():
     """Root endpoint."""
-    return {
-        "message": "Financial Stronghold Multi-Tenant API",
-        "version": "1.0.0",
-        "features": [
-            "Multi-tenant data isolation",
-            "User and Organization tenants",
-            "Role-based permissions",
-            "Financial account management",
-            "Transaction tracking",
-            "Fee management",
-            "Budget tracking",
-            "Financial Dashboard & Analytics",
-            "Real-time financial summaries",
-            "Multi-environment CI/CD pipeline",
-        ],
-    }
-
+    return {"message": "Financial Stronghold API"}
 
 @app.get("/health")
 def health_check():
     """Health check endpoint."""
     return {"status": "healthy"}
 
-
-@app.get("/tenant/info")
-def get_tenant_info(tenant_context: dict = Depends(get_tenant_context)):
-    """Get current tenant information."""
+@app.get("/protected")
+def protected_route(current_user=Depends(get_current_user)):
+    """Example protected route."""
+    user, tenant_type, tenant_id = current_user
     return {
-        "tenant_type": tenant_context["tenant_type"],
-        "tenant_id": tenant_context["tenant_id"],
-        "user_id": str(tenant_context["user"].id),
-        "user_email": tenant_context["user"].email,
-        "is_organization": tenant_context["is_organization"],
-        "is_user": tenant_context["is_user"],
+        "message": f"Hello {user.email}",
+        "tenant_type": tenant_type,
+        "tenant_id": tenant_id
     }
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8000)
