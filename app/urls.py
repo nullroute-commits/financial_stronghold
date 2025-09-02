@@ -11,6 +11,10 @@ from .api_views import (
     UserViewSet, AccountViewSet, TransactionViewSet, BudgetViewSet,
     OrganizationViewSet, AuditLogViewSet, HealthCheckViewSet
 )
+from .api.import_views import (
+    FileUploadViewSet, ImportJobViewSet, ImportedTransactionViewSet,
+    ImportTemplateViewSet, ImportAnalyticsViewSet, ImportHealthCheckViewSet
+)
 
 # Create DRF router for API endpoints
 router = DefaultRouter()
