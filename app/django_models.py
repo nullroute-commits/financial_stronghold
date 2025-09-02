@@ -14,6 +14,13 @@ from django.utils import timezone
 # Use Django's built-in JSONField for Django 3.1+
 JSONField = models.JSONField
 
+# Import custom managers
+from .managers import (
+    TenantAwareManager, AccountManager, TransactionManager, 
+    BudgetManager, AuditLogManager, UserManager, OrganizationManager,
+    PerformanceOptimizedManager
+)
+
 
 class BaseModel(models.Model):
     """
@@ -47,6 +54,9 @@ class User(AbstractUser):
 
     # Override username to be optional
     username = models.CharField(max_length=150, unique=True, blank=True, null=True)
+    
+    # Custom manager
+    objects = UserManager()
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
