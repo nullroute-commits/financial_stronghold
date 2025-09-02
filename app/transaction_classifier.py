@@ -305,7 +305,7 @@ class TransactionClassifierService:
                 DataTag.resource_type == "transaction",
                 DataTag.tenant_type == TenantType(tenant_type),
                 DataTag.tenant_id == tenant_id,
-                DataTag.is_active == True,
+                DataTag.is_active.is_(True),
             )
             .all()
         )
@@ -318,7 +318,7 @@ class TransactionClassifierService:
                 DataTag.resource_type == "transaction",
                 DataTag.tenant_type == TenantType(tenant_type),
                 DataTag.tenant_id == tenant_id,
-                DataTag.is_active == True,
+                DataTag.is_active.is_(True),
             )
             .all()
         )

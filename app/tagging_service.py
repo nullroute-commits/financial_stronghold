@@ -14,7 +14,7 @@ from app.core.db.connection import get_db_session
 from app.core.models import User, Role
 from app.core.tenant import Organization, TenantType
 from app.financial_models import Account, Budget, Transaction
-from app.tagging_models import TagType
+from app.tagging_models import DataTag, AnalyticsView, TagType
 
 
 class TaggingService:
