@@ -39,6 +39,13 @@ from app.documentation_views import (
     get_field_help,
     search_documentation,
 )
+from app.ingestion_views import (
+    data_sources_list,
+    data_source_detail,
+    upload_data,
+    import_jobs_list,
+    import_job_detail,
+)
 
 app_name = "web"
 
@@ -102,4 +109,11 @@ urlpatterns = [
     path("docs/api/context-help/", get_context_help, name="context_help"),
     path("docs/api/field-help/", get_field_help, name="field_help"),
     path("docs/api/search/", search_documentation, name="doc_search"),
+    
+    # Data Ingestion URLs
+    path("data-sources/", data_sources_list, name="data_sources"),
+    path("data-sources/<uuid:source_id>/", data_source_detail, name="data_source_detail"),
+    path("upload/", upload_data, name="upload_data"),
+    path("import-jobs/", import_jobs_list, name="import_jobs"),
+    path("import-jobs/<uuid:job_id>/", import_job_detail, name="import_job_detail"),
 ]

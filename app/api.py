@@ -58,6 +58,14 @@ from app.schemas import (
 from app.services import TenantService
 from app.dashboard_service import DashboardService
 from app.tagging_service import TaggingService, AnalyticsService
+from app.ingestion_service import DataIngestionService
+from app.ingestion_models import DataSource, IngestionJob
+from app.ingestion_schemas import (
+    DataSourceCreate, DataSourceRead, DataSourceUpdate,
+    IngestionJobCreate, IngestionJobRead,
+    DataPreviewRequest, DataPreviewResponse,
+    FileUploadRequest, ImportConfigRequest, ImportResult
+)
 
 router = APIRouter(prefix="/financial", tags=["financial"])
 
