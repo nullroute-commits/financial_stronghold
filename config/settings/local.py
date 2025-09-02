@@ -99,5 +99,20 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# Temporarily disable admin for testing
+INSTALLED_APPS = [
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "rest_framework",
+    "corsheaders",
+    "app",
+]
+
+# Temporarily use default User model for testing
+AUTH_USER_MODEL = "auth.User"
+
 # Disable SQLAlchemy connection attempts during startup
 SQLALCHEMY_ENABLED = False
