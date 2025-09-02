@@ -471,6 +471,46 @@ def fee_edit(request, fee_id):
                 context = {"fee": fee}
                 return render(request, "fees/edit.html", context)
 
+
+@login_required
+def transaction_classification(request):
+    """Transaction classification page."""
+    context = {
+        'page_type': 'classification',
+        'accounts': []  # Would load from API
+    }
+    return render(request, "analytics/classification.html", context)
+
+
+@login_required 
+def tagging_management(request):
+    """Tagging system management page."""
+    context = {
+        'page_type': 'tagging',
+        'tags': []  # Would load from API
+    }
+    return render(request, "analytics/tagging.html", context)
+
+
+@login_required
+def anomaly_detection(request):
+    """Anomaly detection page."""
+    context = {
+        'page_type': 'anomalies',
+        'anomalies': []  # Would load from API
+    }
+    return render(request, "analytics/anomalies.html", context)
+
+
+@login_required
+def transaction_patterns(request):
+    """Transaction patterns analysis page."""
+    context = {
+        'page_type': 'patterns',
+        'patterns': []  # Would load from API
+    }
+    return render(request, "analytics/patterns.html", context)
+
             # Handle POST - update fee
             fee_data = {
                 "name": request.POST.get("name"),
@@ -855,3 +895,43 @@ def home_redirect(request):
     if request.user.is_authenticated:
         return redirect("/dashboard/")
     return redirect("/accounts/login/")
+
+
+@login_required
+def transaction_classification(request):
+    """Transaction classification page."""
+    context = {
+        'page_type': 'classification',
+        'accounts': []  # Would load from API
+    }
+    return render(request, "analytics/classification.html", context)
+
+
+@login_required 
+def tagging_management(request):
+    """Tagging system management page."""
+    context = {
+        'page_type': 'tagging',
+        'tags': []  # Would load from API
+    }
+    return render(request, "analytics/tagging.html", context)
+
+
+@login_required
+def anomaly_detection(request):
+    """Anomaly detection page."""
+    context = {
+        'page_type': 'anomalies',
+        'anomalies': []  # Would load from API
+    }
+    return render(request, "analytics/anomalies.html", context)
+
+
+@login_required
+def transaction_patterns(request):
+    """Transaction patterns analysis page."""
+    context = {
+        'page_type': 'patterns',
+        'patterns': []  # Would load from API
+    }
+    return render(request, "analytics/patterns.html", context)

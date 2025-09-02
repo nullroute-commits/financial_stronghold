@@ -24,6 +24,20 @@ from app.web_views import (
     fee_edit,
     analytics_dashboard,
     home_redirect,
+    # New analytics views
+    transaction_classification,
+    tagging_management,
+    anomaly_detection,
+    transaction_patterns,
+)
+from app.documentation_views import (
+    documentation_browser,
+    get_api_documentation,
+    get_schema_documentation,
+    get_feature_documentation,
+    get_context_help,
+    get_field_help,
+    search_documentation,
 )
 
 app_name = "web"
@@ -73,4 +87,19 @@ urlpatterns = [
     path("transactions/", include((transaction_patterns, "transactions"), namespace="transactions")),
     path("budgets/", include((budget_patterns, "budgets"), namespace="budgets")),
     path("fees/", include((fee_patterns, "fees"), namespace="fees")),
+    
+    # Analytics URLs
+    path("analytics/classification/", transaction_classification, name="classification"),
+    path("analytics/tagging/", tagging_management, name="tagging"),
+    path("analytics/anomalies/", anomaly_detection, name="anomalies"),
+    path("analytics/patterns/", transaction_patterns, name="patterns"),
+    
+    # Documentation URLs
+    path("docs/", documentation_browser, name="docs"),
+    path("docs/api/endpoint/", get_api_documentation, name="api_doc"),
+    path("docs/api/schema/<str:schema_name>/", get_schema_documentation, name="schema_doc"),
+    path("docs/api/feature/<str:feature>/", get_feature_documentation, name="feature_doc"),
+    path("docs/api/context-help/", get_context_help, name="context_help"),
+    path("docs/api/field-help/", get_field_help, name="field_help"),
+    path("docs/api/search/", search_documentation, name="doc_search"),
 ]

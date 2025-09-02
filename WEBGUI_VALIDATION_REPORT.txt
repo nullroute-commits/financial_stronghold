@@ -1,0 +1,64 @@
+================================================================================
+API to Web GUI Mapping Validation Report
+================================================================================
+
+📊 SUMMARY
+----------------------------------------
+Total API Endpoints: 29
+Total Web Routes: 21
+APIs with GUI: 14
+APIs without GUI: 15
+Coverage: 48.3%
+
+📚 DOCUMENTATION INTEGRATION
+----------------------------------------
+✅ Documentation Service
+✅ Documentation Views
+✅ Documentation Templates
+✅ Help System
+✅ Api Docs Link
+
+⚠️  MISSING WEB GUI IMPLEMENTATIONS
+----------------------------------------
+• /dashboard/summary [GET]
+• /dashboard/accounts [GET]
+• /dashboard/transactions [GET]
+• /dashboard/budgets [GET]
+• /tags/resource/{resource_type}/{resource_id} [GET]
+• /tags/auto/{resource_type}/{resource_id} [POST]
+• /tags/query [POST]
+• /analytics/compute [POST]
+• /analytics/summary [POST]
+• /analytics/views [POST, GET]
+• /analytics/views/{view_id} [GET]
+• /analytics/views/{view_id}/refresh [POST]
+• /analytics/classification [POST]
+• /analytics/monthly-breakdown [GET]
+• /classification/config [GET, POST]
+
+✅ IMPLEMENTED FEATURES
+----------------------------------------
+• Dashboard (Home & Analytics)
+• Account Management (CRUD)
+• Transaction Management (CRUD)
+• Budget Management (CRUD)
+• Fee Management (CRUD)
+• Transaction Classification
+• Tagging System
+• Documentation Browser
+• Context-Sensitive Help
+
+💡 RECOMMENDATIONS
+----------------------------------------
+1. Implement missing GUI pages for:
+   - /dashboard/summary
+   - /dashboard/accounts
+   - /dashboard/transactions
+   - /dashboard/budgets
+   - /tags/resource/{resource_type}/{resource_id}
+   ... and 10 more
+
+2. Add interactive API documentation
+3. Implement real-time data loading via AJAX
+4. Add form validation based on schemas
+5. Create automated tests for GUI-API integration
