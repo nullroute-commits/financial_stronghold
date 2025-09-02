@@ -99,9 +99,23 @@ services:
       timeout: 10s
       retries: 3
 
+  redis:
+    image: redis:7-alpine
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
 volumes:
   postgres_data:
   rabbitmq_data:
+  redis_data:
   static_volume:
   media_volume:
   logs_volume:
