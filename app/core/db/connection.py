@@ -2,7 +2,7 @@
 SQLAlchemy database connection configuration.
 Provides database connectivity and session management for PostgreSQL 17.
 
-Last updated: 2025-08-30 22:40:55 UTC by nullroute-commits
+Last updated: 2025-09-02 02:06:00 UTC by nullroute-commits
 """
 
 import logging
@@ -86,6 +86,11 @@ class DatabaseConnection:
         Raises:
             Exception: If database connection fails
         """
+        # Check if SQLAlchemy is enabled
+        if not getattr(settings, "SQLALCHEMY_ENABLED", True):
+            logger.info("SQLAlchemy is disabled, skipping database connection")
+            return
+
         try:
             self.engine = create_engine(self.database_url, **self.engine_params)
 
@@ -125,6 +130,10 @@ class DatabaseConnection:
         Returns:
             SQLAlchemy session
         """
+        # Check if SQLAlchemy is enabled
+        if not getattr(settings, "SQLALCHEMY_ENABLED", True):
+            raise RuntimeError("SQLAlchemy is disabled. Cannot create database sessions.")
+
         if not self.SessionLocal:
             self.connect()
 
@@ -132,6 +141,11 @@ class DatabaseConnection:
 
     def create_tables(self) -> None:
         """Create all tables defined in models."""
+        # Check if SQLAlchemy is enabled
+        if not getattr(settings, "SQLALCHEMY_ENABLED", True):
+            logger.info("SQLAlchemy is disabled, skipping table creation")
+            return
+
         if not self.engine:
             self.connect()
 
@@ -140,6 +154,11 @@ class DatabaseConnection:
 
     def drop_tables(self) -> None:
         """Drop all tables defined in models."""
+        # Check if SQLAlchemy is enabled
+        if not getattr(settings, "SQLALCHEMY_ENABLED", True):
+            logger.info("SQLAlchemy is disabled, skipping table deletion")
+            return
+
         if not self.engine:
             self.connect()
 
@@ -153,6 +172,11 @@ class DatabaseConnection:
         Returns:
             True if database is healthy, False otherwise
         """
+        # Check if SQLAlchemy is enabled
+        if not getattr(settings, "SQLALCHEMY_ENABLED", True):
+            logger.debug("SQLAlchemy is disabled, health check not applicable")
+            return True
+
         try:
             if not self.engine:
                 self.connect()
@@ -203,9 +227,26 @@ def get_db_connection() -> DatabaseConnection:
     Returns:
         DatabaseConnection instance
     """
-    global db_connection
+    # Check if SQLAlchemy is enabled - handle case where settings might not be loaded
+    try:
+        from django.conf import settings
+
+        if not getattr(settings, "SQLALCHEMY_ENABLED", True):
+            logger.debug("SQLAlchemy is disabled, returning connection instance without connecting")
+            return db_connection
+    except ImportError:
+        # Django settings not available yet
+        logger.debug("Django settings not available, returning connection instance without connecting")
+        return db_connection
+
+    # Only try to connect if SQLAlchemy is enabled and engine doesn't exist
     if not db_connection.engine:
-        db_connection.connect()
+        try:
+            db_connection.connect()
+        except Exception as e:
+            logger.debug(f"Failed to connect to database: {str(e)}")
+            # Don't fail if connection fails
+            pass
     return db_connection
 
 
@@ -217,17 +258,6 @@ def get_db_session() -> Session:
         SQLAlchemy session
     """
     return get_db_connection().get_session()
-
-
-def get_engine() -> Engine:
-    """
-    Get the SQLAlchemy engine.
-
-    Returns:
-        SQLAlchemy engine
-    """
-    connection = get_db_connection()
-    return connection.engine
 
 
 # Context manager for database sessions
@@ -294,11 +324,6 @@ def health_check() -> bool:
 
 
 # Create engine and SessionLocal instances for backwards compatibility
-def get_engine():
-    """Get the database engine."""
-    return get_db_connection().engine
-
-
 def get_session_factory():
     """Get the session factory."""
     return get_db_connection().SessionLocal
@@ -312,10 +337,28 @@ SessionLocal = None
 def _initialize_globals():
     """Initialize global engine and SessionLocal."""
     global engine, SessionLocal
+
+    # Check if SQLAlchemy is enabled
+    try:
+        from django.conf import settings
+
+        if not getattr(settings, "SQLALCHEMY_ENABLED", True):
+            logger.debug("SQLAlchemy is disabled, skipping global initialization")
+            return
+    except ImportError:
+        # Django settings not available yet
+        logger.debug("Django settings not available, skipping global initialization")
+        return
+
     if engine is None:
-        connection = get_db_connection()
-        engine = connection.engine
-        SessionLocal = connection.SessionLocal
+        try:
+            connection = get_db_connection()
+            engine = connection.engine
+            SessionLocal = connection.SessionLocal
+        except Exception as e:
+            logger.debug(f"Failed to initialize globals: {str(e)}")
+            # Don't fail import if connection fails
+            pass
 
 
 # Initialize on import

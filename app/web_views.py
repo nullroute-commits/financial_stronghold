@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
-from django.db import transaction
+from django.db import transaction as db_transaction
 from django.urls import reverse
 from decimal import Decimal
 from datetime import datetime
@@ -539,7 +539,7 @@ def transaction_create(request):
                 transaction_create, tenant_type=tenant_context["tenant_type"], tenant_id=tenant_context["tenant_id"]
             )
 
-            messages.success(request, f"Transaction created successfully")
+            messages.success(request, "Transaction created successfully")
             return redirect("transactions:detail", transaction_id=transaction.id)
 
     except Exception as e:
@@ -599,7 +599,7 @@ def transaction_edit(request, transaction_id):
                 tenant_id=tenant_context["tenant_id"],
             )
 
-            messages.success(request, f"Transaction updated successfully")
+            messages.success(request, "Transaction updated successfully")
             return redirect("transactions:detail", transaction_id=updated_transaction.id)
 
     except Exception as e:
