@@ -46,7 +46,8 @@ FROM base AS development
 
 # Install development dependencies
 COPY requirements/development.txt /tmp/requirements.txt
-RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org --no-cache-dir -r /tmp/requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org --no-cache-dir -r /tmp/requirements.txt
 
 # Copy application code
 COPY . /app/
@@ -57,7 +58,7 @@ RUN mkdir -p /app/logs /app/staticfiles /app/media && \
     chmod 755 /app/logs
 
 # Set permissions for entrypoint script
-COPY docker-entrypoint-dev.sh /entrypoint.sh
+COPY docker-entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 USER app
