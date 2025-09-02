@@ -12,7 +12,7 @@ services:
       - DJANGO_SETTINGS_MODULE=config.settings.production
       - DEBUG=False
     env_file:
-      - environments/.env.production.example
+      - .env.production
     ports:
       - "8002:8000"  # Expose for testing validation
     deploy:
