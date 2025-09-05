@@ -8,14 +8,14 @@ Last updated: 2025-09-02 by AI Assistant
 from django.contrib import admin
 from django.urls import path
 from django.http import JsonResponse
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def health_check(request):
     """Basic health check endpoint."""
     health_status = {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "service": "django-app",
         "version": "1.0.0",
         "environment": "testing",
