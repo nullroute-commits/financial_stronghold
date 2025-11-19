@@ -58,11 +58,11 @@ def process_file_import_task(self, import_job_id):
         
         # Process file based on type
         if import_job.file_type == ImportJob.FileType.CSV:
-            await process_csv_import(import_service, import_job, file_upload)
+            process_csv_import(import_service, import_job, file_upload)
         elif import_job.file_type == ImportJob.FileType.EXCEL:
-            await process_excel_import(import_service, import_job, file_upload)
+            process_excel_import(import_service, import_job, file_upload)
         elif import_job.file_type == ImportJob.FileType.PDF:
-            await process_pdf_import(import_service, import_job, file_upload)
+            process_pdf_import(import_service, import_job, file_upload)
         
         # Mark job as completed
         import_job.mark_completed()
@@ -138,7 +138,7 @@ def process_file_import_task(self, import_job_id):
         raise exc
 
 
-async def process_csv_import(import_service, import_job, file_upload):
+def process_csv_import(import_service, import_job, file_upload):
     """Process CSV file import."""
     
     current_task.update_state(
@@ -164,7 +164,7 @@ async def process_csv_import(import_service, import_job, file_upload):
     
     # Process each row
     for index, row in df.iterrows():
-        await import_service._process_transaction_row(import_job, index + 1, row.to_dict())
+        import_service._process_transaction_row(import_job, index + 1, row.to_dict())
         
         # Update progress every 100 rows
         if (index + 1) % 100 == 0:
@@ -193,12 +193,12 @@ async def process_csv_import(import_service, import_job, file_upload):
     )
 
 
-async def process_excel_import(import_service, import_job, file_upload):
+def process_excel_import(import_service, import_job, file_upload):
     """Process Excel file import (Sprint 8 implementation)."""
     raise NotImplementedError("Excel import will be implemented in Sprint 8")
 
 
-async def process_pdf_import(import_service, import_job, file_upload):
+def process_pdf_import(import_service, import_job, file_upload):
     """Process PDF file import (Sprint 9 implementation)."""
     raise NotImplementedError("PDF import will be implemented in Sprint 9")
 
