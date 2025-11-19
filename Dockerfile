@@ -45,9 +45,9 @@ RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
 FROM base AS development
 
 # Install development dependencies
-COPY requirements/development.txt /tmp/requirements.txt
-RUN pip install --upgrade pip && \
-    pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org --no-cache-dir -r /tmp/requirements.txt
+COPY requirements/ /tmp/requirements/
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org --no-cache-dir -r /tmp/requirements/development.txt
 
 # Copy application code
 COPY . /app/
@@ -72,8 +72,8 @@ CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 FROM base AS testing
 
 # Install test dependencies
-COPY requirements/test.txt /tmp/requirements.txt
-RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org --no-cache-dir -r /tmp/requirements.txt
+COPY requirements/ /tmp/requirements/
+RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org --no-cache-dir -r /tmp/requirements/test.txt
 
 # Copy application code
 COPY . /app/
@@ -98,8 +98,8 @@ CMD ["python", "manage.py", "test"]
 FROM base AS production
 
 # Install production dependencies
-COPY requirements/production.txt /tmp/requirements.txt
-RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org --no-cache-dir -r /tmp/requirements.txt
+COPY requirements/ /tmp/requirements/
+RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org --no-cache-dir -r /tmp/requirements/production.txt
 
 # Copy application code
 COPY . /app/
