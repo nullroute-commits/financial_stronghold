@@ -242,7 +242,7 @@ CREATE POLICY audit_read_only ON audit_logs
 
 ```dockerfile
 # Dockerfile security practices
-FROM python:3.12.5-slim as base
+FROM python:3.12.3-slim as base
 
 # Create non-root user
 RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app

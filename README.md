@@ -7,7 +7,7 @@ A comprehensive Django 5 application with SQLAlchemy, PostgreSQL 17, RBAC (Role-
 This project demonstrates a production-ready Django 5 application with comprehensive financial management capabilities:
 
 ### **🏗️ Core Platform Features**
-- **Django 5.1.3** with Python 3.12.5
+- **Django 5.1.13** with Python 3.12.3
 - **PostgreSQL 17.2** database with optimized configuration
 - **Django REST Framework** for robust API capabilities
 - **Redis** for high-performance caching and task queues
@@ -59,8 +59,8 @@ This project demonstrates a production-ready Django 5 application with comprehen
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/nullroute-commits/Test.git
-   cd Test
+   git clone https://github.com/nullroute-commits/financial_stronghold.git
+   cd financial_stronghold
    ```
 
 2. **Start development environment:**
@@ -131,7 +131,7 @@ docker-compose -f ci/docker-compose.ci.yml run lint-check
 │                           Presentation Layer                               │
 │                                                                           │
 │    ┌─────────────┐     ┌────────────────┐      ┌────────────────┐        │
-│    │ Nginx 1.24  │────▶│ Django 5.1.3   │      │ Admin Interface│        │
+│    │ Nginx 1.24  │────▶│ Django 5.1.13  │      │ Admin Interface│        │
 │    │ Load Balancer│     │ Web Application│      │ Management     │        │
 │    └─────────────┘     └────────────────┘      └────────────────┘        │
 └───────────────────────────────────────────────────────────────────────────┘
@@ -412,7 +412,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 For questions and support:
-- GitHub Issues: [https://github.com/nullroute-commits/Test/issues](https://github.com/nullroute-commits/Test/issues)
+- GitHub Issues: [https://github.com/nullroute-commits/financial_stronghold/issues](https://github.com/nullroute-commits/financial_stronghold/issues)
 - Documentation: See the `docs/` directory for detailed documentation
 
 ---

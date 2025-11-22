@@ -1,7 +1,7 @@
 # Django 5 Multi-Architecture Application - Modernized
 
-[![Django](https://img.shields.io/badge/Django-5.1.3-green.svg)](https://www.djangoproject.com/)
-[![Python](https://img.shields.io/badge/Python-3.12.5-blue.svg)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/Django-5.1.13-green.svg)](https://www.djangoproject.com/)
+[![Python](https://img.shields.io/badge/Python-3.12.3-blue.svg)](https://www.python.org/)
 [![Alpine](https://img.shields.io/badge/Alpine-3.18-lightblue.svg)](https://alpinelinux.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17.2-blue.svg)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-24.0+-blue.svg)](https://www.docker.com/)
@@ -40,7 +40,7 @@ A production-ready Django 5 application with comprehensive financial management 
 ## 🏗️ Architecture Overview
 
 ### **Core Platform Features**
-- **Django 5.1.3** with Python 3.12.5
+- **Django 5.1.13** with Python 3.12.3
 - **PostgreSQL 17.2** database with optimized configuration
 - **Django REST Framework** for robust API capabilities
 - **Redis** for high-performance caching and task queues
@@ -75,8 +75,8 @@ A production-ready Django 5 application with comprehensive financial management 
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/nullroute-commits/Test.git
-   cd Test
+   git clone https://github.com/nullroute-commits/financial_stronghold.git
+   cd financial_stronghold
    ```
 
 2. **Start development environment:**
