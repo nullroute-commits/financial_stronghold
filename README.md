@@ -10,8 +10,8 @@ This project demonstrates a production-ready Django 5 application with comprehen
 - **Django 5.1.13** with Python 3.12.3
 - **PostgreSQL 17.2** database with optimized configuration
 - **Django REST Framework** for robust API capabilities
-- **Redis** for high-performance caching and task queues
-- **RabbitMQ 3.12.8** for message queuing and async processing
+- **Redis 7** for high-performance caching and task queues
+- **RabbitMQ 3.12** for message queuing and async processing
 - **RBAC System** for fine-grained access control
 - **Audit Logging** for comprehensive activity tracking
 - **Multi-architecture Docker support** (linux/amd64, linux/arm64)

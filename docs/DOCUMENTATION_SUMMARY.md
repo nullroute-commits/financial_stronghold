@@ -115,13 +115,13 @@ The deployment configuration is ready for:
 - Backup and recovery procedures
 - Migration management
 
-### Cache (Memcached 1.6.22)
+### Cache (Memcached 1.6)
 - Setup and configuration
 - Performance monitoring
 - Cache strategies and optimization
 - Troubleshooting cache issues
 
-### Message Queue (RabbitMQ 3.12.8)
+### Message Queue (RabbitMQ 3.12)
 - Configuration and management
 - Queue monitoring and performance
 - Async task processing

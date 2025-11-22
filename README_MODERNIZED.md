@@ -43,8 +43,9 @@ A production-ready Django 5 application with comprehensive financial management 
 - **Django 5.1.13** with Python 3.12.3
 - **PostgreSQL 17.2** database with optimized configuration
 - **Django REST Framework** for robust API capabilities
-- **Redis** for high-performance caching and task queues
-- **RabbitMQ 3.12.8** for message queuing and async processing
+- **Redis 7** for high-performance caching and task queues
+- **Memcached 1.6** for distributed caching
+- **RabbitMQ 3.12** for message queuing and async processing
 - **RBAC System** for fine-grained access control
 - **Audit Logging** for comprehensive activity tracking
 
