@@ -15,15 +15,15 @@ jobs:
   quality-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # pinned v4.1.1
       
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@80e1d1595f537b8c5ff31ffe55e9410ae059a1b0 # pinned v5.0.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       
       - name: Cache dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@42488d1f442c442b7347f7380c265bdf51cc966b # pinned v4.2.2
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
@@ -83,10 +83,10 @@ jobs:
           - 6379:6379
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # pinned v4.1.1
       
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@80e1d1595f537b8c5ff31ffe55e9410ae059a1b0 # pinned v5.0.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       
@@ -124,7 +124,7 @@ jobs:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/sprint')
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # pinned v4.1.1
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -165,7 +165,7 @@ jobs:
     environment: staging
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # pinned v4.1.1
       
       - name: Deploy to staging
         run: |
@@ -190,7 +190,7 @@ jobs:
     environment: production
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # pinned v4.1.1
       
       - name: Deploy to production
         run: |
