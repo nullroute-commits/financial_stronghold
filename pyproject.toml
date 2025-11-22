@@ -21,7 +21,7 @@ classifiers = [
     "Framework :: Django",
     "Framework :: Django :: 5.0",
 ]
-requires-python = ">=3.12"  # Tested with 3.12.3, should work with 3.13+
+requires-python = ">=3.12,<3.14"  # Tested with 3.12.3, allow 3.12.x and 3.13.x
 dependencies = [
     "Django==5.1.13",
     "psycopg2-binary==2.9.10",

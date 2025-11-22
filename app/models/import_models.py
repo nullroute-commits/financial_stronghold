@@ -3,6 +3,10 @@ Django models for file import and transaction analysis system.
 Foundation models for the import feature implementation.
 
 Created by Team Sigma (Data Processing & Import) - Sprint 7
+
+Note: Uses settings.AUTH_USER_MODEL instead of get_user_model() to avoid
+circular import issues during Django startup. This is the recommended pattern
+for model ForeignKey definitions.
 """
 
 import uuid
@@ -29,6 +33,7 @@ class ImportJob(models.Model):
         PDF = 'PDF', 'PDF File'
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # Using settings.AUTH_USER_MODEL for lazy evaluation to prevent circular imports
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='import_jobs')
     
     # File information

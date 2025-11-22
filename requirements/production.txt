@@ -12,6 +12,9 @@ python-json-logger==2.0.7
 psutil==5.9.6
 whitenoise==6.8.2
 # Removed pylibmc and uwsgi due to Python 3.12 compatibility issues
+# Even newer versions (uwsgi 2.0.28) remain incompatible with Python 3.12
+# Using gunicorn as alternative to uwsgi
+# Using python-memcached as alternative to pylibmc
 # django-pylibmc==0.6.1
 # pylibmc==1.6.3
 # uwsgi==2.0.28

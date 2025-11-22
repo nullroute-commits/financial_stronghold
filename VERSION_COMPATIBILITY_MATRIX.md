@@ -199,8 +199,8 @@ docker-compose exec rabbitmq rabbitmqctl version
 
 ## Support & Compatibility Timeline
 
-- **Python 3.12.3**: Supported until October 2028
-- **Django 5.1**: Supported until April 2025 (5.2 LTS recommended for long-term)
+- **Python 3.12**: Supported until October 2028
+- **Django 5.1**: Supported until December 2025 (6.0 LTS expected April 2026)
 - **PostgreSQL 17**: Supported until November 2029
 - **All dependencies**: Using latest stable versions as of 2025-11-22
 
