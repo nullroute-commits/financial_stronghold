@@ -347,7 +347,15 @@ docker-compose -f docker-compose.production.yml up -d --scale web=3
 
 ## Documentation
 
-📚 Live documentation: https://nullroute-commits.github.io/financial_stronghold/
+📚 **Live documentation**: https://nullroute-commits.github.io/financial_stronghold/
+
+📖 **Architecture Deep Dive**: See [SOLUTION_ARCHITECTURE_ANALYSIS.md](SOLUTION_ARCHITECTURE_ANALYSIS.md) for a comprehensive analysis of:
+- Why each technology was chosen and what problems it solves
+- How solutions are implemented and work together
+- Trade-offs and design decisions
+- Performance characteristics and optimization strategies
+- Security architecture and defense-in-depth approach
+- Future considerations and scaling paths
 
 ## Troubleshooting
 
