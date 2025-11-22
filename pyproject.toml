@@ -54,9 +54,10 @@ test = [
 ]
 prod = [
     "sentry-sdk==2.18.0",
-    "django-pylibmc==0.6.1",
-    "pylibmc==1.6.3",
-    "uwsgi==2.0.28",
+    # Removed pylibmc and uwsgi due to Python 3.12 compatibility issues
+    # "django-pylibmc==0.6.1",
+    # "pylibmc==1.6.3",
+    # "uwsgi==2.0.28",
 ]
 
 [project.urls]
