@@ -13,12 +13,14 @@ TESTING = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "web", "testserver"]
 
-# Testing database settings
-DATABASES["default"].update(
-    {
-        "NAME": os.environ.get("POSTGRES_DB", "django_app_test"),
+# Testing database settings - use SQLite in-memory for speed
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
+        "ATOMIC_REQUESTS": True,
     }
-)
+}
 
 # Use in-memory cache for testing
 CACHES = {
@@ -28,17 +30,8 @@ CACHES = {
     }
 }
 
-
-# Disable migrations during testing for speed
-class DisableMigrations:
-    def __contains__(self, item):
-        return True
-
-    def __getitem__(self, item):
-        return None
-
-
-MIGRATION_MODULES = DisableMigrations()
+# Testing uses --no-migrations flag in pytest, so we don't need to disable here
+# This allows Django to create tables directly from models for testing
 
 # Use faster password hasher for testing
 PASSWORD_HASHERS = [
