@@ -1,0 +1,5 @@
+# Logs directory
+# Keep this directory but ignore all log files
+*
+!.gitignore
+!.gitkeep
