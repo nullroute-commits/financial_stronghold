@@ -69,13 +69,13 @@ The application follows a multi-tier architecture pattern with clear separation 
 │                              Data Layer                                     │
 │                                                                             │
 │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────────┐ │
-│  │  PostgreSQL 17  │    │   Memcached     │    │      RabbitMQ 3.12      │ │
+│  │  PostgreSQL 17  │    │   Memcached     │    │      Redis 7            │ │
 │  │                 │    │     1.6.22      │    │                         │ │
-│  │ • Primary DB    │    │                 │    │ • Message Broker        │ │
-│  │ • Transactions  │    │ • Session Cache │    │ • Task Queues           │ │
-│  │ • ACID Compliance│   │ • Query Cache   │    │ • Event Streaming       │ │
-│  │ • Backup/Recovery│   │ • User Cache    │    │ • Dead Letter Queues    │ │
-│  │ • Replication   │    │ • App Cache     │    │ • Priority Queues       │ │
+│  │ • Primary DB    │    │                 │    │ • Celery Broker         │ │
+│  │ • Transactions  │    │ • Session Cache │    │ • Task Results          │ │
+│  │ • ACID Compliance│   │ • Query Cache   │    │ • Background Jobs       │ │
+│  │ • Backup/Recovery│   │ • User Cache    │    │ • Async Processing      │ │
+│  │ • Replication   │    │ • App Cache     │    │ • Periodic Tasks        │ │
 │  └─────────────────┘    └─────────────────┘    └─────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -109,7 +109,7 @@ The application follows a multi-tier architecture pattern with clear separation 
 │                            (Private Subnet)                                │
 │                                                                             │
 │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────────┐ │
-│  │ PostgreSQL:5432 │    │ Memcached:11211 │    │   RabbitMQ:5672/15672   │ │
+│  │ PostgreSQL:5432 │    │ Memcached:11211 │    │      Redis:6379         │ │
 │  └─────────────────┘    └─────────────────┘    └─────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -144,8 +144,8 @@ The application follows a multi-tier architecture pattern with clear separation 
 │  │                         Data Access Layer                               │ │
 │  │                                                                         │ │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐ │ │
-│  │  │   Models    │  │   ORM       │  │   Cache     │  │   Queue         │ │ │
-│  │  │ (Django)    │  │(SQLAlchemy) │  │(Memcached)  │  │  (RabbitMQ)     │ │ │
+│  │  │   Models    │  │   ORM       │  │   Cache     │  │   Redis         │ │ │
+│  │  │ (Django)    │  │(SQLAlchemy) │  │(Memcached)  │  │  (Celery)       │ │ │
 │  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────────┘ │ │
 │  └─────────────────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -301,13 +301,13 @@ The application follows a multi-tier architecture pattern with clear separation 
 │                                               │                             │
 │                                               ▼                             │
 │                                      ┌─────────────┐                        │
-│                                      │  RabbitMQ   │                        │
-│                                      │Message Queue│                        │
+│                                      │    Redis    │                        │
+│                                      │Celery Broker│                        │
 │                                      └─────────────┘                        │
 │                                               │                             │
 │                                               ▼                             │
 │                                      ┌─────────────┐                        │
-│                                      │ Background  │                        │
+│                                      │   Celery    │                        │
 │                                      │   Workers   │                        │
 │                                      └─────────────┘                        │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -394,9 +394,9 @@ The application follows a multi-tier architecture pattern with clear separation 
 │                          Development Environment                            │
 │                                                                             │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
-│  │   Django    │  │ PostgreSQL  │  │ Memcached   │  │      RabbitMQ       │ │
+│  │   Django    │  │ PostgreSQL  │  │ Memcached   │  │       Redis         │ │
 │  │ (Debug=True)│  │   (Local)   │  │  (Local)    │  │      (Local)        │ │
-│  │   Port:8000 │  │ Port:5432   │  │ Port:11211  │  │  Port:5672/15672    │ │
+│  │   Port:8000 │  │ Port:5432   │  │ Port:11211  │  │     Port:6379       │ │
 │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────────────┘ │
 │                                                                             │
 │  Additional Services:                                                       │
@@ -408,9 +408,9 @@ The application follows a multi-tier architecture pattern with clear separation 
 │                            Testing Environment                              │
 │                                                                             │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
-│  │   Django    │  │ PostgreSQL  │  │ Memcached   │  │      RabbitMQ       │ │
+│  │   Django    │  │ PostgreSQL  │  │ Memcached   │  │       Redis         │ │
 │  │(Debug=False)│  │  (tmpfs)    │  │ (In-Memory) │  │     (Ephemeral)     │ │
-│  │  Test Mode  │  │  Fast I/O   │  │   Testing   │  │     Test Queues     │ │
+│  │  Test Mode  │  │  Fast I/O   │  │   Testing   │  │     Test Tasks      │ │
 │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────────────┘ │
 │                                                                             │
 │  Test Services:                                                             │
@@ -429,8 +429,8 @@ The application follows a multi-tier architecture pattern with clear separation 
 │                   └─────────────┘  └─────────────┘  └─────────────────────┘ │
 │                                                                             │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
-│  │  RabbitMQ   │  │ Monitoring  │  │   Logging   │  │      Backup         │ │
-│  │ (Clustered) │  │(Prometheus) │  │ (Fluentd)   │  │   (Automated)       │ │
+│  │    Redis    │  │ Monitoring  │  │   Logging   │  │      Backup         │ │
+│  │  (Celery)   │  │(Prometheus) │  │ (Fluentd)   │  │   (Automated)       │ │
 │  │ Persistent  │  │  Grafana    │  │  Central    │  │    S3/GCS           │ │
 │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────────────┘

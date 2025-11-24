@@ -69,13 +69,13 @@ The application follows a multi-tier architecture pattern with clear separation 
 │                              Data Layer                                     │
 │                                                                             │
 │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────────┐ │
-│  │  PostgreSQL 17  │    │   Memcached     │    │      RabbitMQ 3.12      │ │
+│  │  PostgreSQL 17  │    │   Memcached     │    │      Redis 7            │ │
 │  │                 │    │     1.6.22      │    │                         │ │
-│  │ • Primary DB    │    │                 │    │ • Message Broker        │ │
-│  │ • Transactions  │    │ • Session Cache │    │ • Task Queues           │ │
-│  │ • ACID Compliance│   │ • Query Cache   │    │ • Event Streaming       │ │
-│  │ • Backup/Recovery│   │ • User Cache    │    │ • Dead Letter Queues    │ │
-│  │ • Replication   │    │ • App Cache     │    │ • Priority Queues       │ │
+│  │ • Primary DB    │    │                 │    │ • Celery Broker         │ │
+│  │ • Transactions  │    │ • Session Cache │    │ • Task Results          │ │
+│  │ • ACID Compliance│   │ • Query Cache   │    │ • Background Jobs       │ │
+│  │ • Backup/Recovery│   │ • User Cache    │    │ • Async Processing      │ │
+│  │ • Replication   │    │ • App Cache     │    │ • Periodic Tasks        │ │
 │  └─────────────────┘    └─────────────────┘    └─────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```

@@ -7,11 +7,12 @@ A comprehensive Django 5 application with SQLAlchemy, PostgreSQL 17, RBAC (Role-
 This project demonstrates a production-ready Django 5 application with comprehensive financial management capabilities:
 
 ### **🏗️ Core Platform Features**
-- **Django 5.1.13** with Python 3.12.3
+- **Django 5.1.13** with Python 3.12.5
 - **PostgreSQL 17.2** database with optimized configuration
 - **Django REST Framework** for robust API capabilities
-- **Redis 7** for high-performance caching and task queues
-- **RabbitMQ 3.12** for message queuing and async processing
+- **Memcached 1.6** for high-performance caching
+- **Redis 7** for Celery task queue broker and results backend
+- **Celery 5.4** for asynchronous background task processing
 - **RBAC System** for fine-grained access control
 - **Audit Logging** for comprehensive activity tracking
 - **Multi-architecture Docker support** (linux/amd64, linux/arm64)
@@ -21,7 +22,7 @@ This project demonstrates a production-ready Django 5 application with comprehen
 ### **🆕 NEW: Multi-Format Transaction Import & Analysis**
 - **📁 File Import**: CSV, Excel (.xlsx/.xls), PDF support
 - **🤖 AI Categorization**: Machine learning with 87%+ accuracy
-- **⚡ Background Processing**: Asynchronous file processing with Celery
+- **⚡ Background Processing**: Asynchronous file processing with Celery and Redis
 - **🔒 Enterprise Security**: Comprehensive file validation and scanning
 - **📊 Import Analytics**: Detailed insights and performance metrics
 - **📱 Modern UI**: Responsive drag-and-drop interface
@@ -74,7 +75,6 @@ This project demonstrates a production-ready Django 5 application with comprehen
    - Admin Panel: http://localhost:8000/admin (admin/admin123)
    - **🔗 API Endpoints**: http://localhost:8000/api/v1/
    - Database Admin: http://localhost:8080
-   - RabbitMQ Management: http://localhost:15672 (guest/guest)
    - Mailhog: http://localhost:8025
 
 ### **🚀 Try the Import Feature**
@@ -149,8 +149,8 @@ docker-compose -f ci/docker-compose.ci.yml run lint-check
 │                           Data Layer                                       │
 │                                                                           │
 │    ┌───────────────┐     ┌────────────────┐      ┌────────────────┐      │
-│    │ PostgreSQL 17 │     │ Memcached      │      │ RabbitMQ       │      │
-│    │ Database      │     │ Cache          │      │ Message Broker │      │
+│    │ PostgreSQL 17 │     │ Memcached 1.6  │      │ Redis 7        │      │
+│    │ Database      │     │ Cache          │      │ Celery Broker  │      │
 │    └───────────────┘     └────────────────┘      └────────────────┘      │
 └───────────────────────────────────────────────────────────────────────────┘
 ```
@@ -170,21 +170,28 @@ docker-compose -f ci/docker-compose.ci.yml run lint-check
 - User authentication monitoring
 - Sensitive data sanitization
 
-#### Caching and Message Queuing
+#### Caching and Background Task Processing
 
 **Memcached:**
-- Distributed memory caching system
+- Distributed memory caching system for sessions and query results
 - Connection pooling for efficient resource usage
 - Automatic key namespacing to prevent collisions
 - Configurable timeout handling
 - Cache decorator for easy function result caching
 
-**RabbitMQ:**
-- Message broker for asynchronous processing
-- Durable queues and messages for reliability
-- Dead-letter queues for failed message handling
-- Automatic reconnection for fault tolerance
-- Task queue decorator for easy asynchronous execution
+**Redis:**
+- Message broker for Celery task queue system
+- Result backend for storing task results
+- High-performance in-memory data structure store
+- Persistence enabled for task durability
+- Optimized memory management with LRU eviction
+
+**Celery:**
+- Distributed task queue for asynchronous processing
+- Used for file import processing and background jobs
+- Task routing with dedicated queues (file_processing, notifications, maintenance, analytics)
+- Automatic retry and error handling
+- Periodic tasks for maintenance and analytics
 
 #### Multi-Architecture Support
 - Supports linux/amd64 and linux/arm64 platforms
@@ -232,7 +239,6 @@ Environment variables are organized in separate files:
 - `.env.app` - Application settings
 - `.env.db` - Database configuration
 - `.env.cache` - Memcached settings
-- `.env.queue` - RabbitMQ configuration
 - `.env.security` - Security settings
 - `.env.logging` - Logging configuration
 
@@ -374,12 +380,18 @@ docker-compose -f docker-compose.production.yml up -d --scale web=3
    ```bash
    # Check Memcached status
    docker-compose exec memcached echo "stats" | nc localhost 11211
+   
+   # Check Redis status (Celery broker)
+   docker-compose exec redis redis-cli ping
    ```
 
-3. **Queue Issues:**
+3. **Background Task Issues:**
    ```bash
-   # Check RabbitMQ status
-   docker-compose exec rabbitmq rabbitmqctl status
+   # Check Celery worker status (if running)
+   docker-compose exec web celery -A config inspect active
+   
+   # Check Redis broker connection
+   docker-compose exec redis redis-cli ping
    ```
 
 ### Debug Mode
