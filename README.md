@@ -27,6 +27,8 @@ This project demonstrates a production-ready Django 5 application with comprehen
 - **📊 Import Analytics**: Detailed insights and performance metrics
 - **📱 Modern UI**: Responsive drag-and-drop interface
 
+**Note**: Background task processing requires Celery workers to be started separately. The Redis service is available for Celery broker and result backend.
+
 #### **Import Feature Interface Preview**:
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -55,6 +57,11 @@ This project demonstrates a production-ready Django 5 application with comprehen
 - Docker 24.0.7+
 - Docker Compose 2.18.1+
 - Git
+
+**Note on Python Versions:**
+- Docker containers use Python 3.12.5 (specified in Dockerfile)
+- Local development can use Python 3.12.3+ (see .python-version)
+- Both versions are compatible with the codebase
 
 ### Development Environment
 
