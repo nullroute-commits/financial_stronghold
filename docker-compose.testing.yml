@@ -58,6 +58,11 @@ services:
       - RABBITMQ_DEFAULT_USER=test
       - RABBITMQ_DEFAULT_PASS=test
 
+  redis:
+    extends:
+      file: docker-compose.base.yml
+      service: redis
+
   # Test runner service
   test-runner:
     extends:
@@ -74,6 +79,7 @@ services:
       - db
       - memcached
       - rabbitmq
+      - redis
 
   # Code quality checks
   linter:
@@ -93,6 +99,7 @@ services:
 volumes:
   postgres_data:
   rabbitmq_data:
+  redis_data:
   static_volume:
   media_volume:
   logs_volume:

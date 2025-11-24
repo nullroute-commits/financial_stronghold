@@ -30,7 +30,7 @@ Welcome to Financial Stronghold! This guide will help you get up and running qui
    - **Admin Panel**: http://localhost:8000/admin (admin/admin123)
    - **Database Admin**: http://localhost:8080 (Adminer)
    - **Email Testing**: http://localhost:8025 (Mailhog)
-   - **Message Queue**: http://localhost:15672 (RabbitMQ Management)
+   - **Message Queue** (optional): http://localhost:15672 (RabbitMQ Management - not actively used)
 
 ### For DevOps/Operations
 

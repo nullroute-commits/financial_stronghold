@@ -45,6 +45,13 @@ services:
       - "5672:5672"
       - "15672:15672"
 
+  redis:
+    extends:
+      file: docker-compose.base.yml
+      service: redis
+    ports:
+      - "6379:6379"
+
   # Development tools
   adminer:
     image: adminer:4-standalone
@@ -69,6 +76,7 @@ services:
 volumes:
   postgres_data:
   rabbitmq_data:
+  redis_data:
   static_volume:
   media_volume:
   logs_volume:

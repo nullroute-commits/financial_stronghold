@@ -92,6 +92,19 @@ services:
           cpus: '0.5'
           memory: 512M
 
+  redis:
+    extends:
+      file: docker-compose.base.yml
+      service: redis
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
   nginx:
     extends:
       file: docker-compose.base.yml
@@ -141,6 +154,7 @@ volumes:
   prometheus_data:
   postgres_data:
   rabbitmq_data:
+  redis_data:
   static_volume:
   media_volume:
   logs_volume:

@@ -121,11 +121,12 @@ The deployment configuration is ready for:
 - Cache strategies and optimization
 - Troubleshooting cache issues
 
-### Message Queue (RabbitMQ 3.12)
-- Configuration and management
-- Queue monitoring and performance
-- Async task processing
-- Cluster setup for production
+### Task Queue (Redis 7 + Celery 5.4)
+- Redis as message broker and result backend
+- Celery worker configuration and management
+- Task monitoring and performance
+- Async task processing and routing
+- Periodic task scheduling
 
 ### Web Server (Nginx 1.24)
 - Load balancing configuration
