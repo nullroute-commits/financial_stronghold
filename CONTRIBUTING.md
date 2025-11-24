@@ -605,7 +605,13 @@ Related to #456
 
 **DO NOT** create public GitHub issues for security vulnerabilities.
 
-Instead, email security concerns to: [security email address]
+Instead, report security concerns through GitHub's Security Advisory feature:
+1. Go to https://github.com/nullroute-commits/financial_stronghold/security/advisories
+2. Click "New draft security advisory"
+3. Provide details about the vulnerability
+
+Or create a private security vulnerability report at:
+https://github.com/nullroute-commits/financial_stronghold/security/advisories/new
 
 Include:
 - Description of the vulnerability
