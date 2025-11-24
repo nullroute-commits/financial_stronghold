@@ -347,15 +347,42 @@ docker-compose -f docker-compose.production.yml up -d --scale web=3
 
 ## Documentation
 
-📚 **Live documentation**: https://nullroute-commits.github.io/financial_stronghold/
+📚 **Complete documentation index**: See [docs/INDEX.md](docs/INDEX.md) for all documentation resources.
 
-📖 **Architecture Deep Dive**: See [SOLUTION_ARCHITECTURE_ANALYSIS.md](SOLUTION_ARCHITECTURE_ANALYSIS.md) for a comprehensive analysis of:
-- Why each technology was chosen and what problems it solves
-- How solutions are implemented and work together
-- Trade-offs and design decisions
-- Performance characteristics and optimization strategies
-- Security architecture and defense-in-depth approach
-- Future considerations and scaling paths
+### Quick Access
+
+- **🚀 [Quick Start Guide](docs/QUICK_START_GUIDE.md)** - Get up and running in 15 minutes
+- **📖 [API Documentation](docs/API_DOCUMENTATION.md)** - Complete API reference with examples
+- **🧪 [Testing Guide](docs/TESTING_GUIDE.md)** - Comprehensive testing documentation
+- **🤝 [Contributing Guide](CONTRIBUTING.md)** - How to contribute to the project
+- **🏗️ [Architecture Deep Dive](SOLUTION_ARCHITECTURE_ANALYSIS.md)** - Detailed analysis of:
+  - Why each technology was chosen and what problems it solves
+  - How solutions are implemented and work together
+  - Trade-offs and design decisions
+  - Performance characteristics and optimization strategies
+  - Security architecture and defense-in-depth approach
+  - Future considerations and scaling paths
+
+### Additional Resources
+
+- **[Architecture Overview](ARCHITECTURE.md)** - System architecture diagrams
+- **[Configuration System](docs/CONFIGURATION_SYSTEM.md)** - Environment and settings
+- **[Security Model](docs/SECURITY_MODEL.md)** - Security implementation details
+- **[Deployment Guide](docs/FEATURE_DEPLOYMENT_GUIDE.md)** - Production deployment
+- **[Version Compatibility Matrix](VERSION_COMPATIBILITY_MATRIX.md)** - Component versions
+- **[Known Issues](KNOWN_ISSUES.md)** - Current known issues and workarounds
+
+### For Developers
+
+- **[Development Workflow](CONTRIBUTING.md#development-workflow)** - Git workflow and branching
+- **[Coding Standards](CONTRIBUTING.md#coding-standards)** - Code style and conventions
+- **[Testing Requirements](CONTRIBUTING.md#testing-requirements)** - Test coverage and standards
+
+### For Operators
+
+- **[CI/CD Pipeline](docs/CI_CD_PIPELINE.md)** - Automated build and deployment
+- **[Deployment Validation](docs/DEPLOYMENT_VALIDATION.md)** - Validation checklist
+- **[Troubleshooting](docs/DEPLOYMENT_TROUBLESHOOTING.md)** - Common issues and solutions
 
 ## Troubleshooting
 
