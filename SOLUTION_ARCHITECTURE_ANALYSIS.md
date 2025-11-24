@@ -6,7 +6,7 @@ This document provides a comprehensive analysis of the architectural decisions, 
 
 **Document Version**: 1.0  
 **Analysis Date**: 2025-11-20  
-**Application Version**: Django 5.1.13 with Python 3.12.5
+**Application Version**: Django 5.1.13 with Python 3.12.3
 
 ---
 
@@ -110,7 +110,7 @@ Financial applications face unique challenges that require carefully chosen solu
 - **Better vacuum performance**: Reduced maintenance overhead
 - **Logical replication improvements**: Better high-availability options
 
-### Cache: Memcached 1.6.22
+### Cache: Memcached 1.6 (Alpine)
 
 #### Why Memcached?
 1. **Simplicity**: Easy to understand and operate
@@ -125,7 +125,7 @@ Financial applications face unique challenges that require carefully chosen solu
   - Easier to operate and monitor
   - Redis features (persistence, pub/sub) not required for this use case
 
-### Message Queue: RabbitMQ 3.12.8
+### Message Queue: RabbitMQ 3.12 (Alpine)
 
 #### Why RabbitMQ?
 1. **Reliability**: Message persistence and acknowledgment support
@@ -140,7 +140,7 @@ Financial applications face unique challenges that require carefully chosen solu
 - **Priority queues**: Critical tasks can be processed first
 - **Load distribution**: Work is automatically distributed to available workers
 
-### Python 3.12.5
+### Python 3.12.3
 
 #### Why Python 3.12?
 1. **Performance improvements**: 10-15% faster than Python 3.11
