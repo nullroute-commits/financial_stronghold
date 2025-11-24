@@ -64,7 +64,7 @@ When you start the development environment, these services become available:
 | Admin Interface | http://localhost:8000/admin | Django admin (admin/admin123) |
 | Database Admin | http://localhost:8080 | Adminer for database management |
 | Email Testing | http://localhost:8025 | Mailhog for email testing |
-| Message Queue UI | http://localhost:15672 | RabbitMQ management (guest/guest) |
+| Message Queue UI (optional) | http://localhost:15672 | RabbitMQ management (guest/guest) - not actively used |
 
 ### Code Quality Standards
 
