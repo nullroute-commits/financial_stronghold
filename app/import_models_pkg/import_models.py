@@ -3,16 +3,18 @@ Django models for file import and transaction analysis system.
 Foundation models for the import feature implementation.
 
 Created by Team Sigma (Data Processing & Import) - Sprint 7
+
+Note: Uses settings.AUTH_USER_MODEL instead of get_user_model() to avoid
+circular import issues during Django startup. This is the recommended pattern
+for model ForeignKey definitions.
 """
 
 import uuid
 from django.db import models
-from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.utils import timezone
 from django.core.validators import FileExtensionValidator
 from decimal import Decimal
-
-User = get_user_model()
 
 
 class ImportJob(models.Model):
@@ -31,7 +33,8 @@ class ImportJob(models.Model):
         PDF = 'PDF', 'PDF File'
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='import_jobs')
+    # Using settings.AUTH_USER_MODEL for lazy evaluation to prevent circular imports
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='import_jobs')
     
     # File information
     filename = models.CharField(max_length=255)
@@ -129,7 +132,7 @@ class ImportTemplate(models.Model):
     """Reusable templates for file import column mappings."""
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='import_templates')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='import_templates')
     
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -217,7 +220,7 @@ class TransactionCategory(models.Model):
     """Enhanced transaction categories for ML categorization."""
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transaction_categories', null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='transaction_categories', null=True, blank=True)
     
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -390,7 +393,7 @@ class FileUpload(models.Model):
         PROCESSED = 'PROCESSED', 'Processed'
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='file_uploads')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='file_uploads')
     
     # File information
     file = models.FileField(

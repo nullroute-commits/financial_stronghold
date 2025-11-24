@@ -7,7 +7,7 @@ Common questions and answers about Financial Stronghold.
 ### What is Financial Stronghold?
 
 Financial Stronghold is a comprehensive Django 5 application with multi-architecture CI/CD pipeline support. It features:
-- Django 5.1.3 with Python 3.12.5
+- Django 5.1.13 with Python 3.12.3
 - PostgreSQL 17.2 database
 - Containerized deployment with Docker
 - Role-based access control (RBAC)
@@ -81,7 +81,7 @@ Yes, Financial Stronghold is open source and available under the MIT License. Se
 ### Can I run Financial Stronghold without Docker?
 
 While the application is designed for Docker deployment, you can run it natively with:
-- Python 3.12.5
+- Python 3.12.3
 - PostgreSQL 17.2
 - Memcached 1.6.22
 - RabbitMQ 3.12.8

@@ -9,7 +9,7 @@ This guide provides comprehensive information for developers working on the Fina
 - **Docker**: 24.0.7 or later
 - **Docker Compose**: 2.18.1 or later  
 - **Git**: Latest stable version
-- **Python**: 3.12.5 (for local development)
+- **Python**: 3.12.3 (for local development)
 
 ### Quick Setup
 

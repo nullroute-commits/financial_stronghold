@@ -181,7 +181,7 @@ addopts = """
 **Build Configuration:**
 ```dockerfile
 # Multi-stage Dockerfile
-FROM python:3.12.5-slim as base
+FROM python:3.12.3-slim as base
 # Base dependencies
 
 FROM base as development  
@@ -228,7 +228,7 @@ trivy image django-app:latest \
 
 ```dockerfile
 # ci/Dockerfile.ci
-FROM python:3.12.5-slim as ci-base
+FROM python:3.12.3-slim as ci-base
 
 # Install CI dependencies
 RUN apt-get update && apt-get install -y \
@@ -323,7 +323,7 @@ docker buildx build \
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 
-FROM --platform=$BUILDPLATFORM python:3.12.5-slim as builder
+FROM --platform=$BUILDPLATFORM python:3.12.3-slim as builder
 
 # Cross-compilation setup
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
@@ -331,7 +331,7 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     fi
 
 # Platform-specific optimizations
-FROM --platform=$TARGETPLATFORM python:3.12.5-slim as production
+FROM --platform=$TARGETPLATFORM python:3.12.3-slim as production
 ```
 
 ### Registry Strategy

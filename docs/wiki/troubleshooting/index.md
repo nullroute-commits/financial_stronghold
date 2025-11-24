@@ -301,7 +301,7 @@ df -h
 1. **Use Multi-stage Builds**
    ```dockerfile
    # Already implemented in Dockerfile
-   FROM python:3.12.5-slim as base
+   FROM python:3.12.3-slim as base
    # ... base setup
    
    FROM base as production

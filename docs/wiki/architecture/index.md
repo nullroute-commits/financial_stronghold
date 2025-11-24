@@ -16,7 +16,7 @@ This section provides comprehensive documentation of the Financial Stronghold sy
 │                          Presentation Layer                                  │
 │                                                                             │
 │    ┌─────────────┐     ┌────────────────┐      ┌────────────────┐          │
-│    │ Nginx 1.24  │────▶│ Django 5.1.3   │      │ Admin Interface│          │
+│    │ Nginx 1.24  │────▶│ Django 5.1.13   │      │ Admin Interface│          │
 │    │ Load Balancer│     │ Web Application│      │ Management     │          │
 │    │ SSL/TLS      │     │ REST API       │      │ Monitoring     │          │
 │    └─────────────┘     └────────────────┘      └────────────────┘          │
@@ -365,7 +365,7 @@ financial_stronghold/
 | Component | Technology | Version | Purpose |
 |-----------|------------|---------|---------|
 | **Framework** | Django | 5.0.2 | Web application framework |
-| **Language** | Python | 3.12.5 | Programming language |
+| **Language** | Python | 3.12.3 | Programming language |
 | **Database** | PostgreSQL | 17.2 | Primary data storage |
 | **Cache** | Memcached | 1.6.22 | In-memory caching |
 | **Queue** | RabbitMQ | 3.12.8 | Message broker |

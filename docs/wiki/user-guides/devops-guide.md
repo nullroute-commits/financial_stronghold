@@ -156,7 +156,7 @@ docker buildx build \
 
 ```dockerfile
 # Multi-stage Dockerfile
-FROM python:3.12.5-slim as base
+FROM python:3.12.3-slim as base
 # Base dependencies
 
 FROM base as development  
@@ -440,7 +440,7 @@ X_FRAME_OPTIONS = 'DENY'
 
 ```dockerfile
 # Use multi-stage builds to reduce image size
-FROM python:3.12.5-alpine as base
+FROM python:3.12.3-alpine as base
 RUN apk update && apk add --no-cache \
     build-base \
     && rm -rf /var/cache/apk/*

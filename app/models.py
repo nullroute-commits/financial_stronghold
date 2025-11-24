@@ -24,7 +24,7 @@ from .django_models import (  # Core models; Multi-tenancy models; Financial mod
 )
 
 # Import new import feature models
-from .models.import_models import (
+from .import_models_pkg.import_models import (
     ImportJob,
     ImportTemplate,
     ImportValidationError,

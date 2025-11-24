@@ -1,38 +1,35 @@
-"""Multi-tenancy extension for Financial Stronghold."""
+"""Test configuration for Financial Stronghold."""
 
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from app.core.db.connection import Base
+from django.conf import settings
+
+# Configure Django settings for pytest
+pytest_plugins = ['pytest_django']
 
 
-@pytest.fixture(scope="function")
-def db_session():
-    """Create a test database session."""
-    # Use in-memory SQLite for testing with UUID compatibility
-    engine = create_engine("sqlite:///:memory:", echo=False)
-    
-    try:
-        Base.metadata.create_all(engine)
-        
-        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-        session = SessionLocal()
-        
-        try:
-            yield session
-        finally:
-            session.close()
-    finally:
-        engine.dispose()
+@pytest.fixture(scope="session")
+def django_db_setup():
+    """Setup test database."""
+    settings.DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+    }
 
 
-@pytest.fixture(scope="function")
-def test_engine():
-    """Create a test database engine."""
-    engine = create_engine("sqlite:///:memory:", echo=False)
-    
-    try:
-        Base.metadata.create_all(engine)
-        yield engine
-    finally:
-        engine.dispose()
+@pytest.fixture
+def api_client():
+    """Create API client for testing."""
+    from rest_framework.test import APIClient
+    return APIClient()
+
+
+@pytest.fixture
+def authenticated_client(api_client, django_user_model):
+    """Create authenticated API client."""
+    user = django_user_model.objects.create_user(
+        username='testuser',
+        email='test@example.com',
+        password='testpass123'
+    )
+    api_client.force_authenticate(user=user)
+    return api_client, user

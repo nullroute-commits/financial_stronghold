@@ -108,7 +108,7 @@ The Financial Dashboard provides comprehensive financial analytics and summaries
 Docker >= 24.0.7
 Docker Compose >= 2.18.1
 Git >= 2.34
-Python >= 3.12.5
+Python >= 3.12.3
 ```
 
 #### Development Environment Check
@@ -438,7 +438,7 @@ docker compose -f ci/docker-compose.ci.yml run --rm build-test
 **Build Configuration:**
 ```dockerfile
 # Multi-stage Dockerfile for Financial Dashboard
-FROM python:3.12.5-slim as base
+FROM python:3.12.3-slim as base
 # Base dependencies for all environments
 
 FROM base as development
